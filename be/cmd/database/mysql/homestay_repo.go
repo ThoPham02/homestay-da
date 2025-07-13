@@ -5,115 +5,167 @@ import (
 	"database/sql"
 	"fmt"
 	"homestay-be/cmd/database/model"
-	"homestay-be/cmd/database/repo"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
 
-type homestayRepository struct {
+type HomestayRepo struct {
 	db *sqlx.DB
 }
 
-// NewHomestayRepository tạo instance mới của HomestayRepository
-func NewHomestayRepository(db *sqlx.DB) repo.HomestayRepository {
-	return &homestayRepository{db: db}
+func NewHomestayRepo(db *sqlx.DB) *HomestayRepo {
+	return &HomestayRepo{db: db}
 }
 
 // Create tạo homestay mới
-func (r *homestayRepository) Create(ctx context.Context, req *model.HomestayCreateRequest) (*model.Homestay, error) {
+func (r *HomestayRepo) Create(ctx context.Context, req *model.HomestayCreateRequest) (*model.Homestay, error) {
 	query := `
-		INSERT INTO homestay (name, description, address, owner_id)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, name, description, address, owner_id, created_at
+		INSERT INTO homestay (name, description, address, city, district, ward, latitude, longitude, owner_id, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+		RETURNING id, name, description, address, city, district, ward, latitude, longitude, owner_id, status, created_at, updated_at
 	`
 
 	var homestay model.Homestay
-	err := r.db.GetContext(ctx, &homestay, query, req.Name, req.Description, req.Address, req.OwnerID)
+	err := r.db.QueryRowContext(ctx, query,
+		req.Name, req.Description, req.Address, req.City, req.District, req.Ward,
+		req.Latitude, req.Longitude, req.OwnerID,
+	).Scan(
+		&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+		&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+		&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+		&homestay.CreatedAt, &homestay.UpdatedAt,
+	)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to create homestay: %w", err)
+		return nil, fmt.Errorf("error creating homestay: %w", err)
 	}
 
 	return &homestay, nil
 }
 
 // GetByID lấy homestay theo ID
-func (r *homestayRepository) GetByID(ctx context.Context, id int) (*model.Homestay, error) {
+func (r *HomestayRepo) GetByID(ctx context.Context, id int) (*model.Homestay, error) {
 	query := `
-		SELECT h.id, h.name, h.description, h.address, h.owner_id, h.created_at, u.name as owner_name
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+		       h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+		       u.name as owner_name
 		FROM homestay h
 		LEFT JOIN "user" u ON h.owner_id = u.id
 		WHERE h.id = $1
 	`
 
 	var homestay model.Homestay
-	err := r.db.GetContext(ctx, &homestay, query, id)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+		&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+		&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+		&homestay.CreatedAt, &homestay.UpdatedAt, &homestay.OwnerName,
+	)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("homestay not found")
 		}
-		return nil, fmt.Errorf("failed to get homestay: %w", err)
+		return nil, fmt.Errorf("error getting homestay: %w", err)
 	}
 
 	return &homestay, nil
 }
 
 // Update cập nhật thông tin homestay
-func (r *homestayRepository) Update(ctx context.Context, id int, req *model.HomestayUpdateRequest) (*model.Homestay, error) {
+func (r *HomestayRepo) Update(ctx context.Context, id int, req *model.HomestayUpdateRequest) (*model.Homestay, error) {
 	// Xây dựng query động
-	query := `UPDATE homestay SET `
+	query := "UPDATE homestay SET "
 	var args []interface{}
-	var setClauses []string
-	argIndex := 1
+	var sets []string
+	paramCount := 1
 
 	if req.Name != nil {
-		setClauses = append(setClauses, fmt.Sprintf("name = $%d", argIndex))
+		sets = append(sets, fmt.Sprintf("name = $%d", paramCount))
 		args = append(args, *req.Name)
-		argIndex++
+		paramCount++
 	}
-
 	if req.Description != nil {
-		setClauses = append(setClauses, fmt.Sprintf("description = $%d", argIndex))
+		sets = append(sets, fmt.Sprintf("description = $%d", paramCount))
 		args = append(args, *req.Description)
-		argIndex++
+		paramCount++
 	}
-
 	if req.Address != nil {
-		setClauses = append(setClauses, fmt.Sprintf("address = $%d", argIndex))
+		sets = append(sets, fmt.Sprintf("address = $%d", paramCount))
 		args = append(args, *req.Address)
-		argIndex++
+		paramCount++
+	}
+	if req.City != nil {
+		sets = append(sets, fmt.Sprintf("city = $%d", paramCount))
+		args = append(args, *req.City)
+		paramCount++
+	}
+	if req.District != nil {
+		sets = append(sets, fmt.Sprintf("district = $%d", paramCount))
+		args = append(args, *req.District)
+		paramCount++
+	}
+	if req.Ward != nil {
+		sets = append(sets, fmt.Sprintf("ward = $%d", paramCount))
+		args = append(args, *req.Ward)
+		paramCount++
+	}
+	if req.Latitude != nil {
+		sets = append(sets, fmt.Sprintf("latitude = $%d", paramCount))
+		args = append(args, *req.Latitude)
+		paramCount++
+	}
+	if req.Longitude != nil {
+		sets = append(sets, fmt.Sprintf("longitude = $%d", paramCount))
+		args = append(args, *req.Longitude)
+		paramCount++
+	}
+	if req.Status != nil {
+		sets = append(sets, fmt.Sprintf("status = $%d", paramCount))
+		args = append(args, *req.Status)
+		paramCount++
 	}
 
-	if len(setClauses) == 0 {
-		return r.GetByID(ctx, id)
+	if len(sets) == 0 {
+		return nil, fmt.Errorf("no fields to update")
 	}
 
-	query += strings.Join(setClauses, ", ")
-	query += fmt.Sprintf(" WHERE id = $%d", argIndex)
+	sets = append(sets, "updated_at = CURRENT_TIMESTAMP")
+	query += strings.Join(sets, ", ") + fmt.Sprintf(" WHERE id = $%d", paramCount)
 	args = append(args, id)
 
 	// Thực hiện update
-	_, err := r.db.ExecContext(ctx, query, args...)
+	result, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update homestay: %w", err)
-	}
-
-	// Lấy thông tin homestay sau khi update
-	return r.GetByID(ctx, id)
-}
-
-// Delete xóa homestay
-func (r *homestayRepository) Delete(ctx context.Context, id int) error {
-	query := `DELETE FROM homestay WHERE id = $1`
-	
-	result, err := r.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete homestay: %w", err)
+		return nil, fmt.Errorf("error updating homestay: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return nil, fmt.Errorf("error getting rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("homestay not found")
+	}
+
+	// Lấy homestay đã cập nhật
+	return r.GetByID(ctx, id)
+}
+
+// Delete xóa homestay
+func (r *HomestayRepo) Delete(ctx context.Context, id int) error {
+	query := "DELETE FROM homestay WHERE id = $1"
+
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("error deleting homestay: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
@@ -124,112 +176,188 @@ func (r *homestayRepository) Delete(ctx context.Context, id int) error {
 }
 
 // List lấy danh sách homestay với phân trang
-func (r *homestayRepository) List(ctx context.Context, page, pageSize int) ([]*model.Homestay, int, error) {
-	// Đếm tổng số records
-	countQuery := `SELECT COUNT(*) FROM homestay`
+func (r *HomestayRepo) List(ctx context.Context, page, pageSize int) ([]*model.Homestay, int, error) {
+	// Đếm tổng số
+	countQuery := "SELECT COUNT(*) FROM homestay"
 	var total int
-	err := r.db.GetContext(ctx, &total, countQuery)
+	err := r.db.QueryRowContext(ctx, countQuery).Scan(&total)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count homestays: %w", err)
+		return nil, 0, fmt.Errorf("error counting homestays: %w", err)
 	}
 
-	// Lấy danh sách homestay
+	// Lấy danh sách
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT h.id, h.name, h.description, h.address, h.owner_id, h.created_at, u.name as owner_name
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+		       h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+		       u.name as owner_name
 		FROM homestay h
 		LEFT JOIN "user" u ON h.owner_id = u.id
 		ORDER BY h.created_at DESC
 		LIMIT $1 OFFSET $2
 	`
 
-	var homestays []*model.Homestay
-	err = r.db.SelectContext(ctx, &homestays, query, pageSize, offset)
+	rows, err := r.db.QueryContext(ctx, query, pageSize, offset)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list homestays: %w", err)
+		return nil, 0, fmt.Errorf("error querying homestays: %w", err)
+	}
+	defer rows.Close()
+
+	var homestays []*model.Homestay
+	for rows.Next() {
+		var homestay model.Homestay
+		err := rows.Scan(
+			&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+			&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+			&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+			&homestay.CreatedAt, &homestay.UpdatedAt, &homestay.OwnerName,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error scanning homestay: %w", err)
+		}
+		homestays = append(homestays, &homestay)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error iterating homestays: %w", err)
 	}
 
 	return homestays, total, nil
 }
 
 // Search tìm kiếm homestay
-func (r *homestayRepository) Search(ctx context.Context, req *model.HomestaySearchRequest) ([]*model.Homestay, int, error) {
-	// Xây dựng query tìm kiếm
-	whereClauses := []string{}
+func (r *HomestayRepo) Search(ctx context.Context, req *model.HomestaySearchRequest) ([]*model.Homestay, int, error) {
+	// Xây dựng query đếm
+	countQuery := "SELECT COUNT(*) FROM homestay h WHERE 1=1"
+	searchQuery := `
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+		       h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+		       u.name as owner_name
+		FROM homestay h
+		LEFT JOIN "user" u ON h.owner_id = u.id
+		WHERE 1=1
+	`
+
 	var args []interface{}
-	argIndex := 1
+	paramCount := 1
 
+	// Thêm điều kiện tìm kiếm
 	if req.Name != nil && *req.Name != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("h.name ILIKE $%d", argIndex))
+		countQuery += fmt.Sprintf(" AND h.name ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.name ILIKE $%d", paramCount)
 		args = append(args, "%"+*req.Name+"%")
-		argIndex++
+		paramCount++
 	}
 
-	if req.Address != nil && *req.Address != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("h.address ILIKE $%d", argIndex))
-		args = append(args, "%"+*req.Address+"%")
-		argIndex++
+	if req.City != nil && *req.City != "" {
+		countQuery += fmt.Sprintf(" AND h.city ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.city ILIKE $%d", paramCount)
+		args = append(args, "%"+*req.City+"%")
+		paramCount++
 	}
 
-	if req.OwnerID != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("h.owner_id = $%d", argIndex))
+	if req.District != nil && *req.District != "" {
+		countQuery += fmt.Sprintf(" AND h.district ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.district ILIKE $%d", paramCount)
+		args = append(args, "%"+*req.District+"%")
+		paramCount++
+	}
+
+	if req.Status != nil && *req.Status != "" {
+		countQuery += fmt.Sprintf(" AND h.status = $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.status = $%d", paramCount)
+		args = append(args, *req.Status)
+		paramCount++
+	}
+
+	if req.OwnerID != nil && *req.OwnerID != 0 {
+		countQuery += fmt.Sprintf(" AND h.owner_id = $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.owner_id = $%d", paramCount)
 		args = append(args, *req.OwnerID)
-		argIndex++
+		paramCount++
 	}
 
-	whereClause := ""
-	if len(whereClauses) > 0 {
-		whereClause = "WHERE " + strings.Join(whereClauses, " AND ")
-	}
-
-	// Đếm tổng số records
-	countQuery := fmt.Sprintf(`
-		SELECT COUNT(*) 
-		FROM homestay h
-		LEFT JOIN "user" u ON h.owner_id = u.id
-		%s
-	`, whereClause)
+	// Đếm tổng số
 	var total int
-	err := r.db.GetContext(ctx, &total, countQuery, args...)
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count homestays: %w", err)
+		return nil, 0, fmt.Errorf("error counting homestays: %w", err)
 	}
 
-	// Lấy danh sách homestay
+	// Thêm phân trang
 	offset := (req.Page - 1) * req.PageSize
-	query := fmt.Sprintf(`
-		SELECT h.id, h.name, h.description, h.address, h.owner_id, h.created_at, u.name as owner_name
-		FROM homestay h
-		LEFT JOIN "user" u ON h.owner_id = u.id
-		%s
-		ORDER BY h.created_at DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, argIndex, argIndex+1)
+	searchQuery += fmt.Sprintf(" ORDER BY h.created_at DESC LIMIT $%d OFFSET $%d", paramCount, paramCount+1)
 	args = append(args, req.PageSize, offset)
 
-	var homestays []*model.Homestay
-	err = r.db.SelectContext(ctx, &homestays, query, args...)
+	// Thực hiện tìm kiếm
+	rows, err := r.db.QueryContext(ctx, searchQuery, args...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to search homestays: %w", err)
+		return nil, 0, fmt.Errorf("error searching homestays: %w", err)
+	}
+	defer rows.Close()
+
+	var homestays []*model.Homestay
+	for rows.Next() {
+		var homestay model.Homestay
+		err := rows.Scan(
+			&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+			&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+			&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+			&homestay.CreatedAt, &homestay.UpdatedAt, &homestay.OwnerName,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error scanning homestay: %w", err)
+		}
+		homestays = append(homestays, &homestay)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error iterating homestays: %w", err)
 	}
 
 	return homestays, total, nil
 }
 
-// GetByOwnerID lấy danh sách homestay theo owner
-func (r *homestayRepository) GetByOwnerID(ctx context.Context, ownerID int, page, pageSize int) ([]*model.Homestay, int, error) {
-	// Đếm tổng số records
-	countQuery := `SELECT COUNT(*) FROM homestay WHERE owner_id = $1`
-	var total int
-	err := r.db.GetContext(ctx, &total, countQuery, ownerID)
+// GetStats lấy thống kê homestay
+func (r *HomestayRepo) GetStats(ctx context.Context) (*model.HomestayStats, error) {
+	query := `
+		SELECT 
+			COUNT(*) as total_homestays,
+			COUNT(CASE WHEN status = 'active' THEN 1 END) as active_homestays,
+			COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_homestays,
+			COUNT(CASE WHEN status = 'inactive' THEN 1 END) as inactive_homestays
+		FROM homestay
+	`
+
+	var stats model.HomestayStats
+	err := r.db.QueryRowContext(ctx, query).Scan(
+		&stats.TotalHomestays, &stats.ActiveHomestays,
+		&stats.PendingHomestays, &stats.InactiveHomestays,
+	)
+
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count homestays: %w", err)
+		return nil, fmt.Errorf("error getting homestay stats: %w", err)
 	}
 
-	// Lấy danh sách homestay
+	return &stats, nil
+}
+
+// GetByOwnerID lấy homestay theo owner ID
+func (r *HomestayRepo) GetByOwnerID(ctx context.Context, ownerID int, page, pageSize int) ([]*model.Homestay, int, error) {
+	// Đếm tổng số
+	countQuery := "SELECT COUNT(*) FROM homestay WHERE owner_id = $1"
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, ownerID).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error counting homestays: %w", err)
+	}
+
+	// Lấy danh sách
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT h.id, h.name, h.description, h.address, h.owner_id, h.created_at, u.name as owner_name
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+		       h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+		       u.name as owner_name
 		FROM homestay h
 		LEFT JOIN "user" u ON h.owner_id = u.id
 		WHERE h.owner_id = $1
@@ -237,11 +365,30 @@ func (r *homestayRepository) GetByOwnerID(ctx context.Context, ownerID int, page
 		LIMIT $2 OFFSET $3
 	`
 
-	var homestays []*model.Homestay
-	err = r.db.SelectContext(ctx, &homestays, query, ownerID, pageSize, offset)
+	rows, err := r.db.QueryContext(ctx, query, ownerID, pageSize, offset)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get homestays by owner: %w", err)
+		return nil, 0, fmt.Errorf("error querying homestays: %w", err)
+	}
+	defer rows.Close()
+
+	var homestays []*model.Homestay
+	for rows.Next() {
+		var homestay model.Homestay
+		err := rows.Scan(
+			&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+			&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+			&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+			&homestay.CreatedAt, &homestay.UpdatedAt, &homestay.OwnerName,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error scanning homestay: %w", err)
+		}
+		homestays = append(homestays, &homestay)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error iterating homestays: %w", err)
 	}
 
 	return homestays, total, nil
-} 
+}

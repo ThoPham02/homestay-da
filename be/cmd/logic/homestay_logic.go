@@ -6,7 +6,6 @@ import (
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
 	"homestay-be/cmd/types"
-	"time"
 )
 
 type HomestayLogic struct {
@@ -27,6 +26,11 @@ func (h *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID 
 		Name:        req.Name,
 		Description: req.Description,
 		Address:     req.Address,
+		City:        req.City,
+		District:    req.District,
+		Ward:        req.Ward,
+		Latitude:    req.Latitude,
+		Longitude:   req.Longitude,
 		OwnerID:     hostID,
 	}
 	created, err := h.svcCtx.HomestayRepo.Create(h.ctx, modelReq)
@@ -38,9 +42,15 @@ func (h *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID 
 		Name:        created.Name,
 		Description: created.Description,
 		Address:     created.Address,
+		City:        created.City,
+		District:    created.District,
+		Ward:        created.Ward,
+		Latitude:    created.Latitude,
+		Longitude:   created.Longitude,
 		HostID:      created.OwnerID,
+		Status:      created.Status,
 		CreatedAt:   created.CreatedAt,
-		UpdatedAt:   created.CreatedAt,
+		UpdatedAt:   created.UpdatedAt,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
@@ -59,9 +69,15 @@ func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.Homestay
 		Name:        found.Name,
 		Description: found.Description,
 		Address:     found.Address,
+		City:        found.City,
+		District:    found.District,
+		Ward:        found.Ward,
+		Latitude:    found.Latitude,
+		Longitude:   found.Longitude,
 		HostID:      found.OwnerID,
+		Status:      found.Status,
 		CreatedAt:   found.CreatedAt,
-		UpdatedAt:   found.CreatedAt,
+		UpdatedAt:   found.UpdatedAt,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
@@ -76,10 +92,33 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 	if pageSize < 1 {
 		pageSize = 10
 	}
-	homestays, total, err := h.svcCtx.HomestayRepo.GetByOwnerID(h.ctx, hostID, page, pageSize)
+
+	// Tạo search request
+	searchReq := &model.HomestaySearchRequest{
+		OwnerID:  &hostID,
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	// Thêm các filter nếu có
+	if req.Search != "" {
+		searchReq.Name = &req.Search
+	}
+	if req.City != "" {
+		searchReq.City = &req.City
+	}
+	if req.District != "" {
+		searchReq.District = &req.District
+	}
+	if req.Status != "" {
+		searchReq.Status = &req.Status
+	}
+
+	homestays, total, err := h.svcCtx.HomestayRepo.Search(h.ctx, searchReq)
 	if err != nil {
 		return nil, err
 	}
+
 	respList := make([]types.Homestay, 0, len(homestays))
 	for _, hst := range homestays {
 		respList = append(respList, types.Homestay{
@@ -87,9 +126,15 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 			Name:        hst.Name,
 			Description: hst.Description,
 			Address:     hst.Address,
+			City:        hst.City,
+			District:    hst.District,
+			Ward:        hst.Ward,
+			Latitude:    hst.Latitude,
+			Longitude:   hst.Longitude,
 			HostID:      hst.OwnerID,
+			Status:      hst.Status,
 			CreatedAt:   hst.CreatedAt,
-			UpdatedAt:   hst.CreatedAt,
+			UpdatedAt:   hst.UpdatedAt,
 		})
 	}
 	totalPage := (total + pageSize - 1) / pageSize
@@ -112,23 +157,38 @@ func (h *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestay
 	if found.OwnerID != hostID {
 		return nil, errors.New("Không có quyền cập nhật homestay này")
 	}
+
 	modelReq := &model.HomestayUpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Address:     req.Address,
+		City:        req.City,
+		District:    req.District,
+		Ward:        req.Ward,
+		Latitude:    req.Latitude,
+		Longitude:   req.Longitude,
+		Status:      req.Status,
 	}
+
 	updated, err := h.svcCtx.HomestayRepo.Update(h.ctx, homestayID, modelReq)
 	if err != nil {
 		return nil, err
 	}
+
 	resp := types.Homestay{
 		ID:          updated.ID,
 		Name:        updated.Name,
 		Description: updated.Description,
 		Address:     updated.Address,
+		City:        updated.City,
+		District:    updated.District,
+		Ward:        updated.Ward,
+		Latitude:    updated.Latitude,
+		Longitude:   updated.Longitude,
 		HostID:      updated.OwnerID,
+		Status:      updated.Status,
 		CreatedAt:   updated.CreatedAt,
-		UpdatedAt:   time.Now(),
+		UpdatedAt:   updated.UpdatedAt,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }

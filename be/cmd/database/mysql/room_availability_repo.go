@@ -23,13 +23,13 @@ func NewRoomAvailabilityRepository(db *sqlx.DB) repo.RoomAvailabilityRepository 
 // Create tạo room availability mới
 func (r *roomAvailabilityRepository) Create(ctx context.Context, req *model.RoomAvailabilityCreateRequest) (*model.RoomAvailability, error) {
 	query := `
-		INSERT INTO room_availability (room_id, date, is_available, price)
+		INSERT INTO room_availability (room_id, date, status, price)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, room_id, date, is_available, price
+		RETURNING id, room_id, date, status, price
 	`
 
 	var availability model.RoomAvailability
-	err := r.db.GetContext(ctx, &availability, query, req.RoomID, req.Date, req.IsAvailable, req.Price)
+	err := r.db.GetContext(ctx, &availability, query, req.RoomID, req.Date, req.Status, req.Price)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create room availability: %w", err)
 	}
@@ -40,7 +40,7 @@ func (r *roomAvailabilityRepository) Create(ctx context.Context, req *model.Room
 // GetByID lấy room availability theo ID
 func (r *roomAvailabilityRepository) GetByID(ctx context.Context, id int) (*model.RoomAvailability, error) {
 	query := `
-		SELECT id, room_id, date, is_available, price
+		SELECT id, room_id, date, status, price
 		FROM room_availability
 		WHERE id = $1
 	`
@@ -65,9 +65,9 @@ func (r *roomAvailabilityRepository) Update(ctx context.Context, id int, req *mo
 	var setClauses []string
 	argIndex := 1
 
-	if req.IsAvailable != nil {
-		setClauses = append(setClauses, fmt.Sprintf("is_available = $%d", argIndex))
-		args = append(args, *req.IsAvailable)
+	if req.Status != nil {
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argIndex))
+		args = append(args, *req.Status)
 		argIndex++
 	}
 
@@ -129,7 +129,7 @@ func (r *roomAvailabilityRepository) List(ctx context.Context, page, pageSize in
 	// Lấy danh sách room availability
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT id, room_id, date, is_available, price
+		SELECT id, room_id, date, status, price
 		FROM room_availability
 		ORDER BY date DESC
 		LIMIT $1 OFFSET $2
@@ -169,9 +169,9 @@ func (r *roomAvailabilityRepository) Search(ctx context.Context, req *model.Room
 		argIndex++
 	}
 
-	if req.IsAvailable != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("is_available = $%d", argIndex))
-		args = append(args, *req.IsAvailable)
+	if req.Status != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("status = $%d", argIndex))
+		args = append(args, *req.Status)
 		argIndex++
 	}
 
@@ -190,7 +190,7 @@ func (r *roomAvailabilityRepository) Search(ctx context.Context, req *model.Room
 
 	// Lấy danh sách room availability
 	query := fmt.Sprintf(`
-		SELECT id, room_id, date, is_available, price
+		SELECT id, room_id, date, status, price
 		FROM room_availability
 		%s
 		ORDER BY date DESC
@@ -218,7 +218,7 @@ func (r *roomAvailabilityRepository) GetByRoomID(ctx context.Context, roomID int
 	// Lấy danh sách room availability
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT id, room_id, date, is_available, price
+		SELECT id, room_id, date, status, price
 		FROM room_availability
 		WHERE room_id = $1
 		ORDER BY date DESC
@@ -237,7 +237,7 @@ func (r *roomAvailabilityRepository) GetByRoomID(ctx context.Context, roomID int
 // GetByDateRange lấy room availability trong khoảng thời gian
 func (r *roomAvailabilityRepository) GetByDateRange(ctx context.Context, roomID int, startDate, endDate string) ([]*model.RoomAvailability, error) {
 	query := `
-		SELECT id, room_id, date, is_available, price
+		SELECT id, room_id, date, status, price
 		FROM room_availability
 		WHERE room_id = $1 AND date >= $2 AND date <= $3
 		ORDER BY date ASC
@@ -265,14 +265,14 @@ func (r *roomAvailabilityRepository) CreateBatch(ctx context.Context, req *model
 	currentDate := req.StartDate
 	for currentDate.Before(req.EndDate) || currentDate.Equal(req.EndDate) {
 		query := `
-			INSERT INTO room_availability (room_id, date, is_available, price)
+			INSERT INTO room_availability (room_id, date, status, price)
 			VALUES ($1, $2, $3, $4)
 			ON CONFLICT (room_id, date) DO UPDATE SET
-			is_available = EXCLUDED.is_available,
+			status = EXCLUDED.status,
 			price = EXCLUDED.price
 		`
 
-		_, err := tx.ExecContext(ctx, query, req.RoomID, currentDate, req.IsAvailable, req.Price)
+		_, err := tx.ExecContext(ctx, query, req.RoomID, currentDate, req.Status, req.Price)
 		if err != nil {
 			return fmt.Errorf("failed to create room availability for date %s: %w", currentDate.Format("2006-01-02"), err)
 		}
@@ -296,7 +296,7 @@ func (r *roomAvailabilityRepository) CheckAvailability(ctx context.Context, room
 		WHERE room_id = $1 
 		AND date >= $2 
 		AND date < $3 
-		AND is_available = false
+		AND status = false
 	`
 
 	var unavailableCount int

@@ -1,17 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import HomestayDetailView from '../components/Homestay/HomestayDetailView';
-import { useData } from '../contexts/DataContext';
+import { homestayService } from '../services/homestayService';
 import { useAuth } from '../contexts/AuthContext';
+import { Homestay, HomestayDetailResponse } from '../types';
 
 const HomestayDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getHomestayById, addBooking } = useData();
   const { user } = useAuth();
+  const [homestayDetail, setHomestayDetail] = useState<HomestayDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const homestay = id ? getHomestayById(id) : undefined;
+  const homestayId = parseInt(id || '0');
+
+  const loadHomestayDetail = async () => {
+    if (!homestayId) return;
+    
+    try {
+      setLoading(true);
+      const response = await homestayService.getHomestayById(homestayId);
+      setHomestayDetail(response);
+    } catch (error) {
+      console.error('Error loading homestay detail:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHomestayDetail();
+  }, [homestayId]);
 
   const handleBack = () => {
     navigate(-1);
@@ -23,30 +43,25 @@ const HomestayDetail: React.FC = () => {
       return;
     }
 
-    if (!homestay) return;
+    if (!homestayDetail) return;
 
-    const newBooking = {
-      id: Date.now().toString(),
-      homestayId: homestay.id,
-      guestId: user.id,
-      guestName: bookingData.guestName,
-      email: bookingData.email,
-      phone: bookingData.phone,
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      guests: bookingData.guests,
-      totalPrice: bookingData.totalPrice,
-      status: 'pending' as const,
-      createdAt: new Date().toISOString(),
-      notes: bookingData.notes
-    };
-    
-    addBooking(newBooking);
-    alert('Đặt phòng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.');
-    navigate('/bookings');
+    // TODO: Implement booking API call
+    console.log('Booking data:', bookingData);
+    alert('Tính năng đặt phòng sẽ được cập nhật sớm!');
   };
 
-  if (!homestay) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải thông tin homestay...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!homestayDetail) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -65,7 +80,7 @@ const HomestayDetail: React.FC = () => {
 
   return (
     <HomestayDetailView
-      homestay={homestay}
+      homestay={homestayDetail.homestay}
       onBack={handleBack}
       onBook={handleBooking}
     />

@@ -23,13 +23,13 @@ func NewRoomRepository(db *sqlx.DB) repo.RoomRepository {
 // Create tạo room mới
 func (r *roomRepository) Create(ctx context.Context, req *model.RoomCreateRequest) (*model.Room, error) {
 	query := `
-		INSERT INTO room (homestay_id, name, description, price, max_guests, is_active)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, homestay_id, name, description, price, max_guests, is_active
+		INSERT INTO room (homestay_id, name, description, type, capacity, price, price_type, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, homestay_id, name, description, type, capacity, price, price_type, status
 	`
 
 	var room model.Room
-	err := r.db.GetContext(ctx, &room, query, req.HomestayID, req.Name, req.Description, req.Price, req.MaxGuests, req.IsActive)
+	err := r.db.GetContext(ctx, &room, query, req.HomestayID, req.Name, req.Description, req.Type, req.Capacity, req.Price, req.PriceType, "available")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create room: %w", err)
 	}
@@ -40,7 +40,7 @@ func (r *roomRepository) Create(ctx context.Context, req *model.RoomCreateReques
 // GetByID lấy room theo ID
 func (r *roomRepository) GetByID(ctx context.Context, id int) (*model.Room, error) {
 	query := `
-		SELECT r.id, r.homestay_id, r.name, r.description, r.price, r.max_guests, r.is_active, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.id = $1
@@ -78,21 +78,33 @@ func (r *roomRepository) Update(ctx context.Context, id int, req *model.RoomUpda
 		argIndex++
 	}
 
+	if req.Type != nil {
+		setClauses = append(setClauses, fmt.Sprintf("type = $%d", argIndex))
+		args = append(args, *req.Type)
+		argIndex++
+	}
+
+	if req.Capacity != nil {
+		setClauses = append(setClauses, fmt.Sprintf("capacity = $%d", argIndex))
+		args = append(args, *req.Capacity)
+		argIndex++
+	}
+
 	if req.Price != nil {
 		setClauses = append(setClauses, fmt.Sprintf("price = $%d", argIndex))
 		args = append(args, *req.Price)
 		argIndex++
 	}
 
-	if req.MaxGuests != nil {
-		setClauses = append(setClauses, fmt.Sprintf("max_guests = $%d", argIndex))
-		args = append(args, *req.MaxGuests)
+	if req.PriceType != nil {
+		setClauses = append(setClauses, fmt.Sprintf("price_type = $%d", argIndex))
+		args = append(args, *req.PriceType)
 		argIndex++
 	}
 
-	if req.IsActive != nil {
-		setClauses = append(setClauses, fmt.Sprintf("is_active = $%d", argIndex))
-		args = append(args, *req.IsActive)
+	if req.Status != nil {
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argIndex))
+		args = append(args, *req.Status)
 		argIndex++
 	}
 
@@ -117,7 +129,7 @@ func (r *roomRepository) Update(ctx context.Context, id int, req *model.RoomUpda
 // Delete xóa room
 func (r *roomRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM room WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete room: %w", err)
@@ -148,7 +160,7 @@ func (r *roomRepository) List(ctx context.Context, page, pageSize int) ([]*model
 	// Lấy danh sách room
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT r.id, r.homestay_id, r.name, r.description, r.price, r.max_guests, r.is_active, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		ORDER BY r.id DESC
@@ -183,6 +195,12 @@ func (r *roomRepository) Search(ctx context.Context, req *model.RoomSearchReques
 		argIndex++
 	}
 
+	if req.Type != nil && *req.Type != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("r.type = $%d", argIndex))
+		args = append(args, *req.Type)
+		argIndex++
+	}
+
 	if req.MinPrice != nil {
 		whereClauses = append(whereClauses, fmt.Sprintf("r.price >= $%d", argIndex))
 		args = append(args, *req.MinPrice)
@@ -195,15 +213,15 @@ func (r *roomRepository) Search(ctx context.Context, req *model.RoomSearchReques
 		argIndex++
 	}
 
-	if req.MaxGuests != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("r.max_guests >= $%d", argIndex))
-		args = append(args, *req.MaxGuests)
+	if req.Capacity != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("r.capacity >= $%d", argIndex))
+		args = append(args, *req.Capacity)
 		argIndex++
 	}
 
-	if req.IsActive != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("r.is_active = $%d", argIndex))
-		args = append(args, *req.IsActive)
+	if req.Status != nil && *req.Status != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("r.status = $%d", argIndex))
+		args = append(args, *req.Status)
 		argIndex++
 	}
 
@@ -228,7 +246,7 @@ func (r *roomRepository) Search(ctx context.Context, req *model.RoomSearchReques
 	// Lấy danh sách room
 	offset := (req.Page - 1) * req.PageSize
 	query := fmt.Sprintf(`
-		SELECT r.id, r.homestay_id, r.name, r.description, r.price, r.max_guests, r.is_active, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
@@ -259,7 +277,7 @@ func (r *roomRepository) GetByHomestayID(ctx context.Context, homestayID int, pa
 	// Lấy danh sách room
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT r.id, r.homestay_id, r.name, r.description, r.price, r.max_guests, r.is_active, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.homestay_id = $1
@@ -305,4 +323,4 @@ func (r *roomRepository) GetAvailableRooms(ctx context.Context, homestayID int, 
 	}
 
 	return rooms, nil
-} 
+}

@@ -1,16 +1,18 @@
 import React from 'react';
 import { Search, MapPin, DollarSign, Users } from 'lucide-react';
+import { HomestayListRequest } from '../../types';
 
 interface SearchFiltersProps {
-  filters: any;
-  onFiltersChange: (filters: any) => void;
+  filters: HomestayListRequest;
+  onFiltersChange: (filters: HomestayListRequest) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, onFiltersChange }) => {
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: keyof HomestayListRequest, value: any) => {
     onFiltersChange({
       ...filters,
-      [key]: value
+      [key]: value,
+      page: 1 // Reset to first page when filters change
     });
   };
 
@@ -20,13 +22,35 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, onFiltersChange 
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm homestay..."
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            value={filters.search || ''}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+          />
+        </div>
+
+        <div className="relative">
           <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Địa điểm"
+            placeholder="Tỉnh/Thành phố"
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            value={filters.location || ''}
-            onChange={(e) => handleFilterChange('location', e.target.value)}
+            value={filters.city || ''}
+            onChange={(e) => handleFilterChange('city', e.target.value)}
+          />
+        </div>
+
+        <div className="relative">
+          <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Quận/Huyện"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            value={filters.district || ''}
+            onChange={(e) => handleFilterChange('district', e.target.value)}
           />
         </div>
 
@@ -34,36 +58,33 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, onFiltersChange 
           <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
           <select
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
-            value={filters.priceRange || ''}
-            onChange={(e) => handleFilterChange('priceRange', e.target.value)}
+            value={filters.status || 'active'}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
           >
-            <option value="">Tất cả giá</option>
-            <option value="0-500000">Dưới 500k</option>
-            <option value="500000-1000000">500k - 1tr</option>
-            <option value="1000000-2000000">1tr - 2tr</option>
-            <option value="2000000+">Trên 2tr</option>
+            <option value="active">Hoạt động</option>
+            <option value="inactive">Không hoạt động</option>
+            <option value="pending">Chờ duyệt</option>
+            <option value="">Tất cả trạng thái</option>
           </select>
         </div>
+      </div>
 
-        <div className="relative">
-          <Users className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-          <select
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
-            value={filters.guests || ''}
-            onChange={(e) => handleFilterChange('guests', e.target.value)}
-          >
-            <option value="">Số khách</option>
-            {[1,2,3,4,5,6,7,8,9,10].map(num => (
-              <option key={num} value={num}>{num} khách</option>
-            ))}
-          </select>
+      <div className="mt-4 flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          Hiển thị {filters.limit || 12} kết quả mỗi trang
         </div>
-
         <button
-          onClick={() => onFiltersChange({})}
-          className="bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+          onClick={() => onFiltersChange({
+            page: 1,
+            limit: 12,
+            search: '',
+            city: '',
+            district: '',
+            status: 'active'
+          })}
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2"
         >
-          <Search className="h-5 w-5" />
+          <Search className="h-4 w-4" />
           <span>Xóa bộ lọc</span>
         </button>
       </div>

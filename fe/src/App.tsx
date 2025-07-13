@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import BookingHistory from './pages/BookingHistory';
 import Management from './pages/Management';
 import AddHomestay from './pages/AddHomestay';
+import EditHomestay from './pages/EditHomestay';
 import HomestayDetailManagement from './pages/HomestayDetailManagement';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 
@@ -65,6 +66,14 @@ function App() {
                 element={
                   <ProtectedRoute requiredRoles={['host', 'admin']}>
                     <HomestayDetailManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/management/homestay/:id/edit" 
+                element={
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
+                    <EditHomestay />
                   </ProtectedRoute>
                 } 
               />

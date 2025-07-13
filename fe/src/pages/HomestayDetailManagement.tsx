@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Edit, Save, X, Plus, MapPin, Building, Users, DollarSign, Calendar, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw, MapPin, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
-import { Homestay, HomestayDetailResponse, UpdateHomestayRequest, RoomStats } from '../types';
-import RoomManagement from '../components/Room/RoomManagement';
+import { Homestay, HomestayStats, Room, RoomStats } from '../types';
 
 const HomestayDetailManagement: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,80 +11,77 @@ const HomestayDetailManagement: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   
-  const [homestayDetail, setHomestayDetail] = useState<HomestayDetailResponse | null>(null);
+  const [homestay, setHomestay] = useState<Homestay | null>(null);
+  const [homestayStats, setHomestayStats] = useState<HomestayStats | null>(null);
   const [roomStats, setRoomStats] = useState<RoomStats | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<UpdateHomestayRequest>({});
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview');
 
-  const homestay = homestayDetail?.homestay;
-  const rooms = homestayDetail?.rooms || [];
+  const homestayId = parseInt(id || '0');
 
   const loadData = async () => {
-    if (!id) return;
+    if (!homestayId) return;
     
     try {
       setLoading(true);
-      const [detailResponse, statsResponse] = await Promise.all([
-        homestayService.getHomestayById(parseInt(id)),
-        homestayService.getRoomStats(parseInt(id))
+      const [homestayDetail, stats, roomStatsData] = await Promise.all([
+        homestayService.getHomestayById(homestayId),
+        homestayService.getHomestayStatsById(homestayId),
+        homestayService.getRoomStats(homestayId)
       ]);
-      setHomestayDetail(detailResponse);
-      setRoomStats(statsResponse);
+      
+      setHomestay(homestayDetail.homestay);
+      setHomestayStats(stats);
+      setRoomStats(roomStatsData);
+      setRooms(homestayDetail.rooms || []);
     } catch (error) {
-      console.error('Error loading homestay detail:', error);
+      console.error('Error loading homestay data:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const refreshData = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
   useEffect(() => {
-    loadData();
-  }, [id]);
+    if (user?.role === 'host' || user?.role === 'admin') {
+      loadData();
+    }
+  }, [user, homestayId]);
 
   const handleBack = () => {
     navigate('/management');
   };
 
-  const handleEdit = () => {
+  const handleEditHomestay = () => {
+    navigate(`/management/homestay/${homestayId}/edit`);
+  };
+
+  const handleDeleteHomestay = async () => {
     if (!homestay) return;
-    setEditData({
-      name: homestay.name,
-      description: homestay.description,
-      address: homestay.address,
-      city: homestay.city,
-      district: homestay.district,
-      ward: homestay.ward,
-      latitude: homestay.latitude,
-      longitude: homestay.longitude,
-      status: homestay.status
-    });
-    setIsEditing(true);
-  };
-
-  const handleSave = async () => {
-    if (!homestay || !editData.name || !editData.description) {
-      alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
-      return;
-    }
-
-    try {
-      await homestayService.updateHomestay(homestay.id, editData);
-      await loadData(); // Reload data after update
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating homestay:', error);
+    
+    if (confirm(`Bạn có chắc chắn muốn xóa homestay "${homestay.name}"?`)) {
+      try {
+        await homestayService.deleteHomestay(homestayId);
+        navigate('/management');
+      } catch (error) {
+        console.error('Error deleting homestay:', error);
+      }
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditData({});
+  const handleAddRoom = () => {
+    navigate(`/management/homestay/${homestayId}/rooms/add`);
   };
 
-  const handleRoomAdded = () => {
-    loadData(); // Reload data when room is added/updated/deleted
+  const handleViewRoom = (roomId: number) => {
+    navigate(`/management/homestay/${homestayId}/rooms/${roomId}`);
   };
 
   if (loading) {
@@ -93,7 +89,7 @@ const HomestayDetailManagement: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải dữ liệu...</p>
+          <p className="text-gray-600">Đang tải thông tin homestay...</p>
         </div>
       </div>
     );
@@ -103,13 +99,12 @@ const HomestayDetailManagement: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy homestay</h2>
+          <p className="text-gray-600">Không tìm thấy homestay</p>
           <button
             onClick={handleBack}
-            className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700"
+            className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
           >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Quay lại</span>
+            Quay lại
           </button>
         </div>
       </div>
@@ -131,54 +126,44 @@ const HomestayDetailManagement: React.FC = () => {
 
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editData.name || homestay.name}
-                    onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  />
-                ) : (
-                  homestay.name
-                )}
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{homestay.name}</h1>
+              <div className="flex items-center text-gray-600 mb-4">
+                <MapPin className="h-4 w-4 mr-1" />
+                <span>{homestay.address}, {homestay.ward}, {homestay.district}, {homestay.city}</span>
+              </div>
               <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${homestayService.getStatusColor(homestay.status)}`}>
+                <div className="flex items-center">
+                  <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                  <span>{homestay.rating || 0} ({homestay.reviews || 0} đánh giá)</span>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs ${homestayService.getStatusColor(homestay.status)}`}>
                   {homestayService.formatStatus(homestay.status)}
                 </span>
-                <span>ID: {homestay.id}</span>
-                <span>Tạo ngày: {new Date(homestay.createdAt).toLocaleDateString('vi-VN')}</span>
               </div>
             </div>
-
             <div className="flex space-x-3">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Lưu
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Hủy
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleEdit}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Chỉnh sửa
-                </button>
-              )}
+              <button
+                onClick={refreshData}
+                disabled={refreshing}
+                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Làm mới
+              </button>
+              <button
+                onClick={handleEditHomestay}
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Chỉnh sửa
+              </button>
+              <button
+                onClick={handleDeleteHomestay}
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Xóa
+              </button>
             </div>
           </div>
         </div>
@@ -190,7 +175,7 @@ const HomestayDetailManagement: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">Tổng phòng</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {roomStats?.totalRooms || 0}
+                  {homestayStats?.totalRooms || 0}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
@@ -204,7 +189,7 @@ const HomestayDetailManagement: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">Phòng có sẵn</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {roomStats?.availableRooms || 0}
+                  {homestayStats?.availableRooms || 0}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -216,13 +201,13 @@ const HomestayDetailManagement: React.FC = () => {
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Tỷ lệ lấp đầy</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {roomStats?.occupancyRate?.toFixed(1) || 0}%
+                <p className="text-sm text-gray-600">Tổng đặt phòng</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {homestayStats?.totalBookings || 0}
                 </p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
+              <div className="bg-emerald-100 p-3 rounded-full">
+                <Calendar className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
           </div>
@@ -232,7 +217,7 @@ const HomestayDetailManagement: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">Doanh thu</p>
                 <p className="text-2xl font-bold text-emerald-600">
-                  {homestayService.formatPrice(roomStats?.totalRevenue || 0)}
+                  {homestayService.formatPrice(homestayStats?.totalRevenue || 0)}
                 </p>
               </div>
               <div className="bg-emerald-100 p-3 rounded-full">
@@ -264,7 +249,17 @@ const HomestayDetailManagement: React.FC = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                Quản lý Phòng ({rooms.length})
+                Phòng ({rooms.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'stats'
+                    ? 'border-emerald-500 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Thống kê
               </button>
             </nav>
           </div>
@@ -272,172 +267,194 @@ const HomestayDetailManagement: React.FC = () => {
           <div className="p-6">
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Basic Information */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Building className="h-5 w-5 mr-2" />
-                    Thông tin cơ bản
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Mô tả
-                        </label>
-                        {isEditing ? (
-                          <textarea
-                            value={editData.description || homestay.description}
-                            onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            rows={4}
-                          />
-                        ) : (
-                          <p className="text-gray-700">{homestay.description}</p>
-                        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Thông tin cơ bản</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tên homestay:</span>
+                        <span className="font-medium">{homestay.name}</span>
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Trạng thái
-                        </label>
-                        {isEditing ? (
-                          <select
-                            value={editData.status || homestay.status}
-                            onChange={(e) => setEditData(prev => ({ ...prev, status: e.target.value as any }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          >
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Không hoạt động</option>
-                            <option value="pending">Chờ duyệt</option>
-                          </select>
-                        ) : (
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${homestayService.getStatusColor(homestay.status)}`}>
-                            {homestayService.formatStatus(homestay.status)}
-                          </span>
-                        )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Trạng thái:</span>
+                        <span className={`font-medium ${homestayService.getStatusColor(homestay.status)}`}>
+                          {homestayService.formatStatus(homestay.status)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Đánh giá:</span>
+                        <span className="font-medium">{homestay.rating || 0}/5 ({homestay.reviews || 0} đánh giá)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Ngày tạo:</span>
+                        <span className="font-medium">
+                          {new Date(homestay.createdAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Địa chỉ</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Địa chỉ:</span>
+                        <span className="font-medium">{homestay.address}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phường/Xã:</span>
+                        <span className="font-medium">{homestay.ward}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Quận/Huyện:</span>
+                        <span className="font-medium">{homestay.district}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tỉnh/Thành phố:</span>
+                        <span className="font-medium">{homestay.city}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Address Information */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Thông tin địa chỉ
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Địa chỉ chi tiết
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.address || homestay.address}
-                            onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-gray-700">{homestay.address}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phường/Xã
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.ward || homestay.ward}
-                            onChange={(e) => setEditData(prev => ({ ...prev, ward: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-gray-700">{homestay.ward}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Quận/Huyện
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.district || homestay.district}
-                            onChange={(e) => setEditData(prev => ({ ...prev, district: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-gray-700">{homestay.district}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Tỉnh/Thành phố
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.city || homestay.city}
-                            onChange={(e) => setEditData(prev => ({ ...prev, city: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-gray-700">{homestay.city}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tọa độ địa lý
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-sm text-gray-600">Vĩ độ:</span>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              step="any"
-                              value={editData.latitude || homestay.latitude}
-                              onChange={(e) => setEditData(prev => ({ ...prev, latitude: parseFloat(e.target.value) || 0 }))}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            />
-                          ) : (
-                            <span className="ml-2 text-gray-700">{homestay.latitude}</span>
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-600">Kinh độ:</span>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              step="any"
-                              value={editData.longitude || homestay.longitude}
-                              onChange={(e) => setEditData(prev => ({ ...prev, longitude: parseFloat(e.target.value) || 0 }))}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            />
-                          ) : (
-                            <span className="ml-2 text-gray-700">{homestay.longitude}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <h3 className="text-lg font-medium mb-4">Mô tả</h3>
+                  <p className="text-gray-700 leading-relaxed">{homestay.description}</p>
                 </div>
               </div>
             )}
 
             {activeTab === 'rooms' && (
-              <RoomManagement 
-                homestayId={homestay.id} 
-                onRoomAdded={handleRoomAdded}
-              />
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold">Danh sách Phòng</h2>
+                  <button
+                    onClick={handleAddRoom}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Thêm Phòng
+                  </button>
+                </div>
+
+                {rooms.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Chưa có phòng nào</p>
+                    <button
+                      onClick={handleAddRoom}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                    >
+                      Thêm phòng đầu tiên
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {rooms.map((room) => (
+                      <div key={room.id} className="bg-gray-50 rounded-lg p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-lg font-medium">{room.name}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs ${homestayService.getStatusColor(room.status)}`}>
+                            {homestayService.formatStatus(room.status)}
+                          </span>
+                        </div>
+                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-gray-600">{room.description}</p>
+                          <p className="text-lg font-bold text-emerald-600">
+                            {homestayService.formatPrice(room.price)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {homestayService.formatPriceType(room.priceType)}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewRoom(room.id)}
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-50"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Xem chi tiết
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'stats' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Thống kê Homestay</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tổng phòng:</span>
+                        <span className="font-medium">{homestayStats?.totalRooms || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phòng có sẵn:</span>
+                        <span className="font-medium text-green-600">{homestayStats?.availableRooms || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phòng đã đặt:</span>
+                        <span className="font-medium text-red-600">
+                          {(homestayStats?.totalRooms || 0) - (homestayStats?.availableRooms || 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tổng đặt phòng:</span>
+                        <span className="font-medium">{homestayStats?.totalBookings || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Thống kê Doanh thu</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tổng doanh thu:</span>
+                        <span className="font-medium text-emerald-600">
+                          {homestayService.formatPrice(homestayStats?.totalRevenue || 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Doanh thu tháng này:</span>
+                        <span className="font-medium text-emerald-600">
+                          {homestayService.formatPrice(homestayStats?.monthlyRevenue || 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tỷ lệ lấp đầy:</span>
+                        <span className="font-medium">
+                          {homestayStats?.occupancyRate ? `${homestayStats.occupancyRate}%` : '0%'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {roomStats && (
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Thống kê Phòng</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{roomStats.totalRooms}</p>
+                        <p className="text-sm text-gray-600">Tổng phòng</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-green-600">{roomStats.availableRooms}</p>
+                        <p className="text-sm text-gray-600">Phòng có sẵn</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-emerald-600">
+                          {homestayService.formatPrice(roomStats.averagePrice || 0)}
+                        </p>
+                        <p className="text-sm text-gray-600">Giá trung bình</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

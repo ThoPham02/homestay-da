@@ -14,8 +14,15 @@ CREATE TABLE homestay (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    district VARCHAR(100) NOT NULL,
+    ward VARCHAR(100) NOT NULL,
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
     owner_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('active', 'inactive', 'pending')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tạo bảng room
@@ -24,9 +31,13 @@ CREATE TABLE room (
     homestay_id INTEGER NOT NULL REFERENCES homestay(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('single', 'double', 'family', 'dormitory')),
+    capacity INTEGER NOT NULL,
     price DECIMAL(12,2) NOT NULL,
-    max_guests INTEGER NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE
+    price_type VARCHAR(20) NOT NULL DEFAULT 'per_night' CHECK (price_type IN ('per_night', 'per_person')),
+    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tạo bảng room_availability để quản lý tình trạng phòng theo ngày
@@ -34,8 +45,10 @@ CREATE TABLE room_availability (
     id SERIAL PRIMARY KEY,
     room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    is_available BOOLEAN DEFAULT TRUE,
+    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'booked', 'blocked')),
     price DECIMAL(12,2), -- Giá có thể thay đổi theo ngày
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(room_id, date)
 );
 
@@ -93,6 +106,12 @@ CREATE TABLE review (
 );
 
 -- Tạo indexes để tối ưu hiệu suất truy vấn
+CREATE INDEX idx_homestay_owner_id ON homestay(owner_id);
+CREATE INDEX idx_homestay_status ON homestay(status);
+CREATE INDEX idx_homestay_city ON homestay(city);
+CREATE INDEX idx_homestay_district ON homestay(district);
+CREATE INDEX idx_room_homestay_id ON room(homestay_id);
+CREATE INDEX idx_room_status ON room(status);
 CREATE INDEX idx_booking_request_user_id ON booking_request(user_id);
 CREATE INDEX idx_booking_request_room_id ON booking_request(room_id);
 CREATE INDEX idx_booking_request_status ON booking_request(status);

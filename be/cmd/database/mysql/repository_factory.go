@@ -22,7 +22,7 @@ type RepositoryFactory struct {
 func NewRepositoryFactory(db *sqlx.DB) *RepositoryFactory {
 	return &RepositoryFactory{
 		UserRepo:             NewUserRepository(db),
-		HomestayRepo:         NewHomestayRepository(db),
+		HomestayRepo:         NewHomestayRepo(db),
 		RoomRepo:             NewRoomRepository(db),
 		RoomAvailabilityRepo: NewRoomAvailabilityRepository(db),
 		BookingRequestRepo:   NewBookingRequestRepository(db),
@@ -30,4 +30,4 @@ func NewRepositoryFactory(db *sqlx.DB) *RepositoryFactory {
 		PaymentRepo:          NewPaymentRepository(db),
 		ReviewRepo:           NewReviewRepository(db),
 	}
-} 
+}
