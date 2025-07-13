@@ -17,6 +17,7 @@ const HomestayDetailManagement: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [roomsLoading, setRoomsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview');
 
   const homestayId = parseInt(id || '0');
@@ -35,7 +36,6 @@ const HomestayDetailManagement: React.FC = () => {
       setHomestay(homestayDetail.homestay);
       setHomestayStats(stats);
       setRoomStats(roomStatsData);
-      setRooms(homestayDetail.rooms || []);
     } catch (error) {
       console.error('Error loading homestay data:', error);
     } finally {
@@ -43,17 +43,45 @@ const HomestayDetailManagement: React.FC = () => {
     }
   };
 
+  const loadRooms = async () => {
+    if (!homestayId) return;
+    
+    try {
+      setRoomsLoading(true);
+      const roomList = await homestayService.getRoomList({
+        homestayId: homestayId,
+        page: 1,
+        pageSize: 100 // Lấy tất cả phòng
+      });
+      setRooms(roomList.rooms || []);
+    } catch (error) {
+      console.error('Error loading rooms:', error);
+    } finally {
+      setRoomsLoading(false);
+    }
+  };
+
   const refreshData = async () => {
     setRefreshing(true);
-    await loadData();
+    await Promise.all([loadData(), loadRooms()]);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (user?.role === 'host' || user?.role === 'admin') {
       loadData();
+      loadRooms();
     }
   }, [user, homestayId]);
+
+  // Reload rooms when returning from add room page
+  useEffect(() => {
+    if (location.state?.refreshRooms) {
+      loadRooms();
+      // Clear the state to prevent infinite reload
+      navigate(location.pathname, { replace: true, state: { activeTab: location.state.activeTab } });
+    }
+  }, [location.state?.refreshRooms]);
 
   const handleBack = () => {
     navigate('/management');
@@ -82,6 +110,10 @@ const HomestayDetailManagement: React.FC = () => {
 
   const handleViewRoom = (roomId: number) => {
     navigate(`/management/homestay/${homestayId}/rooms/${roomId}`);
+  };
+
+  const handleRefreshRooms = async () => {
+    await loadRooms();
   };
 
   if (loading) {
@@ -327,16 +359,31 @@ const HomestayDetailManagement: React.FC = () => {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold">Danh sách Phòng</h2>
-                  <button
-                    onClick={handleAddRoom}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm Phòng
-                  </button>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleRefreshRooms}
+                      disabled={roomsLoading}
+                      className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${roomsLoading ? 'animate-spin' : ''}`} />
+                      Làm mới
+                    </button>
+                    <button
+                      onClick={handleAddRoom}
+                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Thêm Phòng
+                    </button>
+                  </div>
                 </div>
 
-                {rooms.length === 0 ? (
+                {roomsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Đang tải danh sách phòng...</p>
+                  </div>
+                ) : rooms.length === 0 ? (
                   <div className="text-center py-12">
                     <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-4">Chưa có phòng nào</p>

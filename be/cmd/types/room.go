@@ -41,13 +41,13 @@ type UpdateRoomRequest struct {
 
 // RoomListRequest - Request to get list of rooms
 type RoomListRequest struct {
-	HomestayID int      `json:"homestayId" form:"homestay_id" validate:"required"`
+	HomestayID int      `json:"homestayId" form:"homestayId" validate:"required"`
 	Page       int      `json:"page" form:"page" validate:"min=1"`
-	PageSize   int      `json:"pageSize" form:"page_size" validate:"min=1,max=100"`
+	PageSize   int      `json:"pageSize" form:"pageSize" validate:"min=1,max=100"`
 	Status     string   `json:"status" form:"status" validate:"omitempty,oneof=available occupied maintenance"`
 	Type       string   `json:"type" form:"type" validate:"omitempty,oneof=single double family dormitory"`
-	MinPrice   *float64 `json:"minPrice" form:"min_price" validate:"omitempty,min=0"`
-	MaxPrice   *float64 `json:"maxPrice" form:"max_price" validate:"omitempty,min=0"`
+	MinPrice   *float64 `json:"minPrice" form:"minPrice" validate:"omitempty,min=0"`
+	MaxPrice   *float64 `json:"maxPrice" form:"maxPrice" validate:"omitempty,min=0"`
 }
 
 // RoomListResponse - Response for room list

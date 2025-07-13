@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,6 +16,8 @@ import AddHomestay from './pages/AddHomestay';
 import EditHomestay from './pages/EditHomestay';
 import HomestayDetailManagement from './pages/HomestayDetailManagement';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import RoomDetailPage from './pages/RoomDetailPage';
+import RoomAddPage from './pages/AddRoomModal';
 
 function App() {
   return (
@@ -74,6 +75,22 @@ function App() {
                 element={
                   <ProtectedRoute requiredRoles={['host', 'admin']}>
                     <EditHomestay />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/management/homestay/:id/rooms/add" 
+                element={
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
+                    <RoomAddPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/management/homestay/:homestayId/rooms/:roomId" 
+                element={
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
+                    <RoomDetailPage />
                   </ProtectedRoute>
                 } 
               />

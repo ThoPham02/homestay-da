@@ -8,6 +8,8 @@ import (
 	"homestay-be/cmd/types"
 	"math"
 	"time"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type RoomLogic struct {
@@ -138,6 +140,8 @@ func (r *RoomLogic) GetRoomByID(roomID, hostID int) (*types.RoomDetailResponse, 
 // GetRoomList - Get list of rooms for a homestay
 func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.RoomListResponse, error) {
 	// Kiểm tra quyền sở hữu homestay
+	logx.Info(req.HomestayID)
+
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
 	if err != nil {
 		return nil, fmt.Errorf("homestay không tồn tại")

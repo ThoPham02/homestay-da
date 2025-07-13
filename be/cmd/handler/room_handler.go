@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type RoomHandler struct {
@@ -133,7 +134,8 @@ func (h *RoomHandler) GetRoomList(c *gin.Context) {
 
 	roomList, err := h.roomLogic.GetRoomList(&req, hostID)
 	if err != nil {
-		response.ResponseError(c, response.InternalServerError, response.MsgDatabaseError)
+		logx.Error(err)
+		response.ResponseError(c, response.BadRequest, err.Error())
 		return
 	}
 
