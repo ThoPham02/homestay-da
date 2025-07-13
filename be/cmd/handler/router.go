@@ -70,6 +70,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.GET("/homestays/stats", homestayHandler.GetHomestayStats)
 			host.GET("/homestays/:id", homestayHandler.GetHomestayByID)
 			host.PUT("/homestays/:id", homestayHandler.UpdateHomestay)
+			host.PUT("/homestays/:id/toggle-status", homestayHandler.ToggleHomestayStatus)
 			host.DELETE("/homestays/:id", homestayHandler.DeleteHomestay)
 			host.GET("/homestays/:id/stats", homestayHandler.GetHomestayStatsByID)
 

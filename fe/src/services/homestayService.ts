@@ -27,7 +27,7 @@ class HomestayService {
     try {
       const response = await api.post('/api/host/homestays', data);
       toastService.success('Tạo homestay thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi tạo homestay');
       throw error;
@@ -37,7 +37,8 @@ class HomestayService {
   async getHomestayList(params: HomestayListRequest = {}): Promise<HomestayListResponse> {
     try {
       const response = await api.get('/api/host/homestays', { params });
-      return response.data.data;
+
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách homestay');
       throw error;
@@ -47,7 +48,7 @@ class HomestayService {
   async getHomestayById(id: number): Promise<HomestayDetailResponse> {
     try {
       const response = await api.get(`/api/host/homestays/${id}`);
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thông tin homestay');
       throw error;
@@ -58,7 +59,7 @@ class HomestayService {
     try {
       const response = await api.put(`/api/host/homestays/${id}`, data);
       toastService.success('Cập nhật homestay thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi cập nhật homestay');
       throw error;
@@ -75,10 +76,24 @@ class HomestayService {
     }
   }
 
+  async toggleHomestayStatus(id: number): Promise<Homestay> {
+    try {
+      const response = await api.put(`/api/host/homestays/${id}/toggle-status`);
+      const newStatus = response.data.homestay.status;
+      const statusText = newStatus === 'active' ? 'Hoạt động' : 'Không hoạt động';
+      toastService.success(`Đã chuyển homestay sang trạng thái ${statusText}`);
+      return response.data.homestay;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi thay đổi trạng thái homestay');
+      throw error;
+    }
+  }
+
   async getHomestayStats(): Promise<HomestayStats> {
     try {
       const response = await api.get('/api/host/homestays/stats');
-      return response.data.data;
+
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thống kê homestay');
       throw error;
@@ -88,7 +103,7 @@ class HomestayService {
   async getHomestayStatsById(id: number): Promise<HomestayStats> {
     try {
       const response = await api.get(`/api/host/homestays/${id}/stats`);
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thống kê homestay');
       throw error;
@@ -100,7 +115,7 @@ class HomestayService {
     try {
       const response = await api.post('/api/host/rooms', data);
       toastService.success('Tạo phòng thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi tạo phòng');
       throw error;
@@ -110,7 +125,7 @@ class HomestayService {
   async getRoomList(params: RoomListRequest): Promise<RoomListResponse> {
     try {
       const response = await api.get('/api/host/rooms', { params });
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách phòng');
       throw error;
@@ -120,7 +135,7 @@ class HomestayService {
   async getRoomById(id: number): Promise<RoomDetailResponse> {
     try {
       const response = await api.get(`/api/host/rooms/${id}`);
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thông tin phòng');
       throw error;
@@ -131,7 +146,7 @@ class HomestayService {
     try {
       const response = await api.put(`/api/host/rooms/${id}`, data);
       toastService.success('Cập nhật phòng thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi cập nhật phòng');
       throw error;
@@ -151,7 +166,7 @@ class HomestayService {
   async getRoomStats(homestayId: number): Promise<RoomStats> {
     try {
       const response = await api.get(`/api/host/homestays/${homestayId}/rooms/stats`);
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thống kê phòng');
       throw error;
@@ -163,7 +178,7 @@ class HomestayService {
     try {
       const response = await api.post('/api/host/rooms/availability', data);
       toastService.success('Tạo availability thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi tạo availability');
       throw error;
@@ -174,7 +189,7 @@ class HomestayService {
     try {
       const response = await api.put(`/api/host/rooms/availability/${id}`, data);
       toastService.success('Cập nhật availability thành công');
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi cập nhật availability');
       throw error;
@@ -217,7 +232,6 @@ class HomestayService {
     const statusMap: Record<string, string> = {
       active: 'Hoạt động',
       inactive: 'Không hoạt động',
-      pending: 'Chờ duyệt',
       available: 'Có thể đặt',
       occupied: 'Đã được đặt',
       maintenance: 'Bảo trì'
@@ -227,14 +241,13 @@ class HomestayService {
 
   getStatusColor(status: string): string {
     const colorMap: Record<string, string> = {
-      active: 'text-green-600',
-      inactive: 'text-red-600',
-      pending: 'text-yellow-600',
-      available: 'text-green-600',
-      occupied: 'text-red-600',
-      maintenance: 'text-orange-600'
+      active: 'bg-green-100 text-green-800',
+      inactive: 'bg-red-100 text-red-800',
+      available: 'bg-green-100 text-green-800',
+      occupied: 'bg-red-100 text-red-800',
+      maintenance: 'bg-orange-100 text-orange-800'
     };
-    return colorMap[status] || 'text-gray-600';
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
   }
 }
 

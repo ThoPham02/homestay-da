@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw, Power } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
 import { Homestay, HomestayStats, Room } from '../types';
@@ -72,6 +72,18 @@ const Management: React.FC = () => {
 
   const handleAddRoom = (homestayId: number) => {
     navigate(`/management/homestay/${homestayId}/rooms/add`);
+  };
+
+  const handleToggleStatus = async (homestay: Homestay) => {
+    const action = homestay.status === 'active' ? 'tắt' : 'bật';
+    if (confirm(`Bạn có chắc chắn muốn ${action} homestay "${homestay.name}"?`)) {
+      try {
+        await homestayService.toggleHomestayStatus(homestay.id);
+        await loadData(); // Reload data after status change
+      } catch (error) {
+        console.error('Error toggling homestay status:', error);
+      }
+    }
   };
 
   if (loading) {
@@ -215,8 +227,8 @@ const Management: React.FC = () => {
                         <span className="font-medium text-green-600">{stats?.activeHomestays || 0}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Homestay chờ duyệt:</span>
-                        <span className="font-medium text-yellow-600">
+                        <span className="text-gray-600">Homestay không hoạt động:</span>
+                        <span className="font-medium text-red-600">
                           {(stats?.totalHomestays || 0) - (stats?.activeHomestays || 0)}
                         </span>
                       </div>
@@ -298,24 +310,31 @@ const Management: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="flex space-x-2">
+                          <div className="grid grid-cols-2 gap-2">
                             <button
                               onClick={() => handleViewHomestay(homestay)}
-                              className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100"
+                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100"
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               Xem
                             </button>
                             <button
                               onClick={() => handleEditHomestay(homestay)}
-                              className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
                             >
                               <Edit className="h-4 w-4 mr-1" />
                               Sửa
                             </button>
                             <button
+                              onClick={() => handleToggleStatus(homestay)}
+                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 rounded-lg hover:bg-yellow-100"
+                            >
+                              <Power className="h-4 w-4 mr-1" />
+                              {homestay.status === 'active' ? 'Tắt' : 'Bật'}
+                            </button>
+                            <button
                               onClick={() => handleDeleteHomestay(homestay.id)}
-                              className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Xóa

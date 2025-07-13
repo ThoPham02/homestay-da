@@ -13,10 +13,10 @@ type Homestay struct {
 	Ward        string    `json:"ward" db:"ward"`
 	Latitude    float64   `json:"latitude" db:"latitude"`
 	Longitude   float64   `json:"longitude" db:"longitude"`
-	HostID      int       `json:"host_id" db:"host_id"`
+	HostID      int       `json:"hostId" db:"host_id"`
 	Status      string    `json:"status" db:"status"` // active, inactive, pending
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreateHomestayRequest - Request to create a new homestay
@@ -41,15 +41,15 @@ type UpdateHomestayRequest struct {
 	Ward        *string  `json:"ward,omitempty" validate:"omitempty,min=2,max=50"`
 	Latitude    *float64 `json:"latitude,omitempty" validate:"omitempty"`
 	Longitude   *float64 `json:"longitude,omitempty" validate:"omitempty"`
-	Status      *string  `json:"status,omitempty" validate:"omitempty,oneof=active inactive pending"`
+	Status      *string  `json:"status,omitempty" validate:"omitempty,oneof=active inactive"`
 }
 
 // HomestayListRequest - Request to get list of homestays
 type HomestayListRequest struct {
 	Page     int    `json:"page" form:"page" validate:"min=1"`
-	PageSize int    `json:"page_size" form:"page_size" validate:"min=1,max=100"`
+	PageSize int    `json:"pageSize" form:"page_size" validate:"min=1,max=100"`
 	Search   string `json:"search" form:"search" validate:"omitempty"`
-	Status   string `json:"status" form:"status" validate:"omitempty,oneof=active inactive pending"`
+	Status   string `json:"status" form:"status" validate:"omitempty,oneof=active inactive"`
 	City     string `json:"city" form:"city" validate:"omitempty"`
 	District string `json:"district" form:"district" validate:"omitempty"`
 }
@@ -59,8 +59,8 @@ type HomestayListResponse struct {
 	Homestays []Homestay `json:"homestays"`
 	Total     int        `json:"total"`
 	Page      int        `json:"page"`
-	PageSize  int        `json:"page_size"`
-	TotalPage int        `json:"total_page"`
+	PageSize  int        `json:"pageSize"`
+	TotalPage int        `json:"totalPage"`
 }
 
 // HomestayDetailResponse - Response for homestay detail
@@ -71,10 +71,10 @@ type HomestayDetailResponse struct {
 
 // HomestayStatsResponse - Response for homestay statistics
 type HomestayStatsResponse struct {
-	TotalHomestays  int     `json:"total_homestays"`
-	ActiveHomestays int     `json:"active_homestays"`
-	TotalRooms      int     `json:"total_rooms"`
-	AvailableRooms  int     `json:"available_rooms"`
-	TotalBookings   int     `json:"total_bookings"`
-	TotalRevenue    float64 `json:"total_revenue"`
+	TotalHomestays  int     `json:"totalHomestays"`
+	ActiveHomestays int     `json:"activeHomestays"`
+	TotalRooms      int     `json:"totalRooms"`
+	AvailableRooms  int     `json:"availableRooms"`
+	TotalBookings   int     `json:"totalBookings"`
+	TotalRevenue    float64 `json:"totalRevenue"`
 }

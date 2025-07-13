@@ -20,7 +20,7 @@ CREATE TABLE homestay (
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     owner_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('active', 'inactive', 'pending')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

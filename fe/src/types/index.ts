@@ -33,7 +33,7 @@ export interface Homestay {
   latitude: number;
   longitude: number;
   hostId: number;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
   rooms?: Room[];
@@ -118,7 +118,7 @@ export interface UpdateHomestayRequest {
   ward?: string;
   latitude?: number;
   longitude?: number;
-  status?: 'active' | 'inactive' | 'pending';
+  status?: 'active' | 'inactive';
 }
 
 export interface CreateRoomRequest {

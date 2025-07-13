@@ -238,3 +238,48 @@ func (h *HomestayLogic) GetHomestayStatsByID(homestayID, hostID int) (*types.Hom
 		TotalRevenue:    0,
 	}, nil
 }
+
+// ToggleHomestayStatus - Toggle homestay status between active and inactive
+func (h *HomestayLogic) ToggleHomestayStatus(homestayID, hostID int) (*types.HomestayDetailResponse, error) {
+	// Kiểm tra quyền
+	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
+	if err != nil {
+		return nil, err
+	}
+	if found.OwnerID != hostID {
+		return nil, errors.New("Không có quyền thay đổi trạng thái homestay này")
+	}
+
+	// Xác định trạng thái mới
+	newStatus := "inactive"
+	if found.Status == "inactive" {
+		newStatus = "active"
+	}
+
+	// Cập nhật trạng thái
+	modelReq := &model.HomestayUpdateRequest{
+		Status: &newStatus,
+	}
+
+	updated, err := h.svcCtx.HomestayRepo.Update(h.ctx, homestayID, modelReq)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := types.Homestay{
+		ID:          updated.ID,
+		Name:        updated.Name,
+		Description: updated.Description,
+		Address:     updated.Address,
+		City:        updated.City,
+		District:    updated.District,
+		Ward:        updated.Ward,
+		Latitude:    updated.Latitude,
+		Longitude:   updated.Longitude,
+		HostID:      updated.OwnerID,
+		Status:      updated.Status,
+		CreatedAt:   updated.CreatedAt,
+		UpdatedAt:   updated.UpdatedAt,
+	}
+	return &types.HomestayDetailResponse{Homestay: resp}, nil
+}

@@ -110,7 +110,7 @@ func (h *HomestayHandler) GetHomestayByID(c *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number (default: 1)"
 // @Param page_size query int false "Page size (default: 10, max: 100)"
-// @Param status query string false "Filter by status (active, inactive, pending)"
+// @Param status query string false "Filter by status (active, inactive)"
 // @Param city query string false "Filter by city"
 // @Param district query string false "Filter by district"
 // @Success 200 {object} response.Response{data=types.HomestayListResponse}
@@ -311,4 +311,47 @@ func (h *HomestayHandler) GetHomestayStatsByID(c *gin.Context) {
 	}
 
 	response.ResponseSuccess(c, stats)
+}
+
+// ToggleHomestayStatus - Toggle homestay status (active/inactive)
+// @Summary Toggle homestay status
+// @Description Toggle homestay status between active and inactive
+// @Tags Homestay
+// @Accept json
+// @Produce json
+// @Param id path int true "Homestay ID"
+// @Success 200 {object} response.Response{data=types.Homestay}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/host/homestays/{id}/toggle-status [put]
+// @Security BearerAuth
+func (h *HomestayHandler) ToggleHomestayStatus(c *gin.Context) {
+	// Get homestay ID from URL
+	homestayIDStr := c.Param("id")
+	homestayID, err := strconv.Atoi(homestayIDStr)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidID)
+		return
+	}
+
+	// Get user ID from context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		return
+	}
+
+	hostID := userID.(int)
+
+	// Toggle homestay status
+	homestay, err := h.homestayLogic.ToggleHomestayStatus(homestayID, hostID)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, homestay)
 }
