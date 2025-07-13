@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"homestay-be/cmd/svc"
-	"homestay-be/core/http_response"
+	"home-da/cmd/logic"
+	"home-da/cmd/svc"
+	"home-da/core/http_response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,14 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 	
 	// Khởi tạo handlers
 	authHandler := NewAuthHandler(serverCtx)
+	
+	// Initialize logic layers
+	homestayLogic := logic.NewHomestayLogic(serverCtx.Ctx, serverCtx)
+	roomLogic := logic.NewRoomLogic(serverCtx.Ctx, serverCtx)
+	
+	// Initialize handlers
+	homestayHandler := NewHomestayHandler(homestayLogic)
+	roomHandler := NewRoomHandler(roomLogic)
 	
 	// API routes
 	api := router.Group("/api")
@@ -70,6 +79,32 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 		host.Use(RoleMiddleware("host", "admin"))
 		{
 			host.GET("/dashboard", getHostDashboard)
+			
+			// Homestay management
+			host.GET("/homestays", homestayHandler.GetHomestayList)
+			host.POST("/homestays", homestayHandler.CreateHomestay)
+			host.GET("/homestays/stats", homestayHandler.GetHomestayStats)
+			host.GET("/homestays/:id", homestayHandler.GetHomestayByID)
+			host.PUT("/homestays/:id", homestayHandler.UpdateHomestay)
+			host.DELETE("/homestays/:id", homestayHandler.DeleteHomestay)
+			host.GET("/homestays/:id/stats", homestayHandler.GetHomestayStatsByID)
+			
+			// Room management
+			host.GET("/rooms", roomHandler.GetRoomList)
+			host.POST("/rooms", roomHandler.CreateRoom)
+			host.GET("/rooms/:id", roomHandler.GetRoomByID)
+			host.PUT("/rooms/:id", roomHandler.UpdateRoom)
+			host.DELETE("/rooms/:id", roomHandler.DeleteRoom)
+			
+			// Room availability management
+			host.POST("/rooms/availability", roomHandler.CreateAvailability)
+			host.PUT("/rooms/availability/:id", roomHandler.UpdateAvailability)
+			host.POST("/rooms/availability/bulk", roomHandler.BulkUpdateAvailability)
+			
+			// Room statistics
+			host.GET("/homestays/:homestay_id/rooms/stats", roomHandler.GetRoomStats)
+			
+			// Legacy routes (tạm thời giữ lại)
 			host.GET("/my-homestays", getMyHomestays)
 			host.GET("/my-bookings", getMyBookings)
 			host.PUT("/bookings/:id/approve", approveBooking)

@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, User, Menu, X, Calendar, Building, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import LoginModal from '../Auth/LoginModal';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -24,15 +21,7 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleShowLogin = () => {
-    setAuthMode('login');
-    setShowLoginModal(true);
-  };
 
-  const handleShowRegister = () => {
-    setAuthMode('register');
-    setShowLoginModal(true);
-  };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
@@ -141,18 +130,18 @@ const Header: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-3">
-                  <button
-                    onClick={handleShowLogin}
+                  <Link
+                    to="/login"
                     className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Đăng nhập
-                  </button>
-                  <button
-                    onClick={handleShowRegister}
+                  </Link>
+                  <Link
+                    to="/register"
                     className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
                   >
                     Đăng ký
-                  </button>
+                  </Link>
                 </div>
               )}
             </nav>
@@ -225,18 +214,20 @@ const Header: React.FC = () => {
                   </>
                 ) : (
                   <div className="px-3 space-y-2">
-                    <button
-                      onClick={() => { handleShowLogin(); setIsMenuOpen(false); }}
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMenuOpen(false)}
                       className="w-full text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
                     >
                       Đăng nhập
-                    </button>
-                    <button
-                      onClick={() => { handleShowRegister(); setIsMenuOpen(false); }}
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsMenuOpen(false)}
                       className="w-full text-left px-3 py-2 bg-emerald-600 text-white rounded-md"
                     >
                       Đăng ký
-                    </button>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -245,11 +236,6 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
-        initialMode={authMode}
-      />
     </>
   );
 };

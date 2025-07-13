@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import HomestayList from './pages/HomestayList';
 import HomestayDetail from './pages/HomestayDetail';
 import About from './pages/About';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import BookingHistory from './pages/BookingHistory';
 import Management from './pages/Management';
 import AddHomestay from './pages/AddHomestay';
@@ -26,6 +28,10 @@ function App() {
               <Route path="/homestays" element={<HomestayList />} />
               <Route path="/homestay/:id" element={<HomestayDetail />} />
               <Route path="/about" element={<About />} />
+              
+              {/* Auth Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               
               {/* Protected Routes for Guests */}
               <Route 

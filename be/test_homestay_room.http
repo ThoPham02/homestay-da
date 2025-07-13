@@ -1,0 +1,332 @@
+### Test Homestay & Room APIs for Host
+
+# Variables
+@baseUrl = http://localhost:8080
+@authToken = {{login.response.body.data.access_token}}
+
+### 1. Login as Host
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "host@example.com",
+  "password": "password123"
+}
+
+### 2. Create Homestay
+POST {{baseUrl}}/api/host/homestays
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Homestay Sapa View",
+  "description": "Homestay đẹp với view núi Sapa, phù hợp cho gia đình và nhóm bạn. Có đầy đủ tiện nghi và dịch vụ chất lượng cao.",
+  "address": "123 Đường Fansipan",
+  "city": "Lào Cai",
+  "district": "Sa Pa",
+  "ward": "Phường Sa Pa",
+  "latitude": 22.3361,
+  "longitude": 103.8444
+}
+
+### 3. Get Homestay List
+GET {{baseUrl}}/api/host/homestays?page=1&page_size=10
+Authorization: Bearer {{authToken}}
+
+### 4. Get Homestay by ID
+GET {{baseUrl}}/api/host/homestays/1
+Authorization: Bearer {{authToken}}
+
+### 5. Update Homestay
+PUT {{baseUrl}}/api/host/homestays/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Homestay Sapa View Premium",
+  "description": "Homestay cao cấp với view núi Sapa tuyệt đẹp, phù hợp cho gia đình và nhóm bạn. Có đầy đủ tiện nghi 5 sao và dịch vụ chất lượng cao.",
+  "status": "active"
+}
+
+### 6. Get Homestay Statistics
+GET {{baseUrl}}/api/host/homestays/stats
+Authorization: Bearer {{authToken}}
+
+### 7. Get Homestay Statistics by ID
+GET {{baseUrl}}/api/host/homestays/1/stats
+Authorization: Bearer {{authToken}}
+
+### 8. Create Room
+POST {{baseUrl}}/api/host/rooms
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "homestay_id": 1,
+  "name": "Phòng Deluxe View Núi",
+  "description": "Phòng cao cấp với view núi Sapa tuyệt đẹp, có ban công riêng, phòng tắm trong, điều hòa, TV và wifi miễn phí.",
+  "type": "double",
+  "capacity": 2,
+  "price": 800000,
+  "price_type": "per_night"
+}
+
+### 9. Create Another Room
+POST {{baseUrl}}/api/host/rooms
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "homestay_id": 1,
+  "name": "Phòng Family Suite",
+  "description": "Phòng gia đình rộng rãi với 2 phòng ngủ, phòng khách, bếp mini và view núi. Phù hợp cho gia đình 4-6 người.",
+  "type": "family",
+  "capacity": 6,
+  "price": 1200000,
+  "price_type": "per_night"
+}
+
+### 10. Get Room List
+GET {{baseUrl}}/api/host/rooms?homestay_id=1&page=1&page_size=10
+Authorization: Bearer {{authToken}}
+
+### 11. Get Room by ID
+GET {{baseUrl}}/api/host/rooms/1
+Authorization: Bearer {{authToken}}
+
+### 12. Update Room
+PUT {{baseUrl}}/api/host/rooms/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Phòng Deluxe View Núi Premium",
+  "price": 900000,
+  "status": "available"
+}
+
+### 13. Create Room Availability
+POST {{baseUrl}}/api/host/rooms/availability
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "room_id": 1,
+  "date": "2024-01-15",
+  "status": "available",
+  "price": 950000
+}
+
+### 14. Create Multiple Availabilities
+POST {{baseUrl}}/api/host/rooms/availability/bulk
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "room_id": 1,
+  "start_date": "2024-01-20",
+  "end_date": "2024-01-25",
+  "status": "available",
+  "price": 1000000,
+  "exclude_dates": ["2024-01-22"]
+}
+
+### 15. Update Room Availability
+PUT {{baseUrl}}/api/host/rooms/availability/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "status": "booked",
+  "price": 1100000
+}
+
+### 16. Get Room Statistics
+GET {{baseUrl}}/api/host/homestays/1/rooms/stats
+Authorization: Bearer {{authToken}}
+
+### 17. Test Error Cases
+
+### 17.1 Create Homestay with Invalid Data
+POST {{baseUrl}}/api/host/homestays
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "",
+  "description": "Too short",
+  "address": "123",
+  "city": "",
+  "district": "",
+  "ward": "",
+  "latitude": 0,
+  "longitude": 0
+}
+
+### 17.2 Get Non-existent Homestay
+GET {{baseUrl}}/api/host/homestays/999
+Authorization: Bearer {{authToken}}
+
+### 17.3 Create Room for Non-existent Homestay
+POST {{baseUrl}}/api/host/rooms
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "homestay_id": 999,
+  "name": "Test Room",
+  "description": "Test room description",
+  "type": "single",
+  "capacity": 1,
+  "price": 500000,
+  "price_type": "per_night"
+}
+
+### 17.4 Update Room with Invalid Data
+PUT {{baseUrl}}/api/host/rooms/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "",
+  "price": -1000,
+  "type": "invalid_type"
+}
+
+### 17.5 Create Availability for Non-existent Room
+POST {{baseUrl}}/api/host/rooms/availability
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "room_id": 999,
+  "date": "2024-01-15",
+  "status": "available"
+}
+
+### 18. Test Authorization
+
+### 18.1 Access Host API without Token
+GET {{baseUrl}}/api/host/homestays
+
+### 18.2 Access Host API with Invalid Token
+GET {{baseUrl}}/api/host/homestays
+Authorization: Bearer invalid_token
+
+### 18.3 Access Host API as Guest User
+# First login as guest
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "guest@example.com",
+  "password": "password123"
+}
+
+### Then try to access host API
+GET {{baseUrl}}/api/host/homestays
+Authorization: Bearer {{login.response.body.data.access_token}}
+
+### 19. Batch Test - Create Multiple Homestays and Rooms
+
+### 19.1 Create Second Homestay
+POST {{baseUrl}}/api/host/homestays
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Homestay Đà Lạt View",
+  "description": "Homestay tại Đà Lạt với view hồ Xuân Hương, không khí mát mẻ, phù hợp cho nghỉ dưỡng và thư giãn.",
+  "address": "456 Đường Trần Phú",
+  "city": "Lâm Đồng",
+  "district": "Đà Lạt",
+  "ward": "Phường 1",
+  "latitude": 11.9404,
+  "longitude": 108.4583
+}
+
+### 19.2 Create Rooms for Second Homestay
+POST {{baseUrl}}/api/host/rooms
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "homestay_id": 2,
+  "name": "Phòng Standard",
+  "description": "Phòng tiêu chuẩn với view hồ, có đầy đủ tiện nghi cơ bản.",
+  "type": "single",
+  "capacity": 1,
+  "price": 400000,
+  "price_type": "per_night"
+}
+
+### 19.3 Get All Homestays with Filtering
+GET {{baseUrl}}/api/host/homestays?page=1&page_size=5&status=active&city=Lào Cai
+Authorization: Bearer {{authToken}}
+
+### 19.4 Get Rooms with Filtering
+GET {{baseUrl}}/api/host/rooms?homestay_id=1&page=1&page_size=5&status=available&type=double&min_price=500000&max_price=1000000
+Authorization: Bearer {{authToken}}
+
+### 20. Cleanup (Optional - for testing)
+
+### 20.1 Delete Room (if no active bookings)
+DELETE {{baseUrl}}/api/host/rooms/1
+Authorization: Bearer {{authToken}}
+
+### 20.2 Delete Homestay (if no active bookings)
+DELETE {{baseUrl}}/api/host/homestays/1
+Authorization: Bearer {{authToken}}
+
+### Response Format Examples
+
+### Success Response Format
+# {
+#   "result": {
+#     "code": 200,
+#     "message": "Tạo homestay thành công"
+#   },
+#   "data": {
+#     "id": 1,
+#     "name": "Homestay Sapa View",
+#     "description": "...",
+#     "address": "123 Đường Fansipan",
+#     "city": "Lào Cai",
+#     "district": "Sa Pa",
+#     "ward": "Phường Sa Pa",
+#     "latitude": 22.3361,
+#     "longitude": 103.8444,
+#     "host_id": 2,
+#     "status": "pending",
+#     "created_at": "2024-01-10T10:00:00Z",
+#     "updated_at": "2024-01-10T10:00:00Z"
+#   }
+# }
+
+### Error Response Format
+# {
+#   "result": {
+#     "code": 400,
+#     "message": "Dữ liệu không hợp lệ: Name is required"
+#   },
+#   "data": null
+# }
+
+### Authentication Error Format
+# {
+#   "result": {
+#     "code": 401,
+#     "message": "Không tìm thấy thông tin người dùng"
+#   },
+#   "data": null
+# }
+
+### Authorization Error Format
+# {
+#   "result": {
+#     "code": 403,
+#     "message": "Không có quyền truy cập homestay này"
+#   },
+#   "data": null
+# } 
