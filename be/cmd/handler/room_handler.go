@@ -280,7 +280,7 @@ func (h *RoomHandler) CreateAvailability(c *gin.Context) {
 // @Router /api/host/rooms/availability/{id} [put]
 // @Security BearerAuth
 func (h *RoomHandler) UpdateAvailability(c *gin.Context) {
-	availabilityIDStr := c.Param("availability_id")
+	availabilityIDStr := c.Param("id")
 	availabilityID, err := strconv.Atoi(availabilityIDStr)
 	if err != nil {
 		response.ResponseError(c, response.BadRequest, response.MsgInvalidID)
@@ -315,17 +315,17 @@ func (h *RoomHandler) UpdateAvailability(c *gin.Context) {
 // @Tags Room
 // @Accept json
 // @Produce json
-// @Param homestay_id path int true "Homestay ID"
+// @Param id path int true "Homestay ID"
 // @Success 200 {object} response.Response{data=types.RoomStatsResponse}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 403 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/host/homestays/{homestay_id}/rooms/stats [get]
+// @Router /api/host/homestays/{id}/rooms/stats [get]
 // @Security BearerAuth
 func (h *RoomHandler) GetRoomStats(c *gin.Context) {
-	homestayIDStr := c.Param("homestay_id")
+	homestayIDStr := c.Param("id")
 	homestayID, err := strconv.Atoi(homestayIDStr)
 	if err != nil {
 		response.ResponseError(c, response.BadRequest, response.MsgInvalidID)

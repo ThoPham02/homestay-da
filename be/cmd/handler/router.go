@@ -85,7 +85,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.PUT("/rooms/availability/:id", roomHandler.UpdateAvailability)
 
 			// Room statistics
-			host.GET("/homestays/:homestay_id/rooms/stats", roomHandler.GetRoomStats)
+			host.GET("/homestays/:id/rooms/stats", roomHandler.GetRoomStats)
 		}
 
 		// Guest routes (cần role guest)
