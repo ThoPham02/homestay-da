@@ -1,129 +1,61 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X, Plus } from 'lucide-react';
+import { ArrowLeft, MapPin, Building } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
+import { homestayService } from '../services/homestayService';
+import { CreateHomestayRequest } from '../types';
 
 const AddHomestay: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addHomestay } = useData();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateHomestayRequest>({
     name: '',
-    location: '',
-    price: '',
     description: '',
-    maxGuests: 1,
-    bedrooms: 1,
-    bathrooms: 1,
-    area: '',
-    amenities: [] as string[],
-    images: [] as string[]
+    address: '',
+    city: '',
+    district: '',
+    ward: '',
+    latitude: 0,
+    longitude: 0
   });
 
-  const [newAmenity, setNewAmenity] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const commonAmenities = [
-    'Wi-Fi', 'Điều hòa', 'Bếp đầy đủ', 'Máy giặt', 'Hồ bơi', 'Bãi đậu xe',
-    'BBQ', 'Sân vườn', 'Netflix', 'Lò sưởi', 'Thang máy', 'An ninh 24/7',
-    'Xe đạp miễn phí', 'Dịch vụ dọn phòng', 'Hồ bơi riêng', 'Bếp mini'
-  ];
-
-  const sampleImages = [
-    'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/2062426/pexels-photo-2062426.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/2462015/pexels-photo-2462015.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/2724748/pexels-photo-2724748.jpeg?auto=compress&cs=tinysrgb&w=800'
-  ];
-
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: keyof CreateHomestayRequest, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const addAmenityToList = (amenity: string) => {
-    if (amenity && !formData.amenities.includes(amenity)) {
-      setFormData(prev => ({
-        ...prev,
-        amenities: [...prev.amenities, amenity]
-      }));
-    }
-  };
-
-  const removeAmenity = (amenity: string) => {
-    setFormData(prev => ({
-      ...prev,
-      amenities: prev.amenities.filter(a => a !== amenity)
-    }));
-  };
-
-  const addCustomAmenity = () => {
-    if (newAmenity.trim()) {
-      addAmenityToList(newAmenity.trim());
-      setNewAmenity('');
-    }
-  };
-
-  const addImage = (url: string) => {
-    if (url && !formData.images.includes(url)) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, url]
-      }));
-    }
-  };
-
-  const removeImage = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter(img => img !== url)
-    }));
-  };
-
-  const addImageUrl = () => {
-    if (imageUrl.trim()) {
-      addImage(imageUrl.trim());
-      setImageUrl('');
-    }
-  };
-
   const handleBack = () => {
     navigate('/management');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.location || !formData.price || !formData.description) {
+    if (!formData.name || !formData.description || !formData.address || 
+        !formData.city || !formData.district || !formData.ward) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
-    if (formData.images.length === 0) {
-      alert('Vui lòng thêm ít nhất một hình ảnh!');
+    if (formData.latitude === 0 || formData.longitude === 0) {
+      alert('Vui lòng nhập tọa độ địa lý!');
       return;
     }
 
-    const homestayData = {
-      ...formData,
-      id: Date.now().toString(),
-      price: parseInt(formData.price),
-      area: parseInt(formData.area) || 0,
-      rating: 5.0,
-      reviews: 0,
-      ownerId: user?.id || 'unknown',
-      status: 'active' as const,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    addHomestay(homestayData);
-    alert('Thêm homestay thành công!');
-    navigate('/management');
+    try {
+      setLoading(true);
+      await homestayService.createHomestay(formData);
+      navigate('/management');
+    } catch (error) {
+      console.error('Error creating homestay:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -142,292 +74,185 @@ const AddHomestay: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên homestay *
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Nhập tên homestay"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Địa điểm *
-                </label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Thành phố, Tỉnh"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giá thuê/đêm (VNĐ) *
-                </label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="500000"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Diện tích (m²)
-                </label>
-                <input
-                  type="number"
-                  value={formData.area}
-                  onChange={(e) => handleInputChange('area', e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="50"
-                />
-              </div>
-            </div>
-
-            {/* Capacity */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Số khách tối đa
-                </label>
-                <select
-                  value={formData.maxGuests}
-                  onChange={(e) => handleInputChange('maxGuests', parseInt(e.target.value))}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {[1,2,3,4,5,6,7,8,9,10,12,15,20].map(num => (
-                    <option key={num} value={num}>{num} khách</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Số phòng ngủ
-                </label>
-                <select
-                  value={formData.bedrooms}
-                  onChange={(e) => handleInputChange('bedrooms', parseInt(e.target.value))}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {[1,2,3,4,5,6,7,8].map(num => (
-                    <option key={num} value={num}>{num} phòng</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Số phòng tắm
-                </label>
-                <select
-                  value={formData.bathrooms}
-                  onChange={(e) => handleInputChange('bathrooms', parseInt(e.target.value))}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {[1,2,3,4,5,6].map(num => (
-                    <option key={num} value={num}>{num} phòng</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả *
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="Mô tả chi tiết về homestay của bạn..."
-                required
-              />
-            </div>
-
-            {/* Amenities */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Tiện nghi
-              </label>
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Building className="h-5 w-5 mr-2" />
+                Thông tin cơ bản
+              </h2>
               
-              {/* Common Amenities */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-                {commonAmenities.map((amenity) => (
-                  <button
-                    key={amenity}
-                    type="button"
-                    onClick={() => 
-                      formData.amenities.includes(amenity) 
-                        ? removeAmenity(amenity)
-                        : addAmenityToList(amenity)
-                    }
-                    className={`p-2 text-sm rounded-lg border transition-colors ${
-                      formData.amenities.includes(amenity)
-                        ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {amenity}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom Amenity */}
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newAmenity}
-                  onChange={(e) => setNewAmenity(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Thêm tiện nghi khác..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomAmenity())}
-                />
-                <button
-                  type="button"
-                  onClick={addCustomAmenity}
-                  className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Selected Amenities */}
-              {formData.amenities.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-sm text-gray-600 mb-2">Tiện nghi đã chọn:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.amenities.map((amenity) => (
-                      <span
-                        key={amenity}
-                        className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1"
-                      >
-                        <span>{amenity}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeAmenity(amenity)}
-                          className="text-emerald-600 hover:text-emerald-800"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Images */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Hình ảnh *
-              </label>
-              
-              {/* Sample Images */}
-              <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-2">Chọn từ thư viện mẫu:</div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  {sampleImages.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Sample ${index + 1}`}
-                        className="w-full h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-emerald-300"
-                        onClick={() => addImage(url)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => addImage(url)}
-                        className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 rounded-lg flex items-center justify-center transition-all"
-                      >
-                        <Plus className="h-6 w-6 text-white opacity-0 hover:opacity-100" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Image URL */}
-              <div className="flex space-x-2 mb-4">
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Hoặc nhập URL hình ảnh..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
-                />
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Upload className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Selected Images */}
-              {formData.images.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-sm text-gray-600 mb-2">Hình ảnh đã chọn:</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {formData.images.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Selected ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(url)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        {index === 0 && (
-                          <div className="absolute bottom-1 left-1 bg-emerald-600 text-white text-xs px-2 py-1 rounded">
-                            Ảnh chính
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tên homestay *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Nhập tên homestay"
+                    required
+                  />
                 </div>
-              )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mô tả *
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Mô tả chi tiết về homestay"
+                    rows={3}
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex space-x-4 pt-6 border-t">
+            {/* Address Information */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <MapPin className="h-5 w-5 mr-2" />
+                Thông tin địa chỉ
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Địa chỉ chi tiết *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Số nhà, tên đường"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phường/Xã *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ward}
+                    onChange={(e) => handleInputChange('ward', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Phường/Xã"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quận/Huyện *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.district}
+                    onChange={(e) => handleInputChange('district', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Quận/Huyện"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tỉnh/Thành phố *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Tỉnh/Thành phố"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Coordinates */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900">Tọa độ địa lý</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vĩ độ (Latitude) *
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) => handleInputChange('latitude', parseFloat(e.target.value) || 0)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="10.762622"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ví dụ: 10.762622 (Hà Nội), 10.823099 (TP.HCM)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kinh độ (Longitude) *
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) => handleInputChange('longitude', parseFloat(e.target.value) || 0)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="106.660172"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ví dụ: 106.660172 (Hà Nội), 106.629664 (TP.HCM)
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-blue-900 mb-2">Hướng dẫn lấy tọa độ:</h3>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Truy cập <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Maps</a></li>
+                  <li>2. Tìm địa chỉ homestay của bạn</li>
+                  <li>3. Click chuột phải vào vị trí chính xác</li>
+                  <li>4. Copy tọa độ hiển thị (ví dụ: 10.762622, 106.660172)</li>
+                  <li>5. Nhập vào form bên trên</li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Hủy
               </button>
               <button
                 type="submit"
-                className="flex-1 bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+                disabled={loading}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
-                Thêm homestay
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Đang tạo...
+                  </>
+                ) : (
+                  'Tạo Homestay'
+                )}
               </button>
             </div>
           </form>

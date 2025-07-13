@@ -5,7 +5,7 @@ export const bookingService = {
   // Get all bookings for a user
   getUserBookings: async (userId: string): Promise<Booking[]> => {
     try {
-      const response = await api.get(`/bookings/user/${userId}`);
+      const response = await api.get(`/api/bookings/user/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user bookings:', error);
@@ -16,7 +16,7 @@ export const bookingService = {
   // Get bookings for a homestay
   getHomestayBookings: async (homestayId: string): Promise<Booking[]> => {
     try {
-      const response = await api.get(`/bookings/homestay/${homestayId}`);
+      const response = await api.get(`/api/bookings/homestay/${homestayId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching homestay bookings:', error);
@@ -27,7 +27,7 @@ export const bookingService = {
   // Create new booking
   createBooking: async (bookingData: Omit<Booking, 'id'>): Promise<Booking> => {
     try {
-      const response = await api.post('/bookings', bookingData);
+      const response = await api.post('/api/bookings', bookingData);
       return response.data;
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -38,7 +38,7 @@ export const bookingService = {
   // Update booking status
   updateBookingStatus: async (id: string, status: Booking['status']): Promise<Booking> => {
     try {
-      const response = await api.patch(`/bookings/${id}/status`, { status });
+      const response = await api.patch(`/api/bookings/${id}/status`, { status });
       return response.data;
     } catch (error) {
       console.error('Error updating booking status:', error);
@@ -49,7 +49,7 @@ export const bookingService = {
   // Cancel booking
   cancelBooking: async (id: string): Promise<void> => {
     try {
-      await api.delete(`/bookings/${id}`);
+      await api.delete(`/api/bookings/${id}`);
     } catch (error) {
       console.error('Error canceling booking:', error);
       throw error;
@@ -59,7 +59,7 @@ export const bookingService = {
   // Get booking by ID
   getBookingById: async (id: string): Promise<Booking> => {
     try {
-      const response = await api.get(`/bookings/${id}`);
+      const response = await api.get(`/api/bookings/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching booking:', error);

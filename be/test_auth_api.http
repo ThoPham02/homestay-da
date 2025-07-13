@@ -1,0 +1,36 @@
+### Test Auth API
+
+### 1. Register new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123",
+  "role": "host"
+}
+
+### 2. Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 3. Get Profile (cần token từ login)
+GET http://localhost:8080/api/auth/profile
+Authorization: Bearer {{access_token}}
+
+### 4. Logout
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer {{access_token}}
+
+### 5. Test GetProfile với token không hợp lệ
+GET http://localhost:8080/api/auth/profile
+Authorization: Bearer invalid_token
+
+### 6. Test GetProfile không có token
+GET http://localhost:8080/api/auth/profile 

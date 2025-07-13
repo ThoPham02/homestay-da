@@ -8,23 +8,23 @@ interface DataContextType {
   reviews: Review[];
   rooms: Room[];
   addHomestay: (homestay: Homestay) => void;
-  updateHomestay: (id: string, homestay: Partial<Homestay>) => void;
-  deleteHomestay: (id: string) => void;
+  updateHomestay: (id: number | string, homestay: Partial<Homestay>) => void;
+  deleteHomestay: (id: number | string) => void;
   addRoom: (room: Room) => void;
-  updateRoom: (id: string, room: Partial<Room>) => void;
-  deleteRoom: (id: string) => void;
+  updateRoom: (id: number | string, room: Partial<Room>) => void;
+  deleteRoom: (id: number | string) => void;
   addBooking: (booking: Booking) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   addReview: (review: Review) => void;
-  getHomestayById: (id: string) => Homestay | undefined;
-  getRoomsByHomestayId: (homestayId: string) => Room[];
-  getAvailableRooms: (homestayId: string, checkIn: string, checkOut: string) => Room[];
-  getRoomById: (id: string) => Room | undefined;
-  getBookingsByHomestayId: (homestayId: string) => Booking[];
-  getBookingsByUserId: (userId: string) => Booking[];
-  getReviewsByHomestayId: (homestayId: string) => Review[];
+  getHomestayById: (id: number | string) => Homestay | undefined;
+  getRoomsByHomestayId: (homestayId: number | string) => Room[];
+  getAvailableRooms: (homestayId: number | string, checkIn: string, checkOut: string) => Room[];
+  getRoomById: (id: number | string) => Room | undefined;
+  getBookingsByHomestayId: (homestayId: number | string) => Booking[];
+  getBookingsByUserId: (userId: number | string) => Booking[];
+  getReviewsByHomestayId: (homestayId: number | string) => Review[];
   getReviewByBookingId: (bookingId: string) => Review | undefined;
-  updateHomestayRating: (homestayId: string) => void;
+  updateHomestayRating: (homestayId: number | string) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -51,7 +51,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setHomestays(prev => [...prev, homestay]);
   };
 
-  const updateHomestay = (id: string, updatedHomestay: Partial<Homestay>) => {
+  const updateHomestay = (id: number | string, updatedHomestay: Partial<Homestay>) => {
     setHomestays(prev => 
       prev.map(homestay => 
         homestay.id === id ? { ...homestay, ...updatedHomestay } : homestay
@@ -59,7 +59,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     );
   };
 
-  const deleteHomestay = (id: string) => {
+  const deleteHomestay = (id: number | string) => {
     setHomestays(prev => prev.filter(homestay => homestay.id !== id));
     setRooms(prev => prev.filter(room => room.homestayId !== id));
   };
@@ -68,7 +68,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setRooms(prev => [...prev, room]);
   };
 
-  const updateRoom = (id: string, updatedRoom: Partial<Room>) => {
+  const updateRoom = (id: number | string, updatedRoom: Partial<Room>) => {
     setRooms(prev => 
       prev.map(room => 
         room.id === id ? { ...room, ...updatedRoom } : room
@@ -76,7 +76,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     );
   };
 
-  const deleteRoom = (id: string) => {
+  const deleteRoom = (id: number | string) => {
     setRooms(prev => prev.filter(room => room.id !== id));
   };
 
@@ -97,7 +97,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     updateHomestayRating(review.homestayId);
   };
 
-  const updateHomestayRating = (homestayId: string) => {
+  const updateHomestayRating = (homestayId: number | string) => {
     const homestayReviews = reviews.filter(r => r.homestayId === homestayId);
     if (homestayReviews.length === 0) return;
 
@@ -113,15 +113,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     );
   };
 
-  const getHomestayById = (id: string) => {
+  const getHomestayById = (id: number | string) => {
     return homestays.find(homestay => homestay.id === id);
   };
 
-  const getRoomsByHomestayId = (homestayId: string) => {
+  const getRoomsByHomestayId = (homestayId: number | string) => {
     return rooms.filter(room => room.homestayId === homestayId);
   };
 
-  const getAvailableRooms = (homestayId: string, checkIn: string, checkOut: string) => {
+  const getAvailableRooms = (homestayId: number | string, checkIn: string, checkOut: string) => {
     const homestayRooms = getRoomsByHomestayId(homestayId);
     const conflictingBookings = bookings.filter(booking => 
       booking.homestayId === homestayId &&
@@ -139,19 +139,19 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     );
   };
 
-  const getRoomById = (id: string) => {
+  const getRoomById = (id: number | string) => {
     return rooms.find(room => room.id === id);
   };
 
-  const getBookingsByHomestayId = (homestayId: string) => {
+  const getBookingsByHomestayId = (homestayId: number | string) => {
     return bookings.filter(booking => booking.homestayId === homestayId);
   };
 
-  const getBookingsByUserId = (userId: string) => {
+  const getBookingsByUserId = (userId: number | string) => {
     return bookings.filter(booking => booking.guestId === userId);
   };
 
-  const getReviewsByHomestayId = (homestayId: string) => {
+  const getReviewsByHomestayId = (homestayId: number | string) => {
     return reviews.filter(review => review.homestayId === homestayId);
   };
 

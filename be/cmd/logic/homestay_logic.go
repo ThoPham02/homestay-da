@@ -2,12 +2,11 @@ package logic
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
+	"errors"
+	"homestay-be/cmd/database/model"
+	"homestay-be/cmd/svc"
+	"homestay-be/cmd/types"
 	"time"
-
-	"home-da/cmd/types"
-	"home-da/core/http_response"
 )
 
 type HomestayLogic struct {
@@ -23,245 +22,159 @@ func NewHomestayLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Homestay
 }
 
 // CreateHomestay - Create a new homestay
-func (l *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID int) (*types.Homestay, error) {
-	// Check if host exists
-	host, err := l.svcCtx.UserRepo.GetByID(hostID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, http_response.NewError(http_response.NotFound, "Host không tồn tại")
-		}
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi kiểm tra host")
-	}
-
-	// Check if host has correct role
-	if host.Role != "host" && host.Role != "admin" {
-		return nil, http_response.NewError(http_response.Forbidden, "Chỉ host mới có thể tạo homestay")
-	}
-
-	// Create homestay
-	homestay := &types.Homestay{
+func (h *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID int) (*types.HomestayDetailResponse, error) {
+	modelReq := &model.HomestayCreateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Address:     req.Address,
-		City:        req.City,
-		District:    req.District,
-		Ward:        req.Ward,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
-		HostID:      hostID,
-		Status:      "pending", // Default status
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		OwnerID:     hostID,
 	}
-
-	// Save to database
-	homestayID, err := l.svcCtx.HomestayRepo.Create(homestay)
+	created, err := h.svcCtx.HomestayRepo.Create(h.ctx, modelReq)
 	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi tạo homestay")
+		return nil, err
 	}
-
-	// Get created homestay
-	createdHomestay, err := l.svcCtx.HomestayRepo.GetByID(homestayID)
-	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thông tin homestay")
+	resp := types.Homestay{
+		ID:          created.ID,
+		Name:        created.Name,
+		Description: created.Description,
+		Address:     created.Address,
+		HostID:      created.OwnerID,
+		CreatedAt:   created.CreatedAt,
+		UpdatedAt:   created.CreatedAt,
 	}
-
-	return createdHomestay, nil
+	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
 
 // GetHomestayByID - Get homestay by ID
-func (l *HomestayLogic) GetHomestayByID(homestayID int, hostID int) (*types.HomestayDetailResponse, error) {
-	// Get homestay
-	homestay, err := l.svcCtx.HomestayRepo.GetByID(homestayID)
+func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.HomestayDetailResponse, error) {
+	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, http_response.NewError(http_response.NotFound, "Homestay không tồn tại")
-		}
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thông tin homestay")
+		return nil, err
 	}
-
-	// Check if user has permission to view this homestay
-	if homestay.HostID != hostID {
-		// Check if user is admin
-		user, err := l.svcCtx.UserRepo.GetByID(hostID)
-		if err != nil || user.Role != "admin" {
-			return nil, http_response.NewError(http_response.Forbidden, "Không có quyền truy cập homestay này")
-		}
+	if found.OwnerID != hostID {
+		return nil, errors.New("Không có quyền truy cập homestay này")
 	}
-
-	// Get rooms for this homestay
-	rooms, err := l.svcCtx.RoomRepo.GetByHomestayID(homestayID)
-	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy danh sách phòng")
+	resp := types.Homestay{
+		ID:          found.ID,
+		Name:        found.Name,
+		Description: found.Description,
+		Address:     found.Address,
+		HostID:      found.OwnerID,
+		CreatedAt:   found.CreatedAt,
+		UpdatedAt:   found.CreatedAt,
 	}
-
-	return &types.HomestayDetailResponse{
-		Homestay: *homestay,
-		Rooms:    rooms,
-	}, nil
+	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
 
 // GetHomestayList - Get list of homestays for a host
-func (l *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID int) (*types.HomestayListResponse, error) {
-	// Set default values
-	if req.Page <= 0 {
-		req.Page = 1
+func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID int) (*types.HomestayListResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
 	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
 	}
-
-	// Get homestays
-	homestays, total, err := l.svcCtx.HomestayRepo.GetByHostID(hostID, req.Page, req.PageSize, req.Status, req.City, req.District)
+	homestays, total, err := h.svcCtx.HomestayRepo.GetByOwnerID(h.ctx, hostID, page, pageSize)
 	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy danh sách homestay")
+		return nil, err
 	}
-
-	// Calculate total pages
-	totalPage := (total + req.PageSize - 1) / req.PageSize
-
+	respList := make([]types.Homestay, 0, len(homestays))
+	for _, hst := range homestays {
+		respList = append(respList, types.Homestay{
+			ID:          hst.ID,
+			Name:        hst.Name,
+			Description: hst.Description,
+			Address:     hst.Address,
+			HostID:      hst.OwnerID,
+			CreatedAt:   hst.CreatedAt,
+			UpdatedAt:   hst.CreatedAt,
+		})
+	}
+	totalPage := (total + pageSize - 1) / pageSize
 	return &types.HomestayListResponse{
-		Homestays: homestays,
+		Homestays: respList,
 		Total:     total,
-		Page:      req.Page,
-		PageSize:  req.PageSize,
+		Page:      page,
+		PageSize:  pageSize,
 		TotalPage: totalPage,
 	}, nil
 }
 
 // UpdateHomestay - Update homestay
-func (l *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestayRequest, hostID int) (*types.Homestay, error) {
-	// Get homestay
-	homestay, err := l.svcCtx.HomestayRepo.GetByID(homestayID)
+func (h *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestayRequest, hostID int) (*types.HomestayDetailResponse, error) {
+	// Kiểm tra quyền
+	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, http_response.NewError(http_response.NotFound, "Homestay không tồn tại")
-		}
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thông tin homestay")
+		return nil, err
 	}
-
-	// Check if user has permission to update this homestay
-	if homestay.HostID != hostID {
-		// Check if user is admin
-		user, err := l.svcCtx.UserRepo.GetByID(hostID)
-		if err != nil || user.Role != "admin" {
-			return nil, http_response.NewError(http_response.Forbidden, "Không có quyền cập nhật homestay này")
-		}
+	if found.OwnerID != hostID {
+		return nil, errors.New("Không có quyền cập nhật homestay này")
 	}
-
-	// Update fields
-	if req.Name != nil {
-		homestay.Name = *req.Name
+	modelReq := &model.HomestayUpdateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Address:     req.Address,
 	}
-	if req.Description != nil {
-		homestay.Description = *req.Description
-	}
-	if req.Address != nil {
-		homestay.Address = *req.Address
-	}
-	if req.City != nil {
-		homestay.City = *req.City
-	}
-	if req.District != nil {
-		homestay.District = *req.District
-	}
-	if req.Ward != nil {
-		homestay.Ward = *req.Ward
-	}
-	if req.Latitude != nil {
-		homestay.Latitude = *req.Latitude
-	}
-	if req.Longitude != nil {
-		homestay.Longitude = *req.Longitude
-	}
-	if req.Status != nil {
-		homestay.Status = *req.Status
-	}
-
-	homestay.UpdatedAt = time.Now()
-
-	// Update in database
-	err = l.svcCtx.HomestayRepo.Update(homestay)
+	updated, err := h.svcCtx.HomestayRepo.Update(h.ctx, homestayID, modelReq)
 	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi cập nhật homestay")
+		return nil, err
 	}
-
-	return homestay, nil
+	resp := types.Homestay{
+		ID:          updated.ID,
+		Name:        updated.Name,
+		Description: updated.Description,
+		Address:     updated.Address,
+		HostID:      updated.OwnerID,
+		CreatedAt:   updated.CreatedAt,
+		UpdatedAt:   time.Now(),
+	}
+	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
 
 // DeleteHomestay - Delete homestay
-func (l *HomestayLogic) DeleteHomestay(homestayID int, hostID int) error {
-	// Get homestay
-	homestay, err := l.svcCtx.HomestayRepo.GetByID(homestayID)
+func (h *HomestayLogic) DeleteHomestay(homestayID, hostID int) error {
+	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return http_response.NewError(http_response.NotFound, "Homestay không tồn tại")
-		}
-		return http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thông tin homestay")
+		return err
 	}
-
-	// Check if user has permission to delete this homestay
-	if homestay.HostID != hostID {
-		// Check if user is admin
-		user, err := l.svcCtx.UserRepo.GetByID(hostID)
-		if err != nil || user.Role != "admin" {
-			return http_response.NewError(http_response.Forbidden, "Không có quyền xóa homestay này")
-		}
+	if found.OwnerID != hostID {
+		return errors.New("Không có quyền xóa homestay này")
 	}
-
-	// Check if homestay has active bookings
-	hasActiveBookings, err := l.svcCtx.BookingRepo.HasActiveBookingsByHomestayID(homestayID)
-	if err != nil {
-		return http_response.NewError(http_response.InternalServerError, "Lỗi khi kiểm tra booking")
-	}
-
-	if hasActiveBookings {
-		return http_response.NewError(http_response.BadRequest, "Không thể xóa homestay có booking đang hoạt động")
-	}
-
-	// Delete homestay (this will also delete related rooms and availabilities due to foreign key constraints)
-	err = l.svcCtx.HomestayRepo.Delete(homestayID)
-	if err != nil {
-		return http_response.NewError(http_response.InternalServerError, "Lỗi khi xóa homestay")
-	}
-
-	return nil
+	return h.svcCtx.HomestayRepo.Delete(h.ctx, homestayID)
 }
 
 // GetHomestayStats - Get homestay statistics for a host
-func (l *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsResponse, error) {
-	// Get statistics
-	stats, err := l.svcCtx.HomestayRepo.GetStatsByHostID(hostID)
+func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsResponse, error) {
+	// TODO: Implement thống kê thực tế (giả lập số liệu)
+	_, total, err := h.svcCtx.HomestayRepo.GetByOwnerID(h.ctx, hostID, 1, 1000)
 	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thống kê homestay")
+		return nil, err
 	}
-
-	return stats, nil
+	return &types.HomestayStatsResponse{
+		TotalHomestays:  total,
+		ActiveHomestays: total, // Giả lập
+		TotalRooms:      0,
+		AvailableRooms:  0,
+		TotalBookings:   0,
+		TotalRevenue:    0,
+	}, nil
 }
 
 // GetHomestayStatsByID - Get homestay statistics for a specific homestay
-func (l *HomestayLogic) GetHomestayStatsByID(homestayID int, hostID int) (*types.HomestayStatsResponse, error) {
-	// Check if user has permission
-	homestay, err := l.svcCtx.HomestayRepo.GetByID(homestayID)
+func (h *HomestayLogic) GetHomestayStatsByID(homestayID, hostID int) (*types.HomestayStatsResponse, error) {
+	// TODO: Implement thống kê thực tế (giả lập số liệu)
+	_, err := h.GetHomestayByID(homestayID, hostID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, http_response.NewError(http_response.NotFound, "Homestay không tồn tại")
-		}
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thông tin homestay")
+		return nil, err
 	}
-
-	if homestay.HostID != hostID {
-		user, err := l.svcCtx.UserRepo.GetByID(hostID)
-		if err != nil || user.Role != "admin" {
-			return nil, http_response.NewError(http_response.Forbidden, "Không có quyền truy cập thống kê homestay này")
-		}
-	}
-
-	// Get statistics for specific homestay
-	stats, err := l.svcCtx.HomestayRepo.GetStatsByID(homestayID)
-	if err != nil {
-		return nil, http_response.NewError(http_response.InternalServerError, "Lỗi khi lấy thống kê homestay")
-	}
-
-	return stats, nil
-} 
+	return &types.HomestayStatsResponse{
+		TotalHomestays:  1,
+		ActiveHomestays: 1,
+		TotalRooms:      0,
+		AvailableRooms:  0,
+		TotalBookings:   0,
+		TotalRevenue:    0,
+	}, nil
+}
