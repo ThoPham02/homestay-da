@@ -1,22 +1,49 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, User, Menu, X, Calendar, Building } from 'lucide-react';
+import { Home, User, Menu, X, Calendar, Building, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import LoginModal from '../Auth/LoginModal';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const { user, logout } = useAuth();
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const handleLogout = () => {
-    logout();
-    setIsMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const handleShowLogin = () => {
+    setAuthMode('login');
+    setShowLoginModal(true);
+  };
+
+  const handleShowRegister = () => {
+    setAuthMode('register');
+    setShowLoginModal(true);
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'host':
+        return 'Chủ nhà';
+      case 'admin':
+        return 'Quản trị viên';
+      case 'guest':
+      default:
+        return 'Khách hàng';
+    }
   };
 
   return (
@@ -62,9 +89,9 @@ const Header: React.FC = () => {
                 Giới thiệu
               </Link>
               
-              {user ? (
+              {isAuthenticated && user ? (
                 <div className="flex items-center space-x-4">
-                  {user.role === 'host' && (
+                  {(user.role === 'host' || user.role === 'admin') && (
                     <Link
                       to="/management"
                       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${
@@ -90,29 +117,43 @@ const Header: React.FC = () => {
                       <span>Đặt phòng của tôi</span>
                     </Link>
                   )}
-                  <div className="flex items-center space-x-2">
-                    <User className="h-5 w-5 text-gray-600" />
-                    <div className="text-sm">
-                      <div className="text-gray-700 font-medium">{user.name}</div>
-                      <div className="text-gray-500 text-xs">
-                        {user.role === 'host' ? 'Chủ nhà' : 'Khách hàng'}
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <div className="text-sm">
+                        <div className="text-gray-700 font-medium">{user.name}</div>
+                        <div className="text-gray-500 text-xs">
+                          {getRoleDisplayName(user.role)}
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="text-sm text-red-600 hover:text-red-700 ml-2"
+                      className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      title="Đăng xuất"
                     >
-                      Đăng xuất
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
-                >
-                  Đăng nhập
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={handleShowLogin}
+                    className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Đăng nhập
+                  </button>
+                  <button
+                    onClick={handleShowRegister}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
+                  >
+                    Đăng ký
+                  </button>
+                </div>
               )}
             </nav>
 
@@ -150,9 +191,9 @@ const Header: React.FC = () => {
                 >
                   Giới thiệu
                 </Link>
-                {user ? (
+                {isAuthenticated && user ? (
                   <>
-                    {user.role === 'host' && (
+                    {(user.role === 'host' || user.role === 'admin') && (
                       <Link
                         to="/management"
                         onClick={() => setIsMenuOpen(false)}
@@ -170,23 +211,33 @@ const Header: React.FC = () => {
                         Đặt phòng của tôi
                       </Link>
                     )}
-                    <div className="px-3 py-2 text-sm text-gray-600">
-                      Xin chào, {user.name} ({user.role === 'host' ? 'Chủ nhà' : 'Khách hàng'})
+                    <div className="px-3 py-2 text-sm text-gray-600 border-t border-gray-200 pt-2">
+                      <div className="font-medium">{user.name}</div>
+                      <div className="text-xs text-gray-500">{getRoleDisplayName(user.role)}</div>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="text-left px-3 py-2 text-red-600 hover:text-red-700"
+                      className="text-left px-3 py-2 text-red-600 hover:text-red-700 flex items-center space-x-2"
                     >
-                      Đăng xuất
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => { setShowLoginModal(true); setIsMenuOpen(false); }}
-                    className="text-left px-3 py-2 bg-emerald-600 text-white rounded-md mx-3"
-                  >
-                    Đăng nhập
-                  </button>
+                  <div className="px-3 space-y-2">
+                    <button
+                      onClick={() => { handleShowLogin(); setIsMenuOpen(false); }}
+                      className="w-full text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                    >
+                      Đăng nhập
+                    </button>
+                    <button
+                      onClick={() => { handleShowRegister(); setIsMenuOpen(false); }}
+                      className="w-full text-left px-3 py-2 bg-emerald-600 text-white rounded-md"
+                    >
+                      Đăng ký
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -197,6 +248,7 @@ const Header: React.FC = () => {
       <LoginModal 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
+        initialMode={authMode}
       />
     </>
   );

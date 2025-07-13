@@ -67,17 +67,11 @@ func (l *AuthLogic) Register(ctx context.Context, req *types.RegisterRequest) (*
 		return nil, errors.New("email đã được sử dụng")
 	}
 
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, errors.New("không thể mã hóa mật khẩu")
-	}
-
 	// Tạo user mới
 	userReq := &model.UserCreateRequest{
 		Name:     req.Name,
 		Email:    req.Email,
-		Password: string(hashedPassword),
+		Password: req.Password,
 		Role:     req.Role,
 	}
 

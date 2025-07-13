@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import Layout from './components/Layout/Layout';
@@ -29,17 +31,17 @@ function App() {
               <Route 
                 path="/bookings" 
                 element={
-                  <ProtectedRoute requiredRole="guest">
+                  <ProtectedRoute requiredRoles={['guest']}>
                     <BookingHistory />
                   </ProtectedRoute>
                 } 
               />
               
-              {/* Protected Routes for Hosts */}
+              {/* Protected Routes for Hosts and Admins */}
               <Route 
                 path="/management" 
                 element={
-                  <ProtectedRoute requiredRole="host">
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
                     <Management />
                   </ProtectedRoute>
                 } 
@@ -47,7 +49,7 @@ function App() {
               <Route 
                 path="/add-homestay" 
                 element={
-                  <ProtectedRoute requiredRole="host">
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
                     <AddHomestay />
                   </ProtectedRoute>
                 } 
@@ -55,7 +57,7 @@ function App() {
               <Route 
                 path="/management/homestay/:id" 
                 element={
-                  <ProtectedRoute requiredRole="host">
+                  <ProtectedRoute requiredRoles={['host', 'admin']}>
                     <HomestayDetailManagement />
                   </ProtectedRoute>
                 } 
@@ -64,6 +66,20 @@ function App() {
           </Layout>
         </DataProvider>
       </AuthProvider>
+      
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </Router>
   );
 }
