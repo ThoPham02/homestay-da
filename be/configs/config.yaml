@@ -2,5 +2,12 @@ http:
   path: localhost
   port: 8080
 database:
-  driver: mysql
-  source: root:123456@tcp(localhost:3306)/homestay
+  driver: postgres
+  host: localhost
+  port: 5432
+  user: postgres
+  password: password
+  dbname: homestay_db
+  sslmode: disable
+  # Legacy source field (optional)
+  # source: "host=localhost port=5432 user=postgres password=password dbname=homestay_db sslmode=disable"

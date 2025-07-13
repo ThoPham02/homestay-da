@@ -16,8 +16,24 @@ type HttpServer struct {
 }
 
 type Database struct {
-	Driver string `json:"driver" yaml:"driver"`
+	Driver   string `json:"driver" yaml:"driver"`
+	Host     string `json:"host" yaml:"host"`
+	Port     int    `json:"port" yaml:"port"`
+	User     string `json:"user" yaml:"user"`
+	Password string `json:"password" yaml:"password"`
+	DBName   string `json:"dbname" yaml:"dbname"`
+	SSLMode  string `json:"sslmode" yaml:"sslmode"`
+	// Legacy field for backward compatibility
 	Source string `json:"source" yaml:"source"`
+}
+
+// GetDSN trả về connection string cho PostgreSQL
+func (d *Database) GetDSN() string {
+	if d.Source != "" {
+		return d.Source
+	}
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		d.Host, d.Port, d.User, d.Password, d.DBName, d.SSLMode)
 }
 
 // LoadConfig đọc file config từ đường dẫn được chỉ định
