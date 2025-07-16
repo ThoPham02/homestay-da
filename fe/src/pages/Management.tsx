@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw, Power } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
-import { Homestay, HomestayStats, Room } from '../types';
+import { bookingService } from '../services/bookingService';
+import { Homestay, HomestayStats, Room, Booking } from '../types';
+import BookingList from './BookingList';
 
 const Management: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +15,17 @@ const Management: React.FC = () => {
   const [stats, setStats] = useState<HomestayStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [bookingFilters, setBookingFilters] = useState({
+    guestName: '',
+    email: '',
+    phone: '',
+    status: '',
+    checkIn: '',
+    checkOut: '',
+    roomName: '',
+  });
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   // Load data
   const loadData = async () => {
@@ -42,6 +55,31 @@ const Management: React.FC = () => {
       loadData();
     }
   }, [user]);
+
+  const loadBookings = async () => {
+    setBookingLoading(true);
+    try {
+      // Giả sử host có thể xem tất cả bookings của các homestay mình sở hữu
+      // Nếu cần filter theo homestayId, có thể lặp qua homestays và gọi getHomestayBookings
+      let allBookings: Booking[] = [];
+      for (const homestay of homestays) {
+        const res = await bookingService.getHomestayBookings(homestay.id.toString());
+        allBookings = allBookings.concat(res);
+      }
+      setBookings(allBookings);
+    } catch (error) {
+      setBookings([]);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'bookings') {
+      loadBookings();
+    }
+    // eslint-disable-next-line
+  }, [activeTab, homestays]);
 
   const handleAddHomestay = () => {
     navigate('/add-homestay');
@@ -84,6 +122,10 @@ const Management: React.FC = () => {
         console.error('Error toggling homestay status:', error);
       }
     }
+  };
+
+  const handleBookingFilterChange = (key: string, value: string) => {
+    setBookingFilters(prev => ({ ...prev, [key]: value }));
   };
 
   if (loading) {
@@ -206,6 +248,26 @@ const Management: React.FC = () => {
                 }`}
               >
                 Homestay của tôi ({homestays.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('bookings')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'bookings'
+                    ? 'border-emerald-500 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Đặt phòng ({stats?.totalBookings || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('payments')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'payments'
+                    ? 'border-emerald-500 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Thanh toán ({homestayService.formatPrice(stats?.totalRevenue || 0)})
               </button>
             </nav>
           </div>
@@ -345,6 +407,16 @@ const Management: React.FC = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'bookings' && (
+              <BookingList />
+            )}
+
+            {activeTab === 'payments' && (
+              <div>
+                {/* Payment details can be implemented here */}
               </div>
             )}
           </div>

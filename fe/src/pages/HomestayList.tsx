@@ -12,7 +12,7 @@ const HomestayList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<HomestayListRequest>({
     page: 1,
-    limit: 12,
+    pageSize: 12,
     search: '',
     city: '',
     district: '',
@@ -100,7 +100,7 @@ const HomestayList: React.FC = () => {
               ))}
             </div>
             
-            {homestays.length >= (filters.limit || 12) && (
+            {homestays.length >= (filters.pageSize || 12) && (
               <div className="text-center mt-12">
                 <button
                   onClick={handleLoadMore}

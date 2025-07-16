@@ -37,6 +37,8 @@ export interface Homestay {
   createdAt: string;
   updatedAt: string;
   rooms?: Room[];
+  rating?: number; // Trung bình đánh giá
+  reviews?: number; // Tổng số lượt đánh giá
 }
 
 export interface HomestayStats {
@@ -46,6 +48,8 @@ export interface HomestayStats {
   availableRooms: number;
   totalBookings: number;
   totalRevenue: number;
+  monthlyRevenue?: number; // Doanh thu tháng này
+  occupancyRate?: number; // Tỷ lệ lấp đầy (%)
 }
 
 export interface RoomStats {
@@ -58,22 +62,44 @@ export interface RoomStats {
   occupancyRate: number;
 }
 
+// export interface Booking {
+//   id: number;
+//   homestayId: number;
+//   roomId?: number;
+//   guestId: string;
+//   guestName: string;
+//   email: string;
+//   phone: string;
+//   checkIn: string;
+//   checkOut: string;
+//   guests: number;
+//   totalPrice: number;
+//   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+//   createdAt: string;
+//   notes?: string;
+// }
+
 export interface Booking {
-  id: string;
-  homestayId: string;
-  roomId?: string;
-  guestId: string;
-  guestName: string;
-  email: string;
-  phone: string;
+  id: number;
+  customerId: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  homestayId: number;
+  homestayName: string;
+  roomId: number;
+  roomName: string;
+  roomType: string;
   checkIn: string;
   checkOut: string;
-  guests: number;
-  totalPrice: number;
+  nights: number;
+  totalAmount: number;
+  paidAmount: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  createdAt: string;
-  notes?: string;
+  bookingDate: string;
+  paymentMethod: string;
 }
+
 
 export interface User {
   id: number;
@@ -166,6 +192,7 @@ export interface HomestayListRequest {
   page?: number;
   pageSize?: number;
   status?: string;
+  search?: string;
   city?: string;
   district?: string;
 }
