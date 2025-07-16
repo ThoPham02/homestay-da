@@ -6,8 +6,10 @@ import { homestayService } from '../services/homestayService';
 import { bookingService } from '../services/bookingService';
 import { Homestay, HomestayStats, Room, Booking } from '../types';
 import BookingList from './BookingList';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const Management: React.FC = () => {
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -63,7 +65,7 @@ const Management: React.FC = () => {
       // Nếu cần filter theo homestayId, có thể lặp qua homestays và gọi getHomestayBookings
       let allBookings: Booking[] = [];
       for (const homestay of homestays) {
-        const res = await bookingService.getHomestayBookings(homestay.id.toString());
+        const res = await bookingService.filterBookings(homestay.id.toString());
         allBookings = allBookings.concat(res);
       }
       setBookings(allBookings);
@@ -94,7 +96,13 @@ const Management: React.FC = () => {
   };
 
   const handleDeleteHomestay = async (id: number) => {
-    if (confirm('Bạn có chắc chắn muốn xóa homestay này?')) {
+    var result = await confirm({
+      title: 'Xác nhận xóa homestay',
+      description: `Bạn có chắc chắn muốn xóa homestay này?`,
+      confirmText: 'Xóa',
+      cancelText: 'Không'
+    });
+    if (result) {
       try {
         await homestayService.deleteHomestay(id);
         await loadData(); // Reload data after deletion
@@ -114,7 +122,14 @@ const Management: React.FC = () => {
 
   const handleToggleStatus = async (homestay: Homestay) => {
     const action = homestay.status === 'active' ? 'tắt' : 'bật';
-    if (confirm(`Bạn có chắc chắn muốn ${action} homestay "${homestay.name}"?`)) {
+    
+    var result = await confirm({
+      title: `Xác nhận ${action} homestay`,
+      description: `Bạn có chắc chắn muốn ${action} homestay "${homestay.name}"?`,
+      confirmText: action === 'bật' ? 'Bật' : 'Tắt',
+      cancelText: 'Không'
+    });
+    if (result) {
       try {
         await homestayService.toggleHomestayStatus(homestay.id);
         await loadData(); // Reload data after status change

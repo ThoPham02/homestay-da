@@ -18,101 +18,104 @@ import HomestayDetailManagement from './pages/HomestayDetailManagement';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import RoomDetailPage from './pages/RoomDetailPage';
 import RoomAddPage from './pages/AddRoomModal';
+import { ConfirmProvider } from './components/ConfirmDialog';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <DataProvider>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/homestays" element={<HomestayList />} />
-              <Route path="/homestay/:id" element={<HomestayDetail />} />
-              <Route path="/about" element={<About />} />
-              
-              {/* Auth Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Protected Routes for Guests */}
-              <Route 
-                path="/bookings" 
-                element={
-                  <ProtectedRoute requiredRoles={['guest']}>
-                    <BookingHistory />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Protected Routes for Hosts and Admins */}
-              <Route 
-                path="/management" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <Management />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/add-homestay" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <AddHomestay />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/management/homestay/:id" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <HomestayDetailManagement />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/management/homestay/:id/edit" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <EditHomestay />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/management/homestay/:id/rooms/add" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <RoomAddPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/management/homestay/:homestayId/rooms/:roomId" 
-                element={
-                  <ProtectedRoute requiredRoles={['host', 'admin']}>
-                    <RoomDetailPage />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </Layout>
-        </DataProvider>
-      </AuthProvider>
-      
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-    </Router>
+    <ConfirmProvider>
+      <Router>
+        <AuthProvider>
+          <DataProvider>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/homestays" element={<HomestayList />} />
+                <Route path="/homestay/:id" element={<HomestayDetail />} />
+                <Route path="/about" element={<About />} />
+
+                {/* Auth Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+
+                {/* Protected Routes for Guests */}
+                <Route
+                  path="/bookings"
+                  element={
+                    <ProtectedRoute requiredRoles={['guest']}>
+                      <BookingHistory />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Protected Routes for Hosts and Admins */}
+                <Route
+                  path="/management"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <Management />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/add-homestay"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <AddHomestay />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/management/homestay/:id"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <HomestayDetailManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/management/homestay/:id/edit"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <EditHomestay />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/management/homestay/:id/rooms/add"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <RoomAddPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/management/homestay/:homestayId/rooms/:roomId"
+                  element={
+                    <ProtectedRoute requiredRoles={['host', 'admin']}>
+                      <RoomDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Layout>
+          </DataProvider>
+        </AuthProvider>
+
+        {/* Toast Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </Router>
+    </ConfirmProvider>
   );
 }
 

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/zeromicro/go-zero/core/logx"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -77,6 +78,7 @@ func (l *AuthLogic) Register(ctx context.Context, req *types.RegisterRequest) (*
 
 	user, err := l.svc.UserRepo.Create(ctx, userReq)
 	if err != nil {
+		logx.Error("Failed to create user:", err)
 		return nil, errors.New("không thể tạo tài khoản")
 	}
 

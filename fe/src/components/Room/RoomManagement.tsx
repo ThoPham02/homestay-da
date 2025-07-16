@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Calendar, Users, DollarSign } from 'lucide-react';
 import { homestayService } from '../../services/homestayService';
 import { Room, CreateRoomRequest, UpdateRoomRequest } from '../../types';
+import { useConfirm } from '../ConfirmDialog';
 
 interface RoomManagementProps {
   homestayId: number;
@@ -9,6 +10,7 @@ interface RoomManagementProps {
 }
 
 const RoomManagement: React.FC<RoomManagementProps> = ({ homestayId, onRoomAdded }) => {
+  const confirm = useConfirm();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -106,7 +108,12 @@ const RoomManagement: React.FC<RoomManagementProps> = ({ homestayId, onRoomAdded
   };
 
   const handleDelete = async (roomId: number) => {
-    if (confirm('Bạn có chắc chắn muốn xóa phòng này?')) {
+    const result = await confirm({
+      title: 'Xác nhận xóa phòng',
+      description: `Bạn có chắc chắn muốn xóa phòng này?`
+    });
+
+    if (result) {
       try {
         await homestayService.deleteRoom(roomId);
         await loadRooms();

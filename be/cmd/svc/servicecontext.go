@@ -4,15 +4,17 @@ import (
 	"homestay-be/cmd/config"
 	"homestay-be/cmd/database/mysql"
 	"homestay-be/cmd/database/repo"
+	"homestay-be/cmd/storage"
 	"log"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type ServiceContext struct {
-	Config config.Config
-	DB     *sqlx.DB
-	
+	Config    config.Config
+	DB        *sqlx.DB
+	CldClient *storage.CloudinaryClient
+
 	// Repositories
 	UserRepo             repo.UserRepository
 	HomestayRepo         repo.HomestayRepository
@@ -34,19 +36,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DBName:   c.Database.DBName,
 		SSLMode:  c.Database.SSLMode,
 	}
-	
+
 	db, err := mysql.NewConnection(dbConfig)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	
+
 	// Khởi tạo repository factory
 	repoFactory := mysql.NewRepositoryFactory(db)
-	
+
 	return &ServiceContext{
 		Config: c,
 		DB:     db,
-		
+		CldClient: storage.NewCloudinaryClient(c.Storage.CloudName, c.Storage.APIKey, c.Storage.APISecret, "inventory"),
 		// Repositories
 		UserRepo:             repoFactory.UserRepo,
 		HomestayRepo:         repoFactory.HomestayRepo,

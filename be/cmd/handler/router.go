@@ -19,6 +19,9 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 	router.GET("/health", func(c *gin.Context) {
 		response.ResponseSuccess(c, gin.H{"status": "ok"})
 	})
+	// Upload file handler
+	uploadHandler := NewUploadFileHandler(serverCtx)
+	router.POST("/upload", uploadHandler.UploadFile)
 
 	// API routes
 	api := router.Group("/api")
@@ -59,10 +62,12 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			// Initialize logic layers
 			homestayLogic := logic.NewHomestayLogic(ctx, serverCtx)
 			roomLogic := logic.NewRoomLogic(ctx, serverCtx)
+			bookingLogic := logic.NewBookingLogic(ctx, serverCtx)
 
 			// Initialize handlers
 			homestayHandler := NewHomestayHandler(homestayLogic)
 			roomHandler := NewRoomHandler(roomLogic)
+			bookingHandler := NewBookingHandler(bookingLogic)
 
 			// Homestay management
 			host.GET("/homestays", homestayHandler.GetHomestayList)
@@ -87,6 +92,10 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 
 			// Room statistics
 			host.GET("/homestays/:id/rooms/stats", roomHandler.GetRoomStats)
+
+			// Booking requests
+			// filter booking
+			host.GET("/booking", bookingHandler.FilterBookings)
 		}
 
 		// Guest routes (cần role guest)

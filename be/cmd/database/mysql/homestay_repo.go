@@ -22,7 +22,7 @@ func NewHomestayRepo(db *sqlx.DB) *HomestayRepo {
 func (r *HomestayRepo) Create(ctx context.Context, req *model.HomestayCreateRequest) (*model.Homestay, error) {
 	query := `
 		INSERT INTO homestay (name, description, address, city, district, ward, latitude, longitude, owner_id, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'inactive')
 		RETURNING id, name, description, address, city, district, ward, latitude, longitude, owner_id, status, created_at, updated_at
 	`
 

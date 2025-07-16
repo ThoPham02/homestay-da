@@ -8,6 +8,13 @@ import (
 type Config struct {
 	Http     HttpServer `json:"http" yaml:"http"`
 	Database Database   `json:"database" yaml:"database"`
+	Storage  Storage    `json:"storage" yaml:"storage"`
+}
+
+type Storage struct {
+	CloudName string `json:"cloud_name" yaml:"cloud_name"`
+	APIKey	string `json:"api_key" yaml:"api_key"`
+	APISecret string `json:"api_secret" yaml:"api_secret"`
 }
 
 type HttpServer struct {

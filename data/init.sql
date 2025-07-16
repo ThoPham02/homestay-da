@@ -36,34 +36,7 @@ CREATE TABLE room (
     price DECIMAL(12,2) NOT NULL,
     price_type VARCHAR(20) NOT NULL DEFAULT 'per_night' CHECK (price_type IN ('per_night', 'per_person')),
     status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng room_availability để quản lý tình trạng phòng theo ngày
-CREATE TABLE room_availability (
-    id SERIAL PRIMARY KEY,
-    room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
-    date DATE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'booked', 'blocked')),
-    price DECIMAL(12,2), -- Giá có thể thay đổi theo ngày
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(room_id, date)
-);
-
--- Tạo bảng booking_request để lưu yêu cầu đặt phòng
-CREATE TABLE booking_request (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
-    check_in DATE NOT NULL,
-    check_out DATE NOT NULL,
-    num_guests INTEGER NOT NULL,
-    total_amount DECIMAL(12,2) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
-    host_note TEXT, -- Ghi chú từ chủ nhà
-    guest_note TEXT, -- Ghi chú từ khách
+    image_urls TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -71,14 +44,25 @@ CREATE TABLE booking_request (
 -- Tạo bảng booking (sau khi được xác nhận)
 CREATE TABLE booking (
     id SERIAL PRIMARY KEY,
-    booking_request_id INTEGER NOT NULL REFERENCES booking_request(id) ON DELETE CASCADE,
-    user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
+    email VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     check_in DATE NOT NULL,
     check_out DATE NOT NULL,
     num_guests INTEGER NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'checked_in', 'checked_out', 'cancelled')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng booking_room để quản lý mối quan hệ giữa booking và room
+CREATE TABLE booking_room (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER NOT NULL REFERENCES booking(id) ON DELETE CASCADE,
+    room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
+    capacity INTEGER NOT NULL CHECK (capacity > 0),
+    price DECIMAL(12,2) NOT NULL,
+    price_type VARCHAR(20) NOT NULL DEFAULT 'per_night' CHECK (price_type IN ('per_night', 'per_person')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -104,20 +88,3 @@ CREATE TABLE review (
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Tạo indexes để tối ưu hiệu suất truy vấn
-CREATE INDEX idx_homestay_owner_id ON homestay(owner_id);
-CREATE INDEX idx_homestay_status ON homestay(status);
-CREATE INDEX idx_homestay_city ON homestay(city);
-CREATE INDEX idx_homestay_district ON homestay(district);
-CREATE INDEX idx_room_homestay_id ON room(homestay_id);
-CREATE INDEX idx_room_status ON room(status);
-CREATE INDEX idx_booking_request_user_id ON booking_request(user_id);
-CREATE INDEX idx_booking_request_room_id ON booking_request(room_id);
-CREATE INDEX idx_booking_request_status ON booking_request(status);
-CREATE INDEX idx_booking_user_id ON booking(user_id);
-CREATE INDEX idx_booking_room_id ON booking(room_id);
-CREATE INDEX idx_booking_status ON booking(status);
-CREATE INDEX idx_room_availability_room_date ON room_availability(room_id, date);
-CREATE INDEX idx_payment_booking_id ON payment(booking_id);
-CREATE INDEX idx_payment_status ON payment(payment_status);

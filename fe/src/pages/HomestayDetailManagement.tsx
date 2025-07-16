@@ -4,8 +4,10 @@ import { ArrowLeft, Edit, Trash2, Plus, Eye, Calendar, DollarSign, Users, Trendi
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
 import { Homestay, HomestayStats, Room, RoomStats } from '../types';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const HomestayDetailManagement: React.FC = () => {
+  const confirm = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,8 +95,14 @@ const HomestayDetailManagement: React.FC = () => {
 
   const handleDeleteHomestay = async () => {
     if (!homestay) return;
-    
-    if (confirm(`Bạn có chắc chắn muốn xóa homestay "${homestay.name}"?`)) {
+
+    var result = await confirm({
+      title: 'Xác nhận xóa homestay',
+      description: `Bạn có chắc chắn muốn xóa homestay "${homestay.name}"?`,
+      confirmText: 'Xóa',
+      cancelText: 'Không'
+    });
+    if (result) {
       try {
         await homestayService.deleteHomestay(homestayId);
         navigate('/management');
@@ -264,9 +272,9 @@ const HomestayDetailManagement: React.FC = () => {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab('overview')}
+                onClick={() => setActiveTab('stats')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'overview'
+                  activeTab === 'stats'
                     ? 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
@@ -283,78 +291,21 @@ const HomestayDetailManagement: React.FC = () => {
               >
                 Phòng ({rooms.length})
               </button>
+
               <button
-                onClick={() => setActiveTab('stats')}
+                onClick={() => setActiveTab('reviews')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'stats'
+                  activeTab === 'reviews'
                     ? 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                Thống kê
+                Đánh giá ({homestay.reviews || 0})
               </button>
             </nav>
           </div>
 
           <div className="p-6">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Thông tin cơ bản</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tên homestay:</span>
-                        <span className="font-medium">{homestay.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Trạng thái:</span>
-                        <span className={`font-medium ${homestayService.getStatusColor(homestay.status)}`}>
-                          {homestayService.formatStatus(homestay.status)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Đánh giá:</span>
-                        <span className="font-medium">{homestay.rating || 0}/5 ({homestay.reviews || 0} đánh giá)</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Ngày tạo:</span>
-                        <span className="font-medium">
-                          {new Date(homestay.createdAt).toLocaleDateString('vi-VN')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Địa chỉ</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Địa chỉ:</span>
-                        <span className="font-medium">{homestay.address}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Phường/Xã:</span>
-                        <span className="font-medium">{homestay.ward}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Quận/Huyện:</span>
-                        <span className="font-medium">{homestay.district}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tỉnh/Thành phố:</span>
-                        <span className="font-medium">{homestay.city}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Mô tả</h3>
-                  <p className="text-gray-700 leading-relaxed">{homestay.description}</p>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'rooms' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
@@ -503,6 +454,13 @@ const HomestayDetailManagement: React.FC = () => {
                 )}
               </div>
             )}
+
+            {activeTab === 'reviews' && (
+              <div className="space-y-6">
+              </div>
+            )}
+
+
           </div>
         </div>
       </div>
