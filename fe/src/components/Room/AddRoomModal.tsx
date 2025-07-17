@@ -6,13 +6,13 @@ interface AddRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (room: Omit<Room, 'id' | 'createdAt'>) => void;
-  homestayId: string;
+  homestayId: number;
 }
 
 const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, homestayId }) => {
   const [formData, setFormData] = useState({
     name: '',
-    type: 'double' as Room['type'],
+    type: 'Standard' as Room['type'],
     capacity: 2,
     price: '',
     description: '',
@@ -25,23 +25,16 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
   const [imageUrl, setImageUrl] = useState('');
 
   const roomTypes = [
-    { value: 'single', label: 'Phòng đơn' },
-    { value: 'double', label: 'Phòng đôi' },
-    { value: 'suite', label: 'Phòng suite' },
-    { value: 'dormitory', label: 'Phòng tập thể' }
+    { value: 'Standard', label: 'Phòng Standard' },
+    { value: 'Deluxe', label: 'Phòng Deluxe' },
+    { value: 'Premium', label: 'Phòng Premium' },
+    { value: 'Suite', label: 'Phòng Suite' }
   ];
 
   const commonAmenities = [
     'Wi-Fi', 'Điều hòa', 'TV', 'Tủ lạnh', 'Máy sấy tóc', 'Két an toàn',
     'Ban công', 'Tầm nhìn ra biển', 'Tầm nhìn ra núi', 'Phòng tắm riêng',
     'Bồn tắm', 'Vòi sen', 'Đồ vệ sinh cá nhân', 'Khăn tắm'
-  ];
-
-  const sampleImages = [
-    'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=800'
   ];
 
   const addAmenityToList = (amenity: string) => {
@@ -115,7 +108,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
     // Reset form
     setFormData({
       name: '',
-      type: 'double',
+      type: 'Standard',
       capacity: 2,
       price: '',
       description: '',
@@ -297,23 +290,6 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 Hình ảnh phòng *
               </label>
               
-              {/* Sample Images */}
-              <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-2">Chọn từ thư viện mẫu:</div>
-                <div className="grid grid-cols-4 gap-2">
-                  {sampleImages.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Sample ${index + 1}`}
-                        className="w-full h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-emerald-300"
-                        onClick={() => addImage(url)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Custom Image URL */}
               <div className="flex space-x-2 mb-4">
                 <input

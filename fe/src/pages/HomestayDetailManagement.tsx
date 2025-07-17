@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Plus, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, Eye, Calendar, DollarSign, Users, Building, RefreshCw, MapPin, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
 import { Homestay, HomestayStats, Room, RoomStats } from '../types';

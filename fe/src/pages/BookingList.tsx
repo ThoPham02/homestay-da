@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Search, 
   Calendar, 
@@ -17,50 +17,276 @@ import {
   Check,
   X,
   Plus,
-  DollarSign,
-  Save,
-  ArrowLeft,
-  Mail,
-  Home
 } from 'lucide-react';
-import { bookingService } from '../services/bookingService';
-import { useConfirm } from '../components/ConfirmDialog';
+import { Booking, Room } from '../types';
+import EditBookingModal from '../components/Booking/EditBookingModal';
+import NewBookingModal from '../components/Booking/NewBookingModal';
 
-interface Booking {
-  id: number;
-  bookingCode: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  roomName: string;
-  roomType: string;
-  checkIn: string;
-  checkOut: string;
-  nights: number;
-  totalAmount: number;
-  paidAmount: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  bookingDate: string;
-  paymentMethod: string;
-}
+const mockRooms: Room[] = [
+  {
+    id: 1,
+    name: "Phòng Deluxe A1",
+    type: "Deluxe",
+    price: 800000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh"],
+    homestayId: 1,
+    description: "Phòng Deluxe A1 với đầy đủ tiện nghi.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 25,
+  },
+  {
+    id: 2,
+    name: "Phòng Deluxe A2",
+    type: "Deluxe",
+    price: 800000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh"],
+    homestayId: 1,
+    description: "Phòng Deluxe A2 với đầy đủ tiện nghi.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 25,
+  },
+  {
+    id: 3,
+    name: "Phòng Standard B1",
+    type: "Standard",
+    price: 500000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV"],
+    homestayId: 1,
+    description: "Phòng Standard B1 tiện nghi cơ bản.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 20,
+  },
+  {
+    id: 4,
+    name: "Phòng Standard B2",
+    type: "Standard",
+    price: 500000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV"],
+    homestayId: 1,
+    description: "Phòng Standard B2 tiện nghi cơ bản.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 20,
+  },
+  {
+    id: 5,
+    name: "Phòng Premium C1",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C1 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 6,
+    name: "Phòng Premium C2",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C2 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 7,
+    name: "Phòng Premium C3",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C3 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 8,
+    name: "Phòng Suite D1",
+    type: "Suite",
+    price: 2000000,
+    capacity: 4,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm", "Ban công"],
+    homestayId: 1,
+    description: "Phòng Suite D1 cao cấp với ban công.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 40,
+  }
+];
 
-function BookingList() {
-  const confirm = useConfirm();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+const mockBookings: Booking[] = [
+  {
+    id: 1,
+    bookingCode: "BK001",
+    customerName: "Nguyễn Văn An",
+    customerPhone: "0901234567",
+    customerEmail: "nguyenvanan@email.com",
+    rooms: [
+      // {
+      //   id: 1,
+      //   name: "Phòng Deluxe A1",
+      //   type: "Deluxe",
+      //   price: 800000,
+      //   nights: 3,
+      //   subtotal: 2400000
+      // } as BookingRoom,
+    ],
+    checkIn: "2024-01-15",
+    checkOut: "2024-01-18",
+    nights: 3,
+    totalAmount: 2400000,
+    paidAmount: 2400000,
+    status: "completed",
+    bookingDate: "2024-01-10",
+    paymentMethod: "Chuyển khoản"
+  },
+  {
+    id: 2,
+    bookingCode: "BK002",
+    customerName: "Trần Thị Bình",
+    customerPhone: "0912345678",
+    customerEmail: "tranthibinh@email.com",
+    rooms: [
+      // {
+      //   id: 4,
+      //   name: "Phòng Standard B2",
+      //   type: "Standard",
+      //   price: 500000,
+      //   nights: 2,
+      //   subtotal: 1000000
+      // },
+      // {
+      //   id: 3,
+      //   name: "Phòng Standard B1",
+      //   type: "Standard",
+      //   price: 500000,
+      //   nights: 2,
+      //   subtotal: 1000000
+      // }
+    ],
+    checkIn: "2024-01-20",
+    checkOut: "2024-01-22",
+    nights: 2,
+    totalAmount: 2000000,
+    paidAmount: 600000,
+    status: "confirmed",
+    bookingDate: "2024-01-12",
+    paymentMethod: "Tiền mặt"
+  },
+  {
+    id: 3,
+    bookingCode: "BK003",
+    customerName: "Lê Minh Cường",
+    customerPhone: "0923456789",
+    customerEmail: "leminhcuong@email.com",
+    rooms: [
+      // {
+      //   id: 7,
+      //   name: "Phòng Premium C3",
+      //   type: "Premium",
+      //   price: 1200000,
+      //   nights: 5,
+      //   subtotal: 6000000
+      // }
+    ],
+    checkIn: "2024-01-25",
+    checkOut: "2024-01-30",
+    nights: 5,
+    totalAmount: 6000000,
+    paidAmount: 1500000,
+    status: "pending",
+    bookingDate: "2024-01-18",
+    paymentMethod: "Chuyển khoản"
+  },
+  {
+    id: 4,
+    bookingCode: "BK004",
+    customerName: "Phạm Thị Dung",
+    customerPhone: "0934567890",
+    customerEmail: "phamthidung@email.com",
+    rooms: [
+      // {
+      //   id: 2,
+      //   name: "Phòng Deluxe A2",
+      //   type: "Deluxe",
+      //   price: 800000,
+      //   nights: 3,
+      //   subtotal: 2400000
+      // }
+    ],
+    checkIn: "2024-01-16",
+    checkOut: "2024-01-19",
+    nights: 3,
+    totalAmount: 2400000,
+    paidAmount: 0,
+    status: "cancelled",
+    bookingDate: "2024-01-08",
+    paymentMethod: "Thẻ tín dụng"
+  },
+  {
+    id: 5,
+    bookingCode: "BK005",
+    customerName: "Hoàng Văn Em",
+    customerPhone: "0945678901",
+    customerEmail: "hoangvanem@email.com",
+    rooms: [
+      // {
+      //   id: 5,
+      //   name: "Phòng Premium C1",
+      //   type: "Premium",
+      //   price: 1200000,
+      //   nights: 4,
+      //   subtotal: 4800000
+      // },
+      // {
+      //   id: 8,
+      //   name: "Phòng Suite D1",
+      //   type: "Suite",
+      //   price: 2000000,
+      //   nights: 4,
+      //   subtotal: 8000000
+      // }
+    ],
+    checkIn: "2024-02-01",
+    checkOut: "2024-02-05",
+    nights: 4,
+    totalAmount: 12800000,
+    paidAmount: 1000000,
+    status: "confirmed",
+    bookingDate: "2024-01-22",
+    paymentMethod: "Chuyển khoản"
+  }
+];
+
+function App() {
+  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [showNewBookingForm, setShowNewBookingForm] = useState(false);
-  const [newBooking, setNewBooking] = useState({
-    customerName: '',
-    customerPhone: '',
-    customerEmail: '',
-    roomName: '',
-    roomType: 'Standard',
-    checkIn: '',
-    checkOut: '',
-    totalAmount: 0,
-    paidAmount: 0,
-    paymentMethod: 'Tiền mặt'
-  });
+  const [showEditBookingForm, setShowEditBookingForm] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [filters, setFilters] = useState({
     customerName: '',
     customerPhone: '',
@@ -70,7 +296,6 @@ function BookingList() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [loading, setLoading] = useState(false);
 
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -94,33 +319,12 @@ function BookingList() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
-
-  // Gọi API filterBookings khi filter thay đổi
-  useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        const params: any = {
-          customerName: filters.customerName || undefined,
-          dateFrom: filters.dateFrom || undefined,
-          dateTo: filters.dateTo || undefined,
-          status: filters.status || undefined,
-          page: currentPage,
-          pageSize: itemsPerPage,
-        };
-        const resp = await bookingService.filterBookings(params);
-        setBookings(resp.bookings || []);
-        // Nếu backend trả về phân trang, có thể set lại totalPages, currentPage...
-      } catch (err) {
-        setBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBookings();
-  }, [filters, currentPage]);
 
   const filteredBookings = bookings.filter(booking => {
     return (
@@ -152,63 +356,40 @@ function BookingList() {
     setCurrentPage(1);
   };
 
-  const calculateNights = () => {
-    if (newBooking.checkIn && newBooking.checkOut) {
-      const checkIn = new Date(newBooking.checkIn);
-      const checkOut = new Date(newBooking.checkOut);
-      const diffTime = checkOut.getTime() - checkIn.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 0 ? diffDays : 0;
-    }
-    return 0;
-  };
-
-  const handleCreateBooking = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const nights = calculateNights();
-    if (nights <= 0) {
-      alert('Ngày trả phòng phải sau ngày nhận phòng');
-      return;
-    }
-
+  const handleCreateBooking = (bookingData: Omit<Booking, 'id' | 'bookingCode' | 'status' | 'bookingDate' | 'nights'>) => {
     const newId = Math.max(...bookings.map(b => b.id)) + 1;
     const bookingCode = `BK${String(newId).padStart(3, '0')}`;
     
+    // Calculate total nights from bookingData.checkIn and bookingData.checkOut
+    const checkInDate = new Date(bookingData.checkIn);
+    const checkOutDate = new Date(bookingData.checkOut);
+    const nights = Math.max(
+      Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
+      1
+    );
+
     const booking: Booking = {
       id: newId,
       bookingCode,
-      customerName: newBooking.customerName,
-      customerPhone: newBooking.customerPhone,
-      customerEmail: newBooking.customerEmail,
-      roomName: newBooking.roomName,
-      roomType: newBooking.roomType,
-      checkIn: newBooking.checkIn,
-      checkOut: newBooking.checkOut,
+      ...bookingData,
       nights,
-      totalAmount: newBooking.totalAmount,
-      paidAmount: newBooking.paidAmount,
       status: 'pending',
-      bookingDate: new Date().toISOString().split('T')[0],
-      paymentMethod: newBooking.paymentMethod
+      bookingDate: new Date().toISOString().split('T')[0]
     };
 
     setBookings(prev => [booking, ...prev]);
-    setShowNewBookingForm(false);
-    
-    // Reset form
-    setNewBooking({
-      customerName: '',
-      customerPhone: '',
-      customerEmail: '',
-      roomName: '',
-      roomType: 'Standard',
-      checkIn: '',
-      checkOut: '',
-      totalAmount: 0,
-      paidAmount: 0,
-      paymentMethod: 'Tiền mặt'
-    });
+  };
+
+  const handleUpdateBooking = (updatedBooking: Booking) => {
+    setBookings(prev => prev.map(b => 
+      b.id === updatedBooking.id ? updatedBooking : b
+    ));
+  };
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking);
+    setShowEditBookingForm(true);
+    setActiveDropdown(null);
   };
 
   const getAvailableActions = (booking: Booking) => {
@@ -278,14 +459,8 @@ function BookingList() {
           label: 'Hủy đặt phòng',
           icon: X,
           color: 'text-red-600 hover:text-red-800',
-          action: async () => {
-            var result = await confirm({
-              title: 'Xác nhận hủy đặt phòng',
-              description: `Bạn có chắc chắn muốn hủy đặt phòng này?`,
-              confirmText: 'Hủy',
-              cancelText: 'Không'
-            });
-            if (result) {
+          action: () => {
+            if (confirm('Bạn có chắc chắn muốn hủy đặt phòng này?')) {
               setBookings(prev => prev.map(b => 
                 b.id === booking.id ? { ...b, status: 'cancelled' as const } : b
               ));
@@ -300,7 +475,7 @@ function BookingList() {
           label: 'Chỉnh sửa',
           icon: Edit,
           color: 'text-blue-600 hover:text-blue-800',
-          action: () => console.log('Edit booking', booking.id)
+          action: () => handleEditBooking(booking)
         });
         break;
       
@@ -309,15 +484,8 @@ function BookingList() {
           label: 'Xóa',
           icon: Trash2,
           color: 'text-red-600 hover:text-red-800',
-          action: async () => {
-            var result = await confirm({
-              title: 'Xác nhận xóa đặt phòng',
-              description: `Bạn có chắc chắn muốn xóa đặt phòng này?`,
-              confirmText: 'Xóa',
-              cancelText: 'Không'
-            });
-
-            if (result) {
+          action: () => {
+            if (confirm('Bạn có chắc chắn muốn xóa đặt phòng này?')) {
               setBookings(prev => prev.filter(b => b.id !== booking.id));
             }
             setActiveDropdown(null);
@@ -481,7 +649,7 @@ function BookingList() {
                     Ngày nhận/trả
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thanh toán
+                    Tổng giá trị
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -492,114 +660,131 @@ function BookingList() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">Đang tải dữ liệu...</td>
-                  </tr>
-                ) : currentBookings.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">Không tìm thấy đặt phòng nào.</td>
-                  </tr>
-                ) : (
-                  currentBookings.map((booking, index) => (
-                    <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {startIndex + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                          {booking.bookingCode}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <User className="h-5 w-5 text-blue-600" />
-                            </div>
+                {currentBookings.map((booking, index) => (
+                  <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {startIndex + index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        {booking.bookingCode}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <User className="h-5 w-5 text-blue-600" />
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {booking.customerPhone}
+                          </div>
+                          <div className="text-sm text-gray-500">{booking.customerEmail}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="space-y-1">
+                        {booking.rooms.map((room, index) => (
+                          <div key={index}>
+                            <div className="text-sm font-medium text-gray-900">{room.name}</div>
                             <div className="text-sm text-gray-500 flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {booking.customerPhone}
+                              <MapPin className="w-3 h-3" />
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                room.type === 'Standard' ? 'bg-gray-100 text-gray-800' :
+                                room.type === 'Deluxe' ? 'bg-blue-100 text-blue-800' :
+                                room.type === 'Premium' ? 'bg-purple-100 text-purple-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {room.type}
+                              </span>
                             </div>
-                            <div className="text-sm text-gray-500">{booking.customerEmail}</div>
                           </div>
+                        ))}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {booking.rooms.length} phòng • {booking.nights} đêm
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Calendar className="w-3 h-3 text-green-600" />
+                          <span className="text-green-600">Nhận:</span> {formatDate(booking.checkIn)}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{booking.roomName}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {booking.roomType}
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-red-600" />
+                          <span className="text-red-600">Trả:</span> {formatDate(booking.checkOut)}
                         </div>
-                        <div className="text-sm text-gray-500">{booking.nights} đêm</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          <div className="flex items-center gap-1 mb-1">
-                            <Calendar className="w-3 h-3 text-green-600" />
-                            <span className="text-green-600">Nhận:</span> {formatDate(booking.checkIn)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        <div className="font-medium text-lg">{formatCurrency(booking.totalAmount)}</div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            booking.paidAmount >= booking.totalAmount 
+                              ? 'bg-green-100 text-green-800' 
+                              : booking.paidAmount > 0 
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                          }`}>
+                            {booking.paidAmount >= booking.totalAmount 
+                              ? 'Đã thanh toán' 
+                              : booking.paidAmount > 0 
+                                ? `Còn lại ${formatCurrency(booking.totalAmount - booking.paidAmount)}`
+                                : 'Chưa thanh toán'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[booking.status]}`}>
+                        {statusLabels[booking.status]}
+                      </span>
+                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(booking.bookingDate)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDropdown(activeDropdown === booking.id ? null : booking.id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        
+                        {activeDropdown === booking.id && (
+                          <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                            {getAvailableActions(booking).map((action, actionIndex) => (
+                              <button
+                                key={actionIndex}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  action.action();
+                                }}
+                                className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors ${action.color}`}
+                              >
+                                <action.icon className="w-4 h-4" />
+                                {action.label}
+                              </button>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-red-600" />
-                            <span className="text-red-600">Trả:</span> {formatDate(booking.checkOut)}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          <div className="font-medium text-lg">{formatCurrency(booking.paidAmount)}</div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                            <CreditCard className="w-3 h-3" />
-                            {booking.paymentMethod}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[booking.status]}`}>
-                          {statusLabels[booking.status]}
-                        </span>
-                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatDate(booking.bookingDate)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDropdown(activeDropdown === booking.id ? null : booking.id);
-                            }}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          
-                          {activeDropdown === booking.id && (
-                            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                              {getAvailableActions(booking).map((action, actionIndex) => (
-                                <button
-                                  key={actionIndex}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    action.action();
-                                  }}
-                                  className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors ${action.color}`}
-                                >
-                                  <action.icon className="w-4 h-4" />
-                                  {action.label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -669,241 +854,27 @@ function BookingList() {
         )}
       </div>
 
-      {/* New Booking Modal */}
-      {showNewBookingForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Tạo đặt phòng mới</h2>
-              <button
-                onClick={() => setShowNewBookingForm(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+      <NewBookingModal
+        isOpen={showNewBookingForm}
+        onClose={() => setShowNewBookingForm(false)}
+        onCreateBooking={handleCreateBooking}
+        rooms={mockRooms}
+        existingBookings={bookings}
+      />
 
-            {/* Modal Content */}
-            <div className="p-6">
-              <form onSubmit={handleCreateBooking} className="space-y-6">
-                {/* Customer Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <User className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Thông tin khách hàng</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tên khách hàng *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newBooking.customerName}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, customerName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập tên khách hàng"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Số điện thoại *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={newBooking.customerPhone}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, customerPhone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập số điện thoại"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={newBooking.customerEmail}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, customerEmail: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập email"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Room Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Home className="w-5 h-5 text-green-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Thông tin phòng</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tên phòng *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newBooking.roomName}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, roomName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập tên phòng"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Loại phòng *
-                      </label>
-                      <select
-                        required
-                        value={newBooking.roomType}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, roomType: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="Standard">Standard</option>
-                        <option value="Deluxe">Deluxe</option>
-                        <option value="Premium">Premium</option>
-                        <option value="Suite">Suite</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stay Duration */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Calendar className="w-5 h-5 text-purple-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Thời gian lưu trú</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngày nhận phòng *
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={newBooking.checkIn}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, checkIn: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngày trả phòng *
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={newBooking.checkOut}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, checkOut: e.target.value }))}
-                        min={newBooking.checkIn}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Số đêm
-                      </label>
-                      <input
-                        type="number"
-                        value={calculateNights()}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Payment Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="w-5 h-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Thông tin thanh toán</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tổng tiền *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        value={newBooking.totalAmount}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, totalAmount: Number(e.target.value) }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập tổng tiền"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Đã thanh toán
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max={newBooking.totalAmount}
-                        value={newBooking.paidAmount}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, paidAmount: Number(e.target.value) }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập số tiền đã thanh toán"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phương thức thanh toán
-                      </label>
-                      <select
-                        value={newBooking.paymentMethod}
-                        onChange={(e) => setNewBooking(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="Tiền mặt">Tiền mặt</option>
-                        <option value="Chuyển khoản">Chuyển khoản</option>
-                        <option value="Thẻ tín dụng">Thẻ tín dụng</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  {newBooking.totalAmount > 0 && newBooking.paidAmount < newBooking.totalAmount && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Còn lại:</strong> {formatCurrency(newBooking.totalAmount - newBooking.paidAmount)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewBookingForm(false)}
-                    className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-                  >
-                    <Save className="w-4 h-4" />
-                    Tạo đặt phòng
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditBookingModal
+        isOpen={showEditBookingForm}
+        onClose={() => {
+          setShowEditBookingForm(false);
+          setEditingBooking(null);
+        }}
+        onUpdateBooking={handleUpdateBooking}
+        booking={editingBooking}
+        rooms={mockRooms}
+        existingBookings={bookings}
+      />
     </div>
   );
 }
 
-export default BookingList;
+export default App;

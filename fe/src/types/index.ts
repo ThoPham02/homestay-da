@@ -3,13 +3,16 @@ export interface Room {
   homestayId: number;
   name: string;
   description: string;
-  type: 'single' | 'double' | 'family' | 'dormitory';
+  type: 'Standard' | 'Deluxe' | 'Premium' | 'Suite';
   capacity: number;
   price: number;
   priceType: 'per_night' | 'per_person';
   status: 'available' | 'occupied' | 'maintenance';
-  createdAt: string;
-  updatedAt: string;
+  area?: number; // Diện tích phòng (m2)
+  images?: string[]; // Danh sách URL hình ảnh
+  amenities?: string[]; // Danh sách tiện nghi
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RoomAvailability {
@@ -79,17 +82,51 @@ export interface RoomStats {
 //   notes?: string;
 // }
 
+// export interface Booking {
+//   id: number;
+//   customerId: number;
+//   customerName: string;
+//   customerPhone: string;
+//   customerEmail: string;
+//   homestayId: number;
+//   homestayName: string;
+//   roomId: number;
+//   roomName: string;
+//   roomType: string;
+//   checkIn: string;
+//   checkOut: string;
+//   nights: number;
+//   totalAmount: number;
+//   paidAmount: number;
+//   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+//   bookingDate: string;
+//   paymentMethod: string;
+// }
+
+// interface Room {
+//   id: number;
+//   name: string;
+//   type: string;
+//   pricePerNight: number;
+//   capacity: number;
+//   amenities: string[];
+//   isAvailable: boolean;
+// }
+
 export interface Booking {
   id: number;
-  customerId: number;
+  bookingCode: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
-  homestayId: number;
-  homestayName: string;
-  roomId: number;
-  roomName: string;
-  roomType: string;
+  rooms: {
+    id: number;
+    name: string;
+    type: string;
+    pricePerNight: number;
+    nights: number;
+    subtotal: number;
+  }[];
   checkIn: string;
   checkOut: string;
   nights: number;
