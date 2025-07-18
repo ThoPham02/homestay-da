@@ -12,9 +12,9 @@ type Config struct {
 }
 
 type Storage struct {
-	CloudName string `json:"cloud_name" yaml:"cloud_name"`
-	APIKey	string `json:"api_key" yaml:"api_key"`
-	APISecret string `json:"api_secret" yaml:"api_secret"`
+	CloudName string `json:"cloudName" yaml:"cloudName"`
+	APIKey    string `json:"apiKey" yaml:"apiKey"`
+	APISecret string `json:"apiSecret" yaml:"apiSecret"`
 }
 
 type HttpServer struct {

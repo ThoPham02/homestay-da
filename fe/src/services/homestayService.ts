@@ -206,6 +206,27 @@ class HomestayService {
     }
   }
 
+  async uploadRoomImage(
+    file: File
+  ): Promise<string> {
+    const formData = new FormData();
+
+    formData.append('image', file);
+
+    try {
+      const response = await api.post(`/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      toastService.success('Tải lên hình ảnh phòng thành công');
+      return response.data.url;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi tải lên hình ảnh phòng');
+      throw error;
+    }
+  }
   // Helper methods for data transformation
   formatPrice(price: number): string {
     return new Intl.NumberFormat('vi-VN', {

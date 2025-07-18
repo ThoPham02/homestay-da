@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { X, Plus, Upload } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { Room } from '../../types';
+import CusFormUpload from '../UploadFile';
+import { homestayService } from '../../services/homestayService';
+import { TbXboxX } from 'react-icons/tb';
 
 interface AddRoomModalProps {
   isOpen: boolean;
@@ -10,6 +13,7 @@ interface AddRoomModalProps {
 }
 
 const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, homestayId }) => {
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'Standard' as Room['type'],
@@ -22,7 +26,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
   });
 
   const [newAmenity, setNewAmenity] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const roomTypes = [
     { value: 'Standard', label: 'Phòng Standard' },
@@ -60,27 +64,39 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
     }
   };
 
-  const addImage = (url: string) => {
-    if (url && !formData.images.includes(url)) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, url]
-      }));
-    }
-  };
+  interface UploadedAlbum {
+    url: string;
+    file: File;
+  }
 
-  const removeImage = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter(img => img !== url)
-    }));
-  };
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    const files: File[] = Array.from(e.target.files ?? []);
 
-  const addImageUrl = () => {
-    if (imageUrl.trim()) {
-      addImage(imageUrl.trim());
-      setImageUrl('');
-    }
+    setIsUploading(true);
+
+    const newAlbums: (UploadedAlbum | null)[] = await Promise.all(
+      files.map(async (file: File): Promise<UploadedAlbum | null> => {
+        try {
+          const url: string = await homestayService.uploadRoomImage(file);
+          return {
+            url,
+            file,
+          };
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          return null;
+        }
+      })
+    );
+
+    const validAlbums: string[] = newAlbums
+      .filter((album): album is UploadedAlbum => album !== null)
+      .map((album) => album.url);
+
+    setImageUrls(validAlbums);
+    setIsUploading(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,7 +116,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
       ...formData,
       homestayId,
       price: parseInt(formData.price)
-    };
+    } as Room;
 
     onSubmit(roomData);
     onClose();
@@ -117,7 +133,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
       status: 'available'
     });
     setNewAmenity('');
-    setImageUrl('');
+    setImageUrls([]);
   };
 
   if (!isOpen) return null;
@@ -289,55 +305,34 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Hình ảnh phòng *
               </label>
-              
-              {/* Custom Image URL */}
-              <div className="flex space-x-2 mb-4">
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Hoặc nhập URL hình ảnh..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
-                />
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Upload className="h-5 w-5" />
-                </button>
-              </div>
+              <div className="mt-2 mb-4 flex flex-wrap">
+          {formData.images.map((image, index) => (
+            <div className="relative">
+              <img
+                src={image}
+                alt={`Ảnh phòng ${index + 1}`}
+                className="w-40 h-40 mr-4 mb-4 object-cover rounded-lg"
+                key={image}
+              />
 
-              {/* Selected Images */}
-              {formData.images.length > 0 && (
-                <div>
-                  <div className="text-sm text-gray-600 mb-2">Hình ảnh đã chọn:</div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {formData.images.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Selected ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(url)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        {index === 0 && (
-                          <div className="absolute bottom-1 left-1 bg-emerald-600 text-white text-xs px-1 py-0.5 rounded">
-                            Chính
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                <TbXboxX
+                  className="text-red-500 text-3xl absolute top-2 right-6"
+                  onClick={() =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      images: prevData.images.filter((img) => img !== image),
+                    }))
+                  }
+                />
+            </div>
+          ))}
+
+          <CusFormUpload
+            disabled={false}
+            handleUpload={handleImageUpload}
+            isUploading={isUploading}
+          />
+        </div>
             </div>
 
             {/* Submit Buttons */}

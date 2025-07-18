@@ -10,8 +10,6 @@ database:
   dbname: homestay_db
   sslmode: disable
 storage:
-  cloud_name: "ddhsgiwcv"
-  api_key: "584168378272983"
-  api_secret: "VSBpeP9AKFEzssd3BCvxhc6tyoI"
-  # Legacy source field (optional)
-  # source: "host=localhost port=5432 user=postgres password=password dbname=homestay_db sslmode=disable"
+  cloudName: ddhsgiwcv
+  apiKey: 584168378272983
+  apiSecret: VSBpeP9AKFEzssd3BCvxhc6tyoI

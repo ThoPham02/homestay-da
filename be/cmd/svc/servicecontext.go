@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ServiceContext struct {
@@ -45,10 +46,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	// Khởi tạo repository factory
 	repoFactory := mysql.NewRepositoryFactory(db)
 
+	logx.Info(c.Http.Path, c.Storage.APIKey, c.Storage.APISecret)
+
 	return &ServiceContext{
 		Config: c,
 		DB:     db,
-		CldClient: storage.NewCloudinaryClient(c.Storage.CloudName, c.Storage.APIKey, c.Storage.APISecret, "inventory"),
+		CldClient: storage.NewCloudinaryClient(c.Storage.CloudName, c.Storage.APIKey, c.Storage.APISecret, "homestay"),
 		// Repositories
 		UserRepo:             repoFactory.UserRepo,
 		HomestayRepo:         repoFactory.HomestayRepo,

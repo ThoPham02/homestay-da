@@ -71,12 +71,12 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, onFiltersChange 
 
       <div className="mt-4 flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Hiển thị {filters.limit || 12} kết quả mỗi trang
+          Hiển thị {filters.pageSize || 12} kết quả mỗi trang
         </div>
         <button
           onClick={() => onFiltersChange({
             page: 1,
-            limit: 12,
+            pageSize: 12,
             search: '',
             city: '',
             district: '',

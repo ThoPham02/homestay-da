@@ -43,7 +43,7 @@ const RoomAddPage: React.FC = () => {
             isOpen={modalOpen}
             onClose={handleClose}
             onSubmit={handleSubmit}
-            homestayId={id || ''}
+            homestayId={id ? Number(id) : 0}
         />
     );
 };

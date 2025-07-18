@@ -22,23 +22,15 @@ func (h *UploadFileHandler) UploadFile(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// Lấy file từ form-data
-	file, err := c.FormFile("file")
+	file, err := c.FormFile("image")
 	if err != nil {
 		response.ResponseError(c, response.BadRequest, "File không hợp lệ")
 		return
 	}
 
-	// Lấy user ID từ context
-	userID, exists := c.Get("user_id")
-	if !exists {
-		response.ResponseError(c, response.Unauthorized, "User không hợp lệ")
-		return
-	}
-	hostID := userID.(int64)
-
 	// Gọi logic xử lý upload
 	logic := logic.NewUploadFileLogic(ctx, h.svcCtx, file)
-	resp, err := logic.UploadFile(ctx, hostID)
+	resp, err := logic.UploadFile(ctx, 1)
 	if err != nil {
 		response.ResponseError(c, response.InternalServerError, err.Error())
 		return
