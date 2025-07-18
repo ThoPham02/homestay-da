@@ -275,6 +275,57 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
               </div>
             </div>
 
+             {/* Stay Duration */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="w-5 h-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Thời gian lưu trú
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    (Chọn trước để xem phòng có sẵn)
+                  </span>
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ngày nhận phòng *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newBooking.checkIn}
+                    onChange={(e) => handleDateChange('checkIn', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ngày trả phòng *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newBooking.checkOut}
+                    onChange={(e) => handleDateChange('checkOut', e.target.value)}
+                    min={newBooking.checkIn}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Số đêm
+                  </label>
+                  <input
+                    type="number"
+                    value={calculateNights()}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Room Information */}
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
@@ -418,57 +469,6 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Stay Duration */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Thời gian lưu trú
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    (Chọn trước để xem phòng có sẵn)
-                  </span>
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ngày nhận phòng *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={newBooking.checkIn}
-                    onChange={(e) => handleDateChange('checkIn', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ngày trả phòng *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={newBooking.checkOut}
-                    onChange={(e) => handleDateChange('checkOut', e.target.value)}
-                    min={newBooking.checkIn}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Số đêm
-                  </label>
-                  <input
-                    type="number"
-                    value={calculateNights()}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Payment Information */}

@@ -11,7 +11,6 @@ import {
   Phone,
   MapPin,
   Clock,
-  CreditCard,
   User,
   MoreVertical,
   Check,
@@ -499,14 +498,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50" onClick={() => setActiveDropdown(null)}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4">
         {/* Header */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý đặt phòng</h1>
-              <p className="text-gray-600">Quản lý tất cả đặt phòng của homestay</p>
-            </div>
             <button
               onClick={() => setShowNewBookingForm(true)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
@@ -515,7 +510,7 @@ function App() {
               Tạo đặt phòng mới
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">

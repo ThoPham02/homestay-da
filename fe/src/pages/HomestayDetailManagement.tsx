@@ -3,8 +3,268 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, Plus, Eye, Calendar, DollarSign, Users, Building, RefreshCw, MapPin, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
-import { Homestay, HomestayStats, Room, RoomStats } from '../types';
+import { Booking, Homestay, HomestayStats, Room, RoomStats } from '../types';
 import { useConfirm } from '../components/ConfirmDialog';
+import NewBookingModal from '../components/Booking/NewBookingModal';
+
+const mockBookings: Booking[] = [
+  {
+    id: 1,
+    bookingCode: "BK001",
+    customerName: "Nguyễn Văn An",
+    customerPhone: "0901234567",
+    customerEmail: "nguyenvanan@email.com",
+    rooms: [
+      // {
+      //   id: 1,
+      //   name: "Phòng Deluxe A1",
+      //   type: "Deluxe",
+      //   price: 800000,
+      //   nights: 3,
+      //   subtotal: 2400000
+      // } as BookingRoom,
+    ],
+    checkIn: "2024-01-15",
+    checkOut: "2024-01-18",
+    nights: 3,
+    totalAmount: 2400000,
+    paidAmount: 2400000,
+    status: "completed",
+    bookingDate: "2024-01-10",
+    paymentMethod: "Chuyển khoản"
+  },
+  {
+    id: 2,
+    bookingCode: "BK002",
+    customerName: "Trần Thị Bình",
+    customerPhone: "0912345678",
+    customerEmail: "tranthibinh@email.com",
+    rooms: [
+      // {
+      //   id: 4,
+      //   name: "Phòng Standard B2",
+      //   type: "Standard",
+      //   price: 500000,
+      //   nights: 2,
+      //   subtotal: 1000000
+      // },
+      // {
+      //   id: 3,
+      //   name: "Phòng Standard B1",
+      //   type: "Standard",
+      //   price: 500000,
+      //   nights: 2,
+      //   subtotal: 1000000
+      // }
+    ],
+    checkIn: "2024-01-20",
+    checkOut: "2024-01-22",
+    nights: 2,
+    totalAmount: 2000000,
+    paidAmount: 600000,
+    status: "confirmed",
+    bookingDate: "2024-01-12",
+    paymentMethod: "Tiền mặt"
+  },
+  {
+    id: 3,
+    bookingCode: "BK003",
+    customerName: "Lê Minh Cường",
+    customerPhone: "0923456789",
+    customerEmail: "leminhcuong@email.com",
+    rooms: [
+      // {
+      //   id: 7,
+      //   name: "Phòng Premium C3",
+      //   type: "Premium",
+      //   price: 1200000,
+      //   nights: 5,
+      //   subtotal: 6000000
+      // }
+    ],
+    checkIn: "2024-01-25",
+    checkOut: "2024-01-30",
+    nights: 5,
+    totalAmount: 6000000,
+    paidAmount: 1500000,
+    status: "pending",
+    bookingDate: "2024-01-18",
+    paymentMethod: "Chuyển khoản"
+  },
+  {
+    id: 4,
+    bookingCode: "BK004",
+    customerName: "Phạm Thị Dung",
+    customerPhone: "0934567890",
+    customerEmail: "phamthidung@email.com",
+    rooms: [
+      // {
+      //   id: 2,
+      //   name: "Phòng Deluxe A2",
+      //   type: "Deluxe",
+      //   price: 800000,
+      //   nights: 3,
+      //   subtotal: 2400000
+      // }
+    ],
+    checkIn: "2024-01-16",
+    checkOut: "2024-01-19",
+    nights: 3,
+    totalAmount: 2400000,
+    paidAmount: 0,
+    status: "cancelled",
+    bookingDate: "2024-01-08",
+    paymentMethod: "Thẻ tín dụng"
+  },
+  {
+    id: 5,
+    bookingCode: "BK005",
+    customerName: "Hoàng Văn Em",
+    customerPhone: "0945678901",
+    customerEmail: "hoangvanem@email.com",
+    rooms: [
+      // {
+      //   id: 5,
+      //   name: "Phòng Premium C1",
+      //   type: "Premium",
+      //   price: 1200000,
+      //   nights: 4,
+      //   subtotal: 4800000
+      // },
+      // {
+      //   id: 8,
+      //   name: "Phòng Suite D1",
+      //   type: "Suite",
+      //   price: 2000000,
+      //   nights: 4,
+      //   subtotal: 8000000
+      // }
+    ],
+    checkIn: "2024-02-01",
+    checkOut: "2024-02-05",
+    nights: 4,
+    totalAmount: 12800000,
+    paidAmount: 1000000,
+    status: "confirmed",
+    bookingDate: "2024-01-22",
+    paymentMethod: "Chuyển khoản"
+  }
+];
+
+const mockRooms: Room[] = [
+  {
+    id: 1,
+    name: "Phòng Deluxe A1",
+    type: "Deluxe",
+    price: 800000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh"],
+    homestayId: 1,
+    description: "Phòng Deluxe A1 với đầy đủ tiện nghi.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 25,
+  },
+  {
+    id: 2,
+    name: "Phòng Deluxe A2",
+    type: "Deluxe",
+    price: 800000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh"],
+    homestayId: 1,
+    description: "Phòng Deluxe A2 với đầy đủ tiện nghi.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 25,
+  },
+  {
+    id: 3,
+    name: "Phòng Standard B1",
+    type: "Standard",
+    price: 500000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV"],
+    homestayId: 1,
+    description: "Phòng Standard B1 tiện nghi cơ bản.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 20,
+  },
+  {
+    id: 4,
+    name: "Phòng Standard B2",
+    type: "Standard",
+    price: 500000,
+    capacity: 2,
+    amenities: ["WiFi", "Điều hòa", "TV"],
+    homestayId: 1,
+    description: "Phòng Standard B2 tiện nghi cơ bản.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 20,
+  },
+  {
+    id: 5,
+    name: "Phòng Premium C1",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C1 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 6,
+    name: "Phòng Premium C2",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C2 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 7,
+    name: "Phòng Premium C3",
+    type: "Premium",
+    price: 1200000,
+    capacity: 3,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm"],
+    homestayId: 1,
+    description: "Phòng Premium C3 sang trọng.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 30,
+  },
+  {
+    id: 8,
+    name: "Phòng Suite D1",
+    type: "Suite",
+    price: 2000000,
+    capacity: 4,
+    amenities: ["WiFi", "Điều hòa", "TV", "Tủ lạnh", "Bồn tắm", "Ban công"],
+    homestayId: 1,
+    description: "Phòng Suite D1 cao cấp với ban công.",
+    priceType: "per_night",
+    status: "available",
+    images: [],
+    area: 40,
+  }
+];
 
 const HomestayDetailManagement: React.FC = () => {
   const confirm = useConfirm();
@@ -13,6 +273,8 @@ const HomestayDetailManagement: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   
+  const [showNewBookingForm, setShowNewBookingForm] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [homestay, setHomestay] = useState<Homestay | null>(null);
   const [homestayStats, setHomestayStats] = useState<HomestayStats | null>(null);
   const [roomStats, setRoomStats] = useState<RoomStats | null>(null);
@@ -124,6 +386,30 @@ const HomestayDetailManagement: React.FC = () => {
     await loadRooms();
   };
 
+  const handleCreateBooking = (bookingData: Omit<Booking, 'id' | 'bookingCode' | 'status' | 'bookingDate' | 'nights'>) => {
+      const newId = Math.max(...bookings.map(b => b.id)) + 1;
+      const bookingCode = `BK${String(newId).padStart(3, '0')}`;
+      
+      // Calculate total nights from bookingData.checkIn and bookingData.checkOut
+      const checkInDate = new Date(bookingData.checkIn);
+      const checkOutDate = new Date(bookingData.checkOut);
+      const nights = Math.max(
+        Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
+        1
+      );
+  
+      const booking: Booking = {
+        id: newId,
+        bookingCode,
+        ...bookingData,
+        nights,
+        status: 'pending',
+        bookingDate: new Date().toISOString().split('T')[0]
+      };
+  
+      setBookings(prev => [booking, ...prev]);
+    };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -197,6 +483,13 @@ const HomestayDetailManagement: React.FC = () => {
                 <Edit className="h-4 w-4 mr-2" />
                 Chỉnh sửa
               </button>
+              <button
+              onClick={() => setShowNewBookingForm(true)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Tạo đặt phòng mới
+            </button>
               <button
                 onClick={handleDeleteHomestay}
                 className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
@@ -464,6 +757,14 @@ const HomestayDetailManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <NewBookingModal
+        isOpen={showNewBookingForm}
+        onClose={() => setShowNewBookingForm(false)}
+        onCreateBooking={handleCreateBooking}
+        rooms={mockRooms}
+        existingBookings={bookings}
+      />
     </div>
   );
 };
