@@ -23,15 +23,15 @@ func NewBookingRepository(db *sqlx.DB) repo.BookingRepository {
 // Create tạo booking mới
 func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreateRequest) (*model.Booking, error) {
 	query := `
-		INSERT INTO booking (booking_request_id, user_id, room_id, check_in, check_out, num_guests, total_amount, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, booking_request_id, user_id, room_id, check_in, check_out, num_guests, total_amount, status, created_at
+		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW())
+		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at
 	`
 
 	var booking model.Booking
-	err := r.db.GetContext(ctx, &booking, query, req.BookingRequestID, req.UserID, req.RoomID, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.Status)
+	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, 0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create booking: %w", err)
+		return nil, err
 	}
 
 	return &booking, nil
@@ -97,7 +97,7 @@ func (r *bookingRepository) Update(ctx context.Context, id int, req *model.Booki
 // Delete xóa booking
 func (r *bookingRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM booking WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete booking: %w", err)
@@ -264,38 +264,42 @@ func (r *bookingRepository) GetByUserID(ctx context.Context, userID int, page, p
 	return bookings, total, nil
 }
 
-// GetByRoomID lấy danh sách booking theo room
-func (r *bookingRepository) GetByRoomID(ctx context.Context, roomID int, page, pageSize int) ([]*model.Booking, int, error) {
-	// Đếm tổng số records
-	countQuery := `SELECT COUNT(*) FROM booking WHERE room_id = $1`
+// GetByRoom lấy booking qua bảng booking_room
+func (r *bookingRepository) GetByRoom(ctx context.Context, roomID int, page, pageSize int) ([]*model.Booking, int, error) {
+	countQuery := `SELECT COUNT(DISTINCT b.id)
+		FROM booking b
+		JOIN booking_room br ON b.id = br.booking_id
+		WHERE br.room_id = $1`
 	var total int
 	err := r.db.GetContext(ctx, &total, countQuery, roomID)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count bookings: %w", err)
+		return nil, 0, err
 	}
 
-	// Lấy danh sách booking
 	offset := (page - 1) * pageSize
-	query := `
-		SELECT b.id, b.booking_request_id, b.user_id, b.room_id, b.check_in, b.check_out, b.num_guests, 
-		       b.total_amount, b.status, b.created_at,
-		       u.name as user_name, r.name as room_name, h.name as homestay_name
-		FROM booking b
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
-		WHERE b.room_id = $1
-		ORDER BY b.created_at DESC
-		LIMIT $2 OFFSET $3
-	`
-
+	query := `SELECT b.*
+	FROM booking b
+	JOIN booking_room br ON b.id = br.booking_id
+	WHERE br.room_id = $1
+	ORDER BY b.created_at DESC
+	LIMIT $2 OFFSET $3`
 	var bookings []*model.Booking
 	err = r.db.SelectContext(ctx, &bookings, query, roomID, pageSize, offset)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get bookings by room: %w", err)
+		return nil, 0, err
 	}
-
 	return bookings, total, nil
+}
+
+// GetRoomsByBookingID lấy danh sách BookingRoom theo booking_id
+func (r *bookingRepository) GetRoomsByBookingID(ctx context.Context, bookingID int) ([]*model.BookingRoom, error) {
+	query := `SELECT * FROM booking_room WHERE booking_id = $1`
+	var rooms []*model.BookingRoom
+	err := r.db.SelectContext(ctx, &rooms, query, bookingID)
+	if err != nil {
+		return nil, err
+	}
+	return rooms, nil
 }
 
 // GetByStatus lấy danh sách booking theo status
@@ -355,4 +359,17 @@ func (r *bookingRepository) GetByBookingRequestID(ctx context.Context, bookingRe
 	}
 
 	return &booking, nil
-} 
+}
+
+// InsertBookingRoom lưu 1 bản ghi booking_room
+func (r *bookingRepository) InsertBookingRoom(ctx context.Context, bookingRoom *model.BookingRoom) (*model.BookingRoom, error) {
+	query := `INSERT INTO booking_room (booking_id, room_id, capacity, price, price_type, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, booking_id, room_id, capacity, price, price_type, created_at`
+	var br model.BookingRoom
+	err := r.db.GetContext(ctx, &br, query, bookingRoom.BookingID, bookingRoom.RoomID, bookingRoom.Capacity, bookingRoom.Price, bookingRoom.PriceType, bookingRoom.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &br, nil
+}

@@ -37,6 +37,7 @@ func (h *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID 
 	}
 	created, err := h.svcCtx.HomestayRepo.Create(h.ctx, modelReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 	resp := types.Homestay{
@@ -61,6 +62,7 @@ func (h *HomestayLogic) CreateHomestay(req *types.CreateHomestayRequest, hostID 
 func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.HomestayDetailResponse, error) {
 	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 	if found.OwnerID != hostID {
@@ -118,6 +120,7 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 
 	homestays, total, err := h.svcCtx.HomestayRepo.Search(h.ctx, searchReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 
@@ -126,6 +129,7 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 		var rooms []types.Room
 		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 0, 0)
 		if err != nil {
+			logx.Error(err)
 			return nil, err
 		}
 
@@ -177,6 +181,7 @@ func (h *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestay
 	// Kiểm tra quyền
 	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 	if found.OwnerID != hostID {
@@ -197,6 +202,7 @@ func (h *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestay
 
 	updated, err := h.svcCtx.HomestayRepo.Update(h.ctx, homestayID, modelReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 
@@ -222,6 +228,7 @@ func (h *HomestayLogic) UpdateHomestay(homestayID int, req *types.UpdateHomestay
 func (h *HomestayLogic) DeleteHomestay(homestayID, hostID int) error {
 	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
+		logx.Error(err)
 		return err
 	}
 	if found.OwnerID != hostID {
@@ -232,18 +239,61 @@ func (h *HomestayLogic) DeleteHomestay(homestayID, hostID int) error {
 
 // GetHomestayStats - Get homestay statistics for a host
 func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsResponse, error) {
-	// TODO: Implement thống kê thực tế (giả lập số liệu)
-	_, total, err := h.svcCtx.HomestayRepo.GetByOwnerID(h.ctx, hostID, 1, 1000)
+	// Lấy tất cả homestay của host
+	homestays, _, err := h.svcCtx.HomestayRepo.GetByOwnerID(h.ctx, hostID, 1, 1000)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
+
+	totalHomestays := len(homestays)
+	activeHomestays := 0
+	totalRooms := 0
+	availableRooms := 0
+	totalBookings := 0
+	totalRevenue := 0.0
+	bookingSeen := make(map[int]bool) // Đếm booking duy nhất
+
+	for _, hst := range homestays {
+		if hst.Status == "active" {
+			activeHomestays++
+		}
+		// Lấy tất cả phòng của homestay này
+		rooms, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 1, 1000)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+		totalRooms += len(rooms)
+		for _, room := range rooms {
+			if room.Status == "available" {
+				availableRooms++
+			}
+			// Lấy tất cả booking của phòng này qua bảng booking_room
+			bookings, _, err := h.svcCtx.BookingRepo.GetByRoom(h.ctx, room.ID, 1, 1000)
+			if err != nil {
+				logx.Error(err)
+				return nil, err
+			}
+			for _, booking := range bookings {
+				if booking.Status == "confirmed" || booking.Status == "checked_in" || booking.Status == "checked_out" {
+					if !bookingSeen[booking.ID] {
+						bookingSeen[booking.ID] = true
+						totalBookings++
+						totalRevenue += booking.TotalAmount
+					}
+				}
+			}
+		}
+	}
+
 	return &types.HomestayStatsResponse{
-		TotalHomestays:  total,
-		ActiveHomestays: total, // Giả lập
-		TotalRooms:      0,
-		AvailableRooms:  0,
-		TotalBookings:   0,
-		TotalRevenue:    0,
+		TotalHomestays:  totalHomestays,
+		ActiveHomestays: activeHomestays,
+		TotalRooms:      totalRooms,
+		AvailableRooms:  availableRooms,
+		TotalBookings:   totalBookings,
+		TotalRevenue:    totalRevenue,
 	}, nil
 }
 
@@ -252,6 +302,7 @@ func (h *HomestayLogic) GetHomestayStatsByID(homestayID, hostID int) (*types.Hom
 	// TODO: Implement thống kê thực tế (giả lập số liệu)
 	_, err := h.GetHomestayByID(homestayID, hostID)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 	return &types.HomestayStatsResponse{
@@ -269,6 +320,7 @@ func (h *HomestayLogic) ToggleHomestayStatus(homestayID, hostID int) (*types.Hom
 	// Kiểm tra quyền
 	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 	if found.OwnerID != hostID {
@@ -288,6 +340,7 @@ func (h *HomestayLogic) ToggleHomestayStatus(homestayID, hostID int) (*types.Hom
 
 	updated, err := h.svcCtx.HomestayRepo.Update(h.ctx, homestayID, modelReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, err
 	}
 

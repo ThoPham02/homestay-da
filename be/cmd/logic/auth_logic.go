@@ -29,17 +29,20 @@ func (l *AuthLogic) Login(ctx context.Context, req *types.LoginRequest) (*types.
 	// Tìm user theo email
 	user, err := l.svc.UserRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
+		logx.Error(err)
 		return nil, errors.New("email hoặc mật khẩu không đúng")
 	}
 
 	// Kiểm tra password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		logx.Error(err)
 		return nil, errors.New("email hoặc mật khẩu không đúng")
 	}
 
 	// Tạo JWT token
 	accessToken, err := l.generateJWT(user.ID, user.Email, user.Role)
 	if err != nil {
+		logx.Error(err)
 		return nil, errors.New("không thể tạo token")
 	}
 
@@ -65,6 +68,7 @@ func (l *AuthLogic) Register(ctx context.Context, req *types.RegisterRequest) (*
 	// Kiểm tra email đã tồn tại chưa
 	existingUser, err := l.svc.UserRepo.GetByEmail(ctx, req.Email)
 	if err == nil && existingUser != nil {
+		logx.Error(err)
 		return nil, errors.New("email đã được sử dụng")
 	}
 
@@ -85,6 +89,7 @@ func (l *AuthLogic) Register(ctx context.Context, req *types.RegisterRequest) (*
 	// Tạo JWT token
 	accessToken, err := l.generateJWT(user.ID, user.Email, user.Role)
 	if err != nil {
+		logx.Error(err)
 		return nil, errors.New("không thể tạo token")
 	}
 
@@ -108,6 +113,7 @@ func (l *AuthLogic) GetProfile(ctx context.Context, userID int) (*types.ProfileR
 	// Lấy thông tin user
 	user, err := l.svc.UserRepo.GetByID(ctx, userID)
 	if err != nil {
+		logx.Error(err)
 		return nil, errors.New("không tìm thấy người dùng")
 	}
 
@@ -137,11 +143,12 @@ func (l *AuthLogic) generateJWT(userID int, email, role string) (string, error) 
 
 	// Tạo token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	
+
 	// Ký token với secret key (nên lưu trong config)
 	secretKey := "your-secret-key" // TODO: Lấy từ config
 	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
+		logx.Error(err)
 		return "", err
 	}
 
@@ -160,6 +167,7 @@ func (l *AuthLogic) ValidateToken(tokenString string) (*types.UserInfo, error) {
 	})
 
 	if err != nil {
+		logx.Error(err)
 		return nil, errors.New("token không hợp lệ")
 	}
 
@@ -174,4 +182,4 @@ func (l *AuthLogic) ValidateToken(tokenString string) (*types.UserInfo, error) {
 	}
 
 	return nil, errors.New("token không hợp lệ")
-} 
+}

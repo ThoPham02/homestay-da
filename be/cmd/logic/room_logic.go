@@ -31,9 +31,11 @@ func (r *RoomLogic) CreateRoom(req *types.CreateRoomRequest, hostID int) (*types
 	// Kiểm tra quyền sở hữu homestay
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền tạo room cho homestay này")
 	}
 
@@ -51,6 +53,7 @@ func (r *RoomLogic) CreateRoom(req *types.CreateRoomRequest, hostID int) (*types
 	// Tạo room
 	room, err := r.svcCtx.RoomRepo.Create(r.ctx, roomReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi tạo room: %w", err)
 	}
 
@@ -83,15 +86,18 @@ func (r *RoomLogic) GetRoomByID(roomID, hostID int) (*types.RoomDetailResponse, 
 	// Lấy thông tin room
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, roomID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền truy cập room này")
 	}
 
@@ -146,9 +152,11 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền truy cập homestay này")
 	}
 
@@ -177,6 +185,7 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 	// Tìm kiếm rooms
 	rooms, total, err := r.svcCtx.RoomRepo.Search(r.ctx, searchReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi tìm kiếm rooms: %w", err)
 	}
 
@@ -217,15 +226,18 @@ func (r *RoomLogic) UpdateRoom(roomID int, req *types.UpdateRoomRequest, hostID 
 	// Lấy thông tin room hiện tại
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, roomID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền cập nhật room này")
 	}
 
@@ -243,6 +255,7 @@ func (r *RoomLogic) UpdateRoom(roomID int, req *types.UpdateRoomRequest, hostID 
 	// Cập nhật room
 	updatedRoom, err := r.svcCtx.RoomRepo.Update(r.ctx, roomID, updateReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi cập nhật room: %w", err)
 	}
 
@@ -275,15 +288,18 @@ func (r *RoomLogic) DeleteRoom(roomID, hostID int) error {
 	// Lấy thông tin room
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, roomID)
 	if err != nil {
+		logx.Error(err)
 		return fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return fmt.Errorf("không có quyền xóa room này")
 	}
 	// TODO: Kiểm tra booking đang hoạt động trước khi xóa room (chưa implement GetActiveBookingsByRoomID)
@@ -298,6 +314,7 @@ func (r *RoomLogic) DeleteRoom(roomID, hostID int) error {
 	// Xóa room
 	err = r.svcCtx.RoomRepo.Delete(r.ctx, roomID)
 	if err != nil {
+		logx.Error(err)
 		return fmt.Errorf("lỗi xóa room: %w", err)
 	}
 
@@ -309,20 +326,24 @@ func (r *RoomLogic) CreateAvailability(req *types.CreateAvailabilityRequest, hos
 	// Lấy thông tin room
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, req.RoomID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền tạo availability cho room này")
 	}
 
 	// Kiểm tra ngày không được trong quá khứ
 	if req.Date.Before(time.Now().Truncate(24 * time.Hour)) {
+		logx.Error(err)
 		return nil, fmt.Errorf("không thể tạo availability cho ngày trong quá khứ")
 	}
 
@@ -337,6 +358,7 @@ func (r *RoomLogic) CreateAvailability(req *types.CreateAvailabilityRequest, hos
 	// Tạo availability
 	availability, err := r.svcCtx.RoomAvailabilityRepo.Create(r.ctx, availabilityReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi tạo availability: %w", err)
 	}
 
@@ -359,21 +381,25 @@ func (r *RoomLogic) UpdateAvailability(availabilityID int, req *types.UpdateAvai
 	// Lấy thông tin availability
 	availability, err := r.svcCtx.RoomAvailabilityRepo.GetByID(r.ctx, availabilityID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("availability không tồn tại")
 	}
 
 	// Lấy thông tin room
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, availability.RoomID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền cập nhật availability này")
 	}
 
@@ -386,6 +412,7 @@ func (r *RoomLogic) UpdateAvailability(availabilityID int, req *types.UpdateAvai
 	// Cập nhật availability
 	updatedAvailability, err := r.svcCtx.RoomAvailabilityRepo.Update(r.ctx, availabilityID, updateReq)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi cập nhật availability: %w", err)
 	}
 
@@ -408,20 +435,24 @@ func (r *RoomLogic) BulkUpdateAvailability(req *types.BulkAvailabilityRequest, h
 	// Lấy thông tin room
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, req.RoomID)
 	if err != nil {
+		logx.Error(err)
 		return fmt.Errorf("room không tồn tại")
 	}
 
 	// Kiểm tra quyền sở hữu
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, room.HomestayID)
 	if err != nil {
+		logx.Error(err)
 		return fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return fmt.Errorf("không có quyền cập nhật availability cho room này")
 	}
 
 	// Kiểm tra ngày bắt đầu không được trong quá khứ
 	if req.StartDate.Before(time.Now().Truncate(24 * time.Hour)) {
+		logx.Error(err)
 		return fmt.Errorf("không thể cập nhật availability cho ngày trong quá khứ")
 	}
 
@@ -476,15 +507,18 @@ func (r *RoomLogic) GetRoomStats(homestayID, hostID int) (*types.RoomStatsRespon
 	// Kiểm tra quyền sở hữu homestay
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, homestayID)
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("homestay không tồn tại")
 	}
 	if homestay.OwnerID != hostID {
+		logx.Error(err)
 		return nil, fmt.Errorf("không có quyền truy cập thống kê homestay này")
 	}
 
 	// Lấy danh sách tất cả rooms của homestay
 	rooms, _, err := r.svcCtx.RoomRepo.GetByHomestayID(r.ctx, homestayID, 1, 1000) // Lấy tất cả rooms
 	if err != nil {
+		logx.Error(err)
 		return nil, fmt.Errorf("lỗi lấy danh sách rooms: %w", err)
 	}
 

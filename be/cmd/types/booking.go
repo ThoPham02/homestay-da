@@ -1,38 +1,48 @@
 package types
 
 type Booking struct {
-	ID            int     `json:"id"`
-	BookingCode   string  `json:"bookingCode"`
-	CustomerID    int     `json:"customerId"`
-	CustomerName  string  `json:"customerName"`
-	CustomerPhone string  `json:"customerPhone"`
-	CustomerEmail string  `json:"customerEmail"`
-	HomestayID    int     `json:"homestayId"`
-	HomestayName  string  `json:"homestayName"`
-	RoomID        int     `json:"roomId"`
-	RoomName      string  `json:"roomName"`
-	RoomType      string  `json:"roomType"`
-	CheckIn       string  `json:"checkIn"`
-	CheckOut      string  `json:"checkOut"`
-	Nights        int     `json:"nights"`
-	TotalAmount   float64 `json:"totalAmount"`
-	PaidAmount    float64 `json:"paidAmount"`
-	Status        string  `json:"status"`
-	BookingDate   string  `json:"bookingDate"`
-	PaymentMethod string  `json:"paymentMethod"`
+	ID            int           `json:"id"`
+	BookingCode   string        `json:"bookingCode"`
+	CustomerName  string        `json:"customerName"`
+	CustomerPhone string        `json:"customerPhone"`
+	CustomerEmail string        `json:"customerEmail"`
+	CheckIn       string        `json:"checkIn"`
+	CheckOut      string        `json:"checkOut"`
+	Nights        int           `json:"nights"`
+	TotalAmount   float64       `json:"totalAmount"`
+	PaidAmount    float64       `json:"paidAmount"`
+	Status        string        `json:"status"`
+	BookingDate   string        `json:"bookingDate"`
+	PaymentMethod string        `json:"paymentMethod"`
+	Rooms         []BookingRoom `json:"rooms"`
+}
+
+type BookingRoom struct {
+	RoomID    int     `json:"roomId"`
+	RoomName  string  `json:"roomName"`
+	RoomType  string  `json:"roomType"`
+	Capacity  int     `json:"capacity"`
+	Price     float64 `json:"price"`
+	PriceType string  `json:"priceType"`
 }
 
 type CreateBookingReq struct {
-	CustomerName  string `json:"customerName"`
-	CustomerPhone string `json:"customerPhone"`
-	CustomerEmail string `json:"customerEmail"`
-	HomestayID    int    `json:"homestayId"`
-	RoomID        int    `json:"roomId"`
-	CheckIn       string `json:"checkIn"`
-	CheckOut      string `json:"checkOut"`
-	Guests        int    `json:"guests"`
-	PaymentMethod string `json:"paymentMethod"`
-	Notes         string `json:"notes,omitempty"`
+	CustomerName  string           `json:"customerName"`
+	CustomerPhone string           `json:"customerPhone"`
+	CustomerEmail string           `json:"customerEmail"`
+	CheckIn       string           `json:"checkIn"`
+	CheckOut      string           `json:"checkOut"`
+	Guests        int              `json:"guests"`
+	PaymentMethod string           `json:"paymentMethod"`
+	Notes         string           `json:"notes,omitempty"`
+	Rooms         []BookingRoomReq `json:"rooms"`
+}
+
+type BookingRoomReq struct {
+	RoomID    int     `json:"roomId"`
+	Capacity  int     `json:"capacity"`
+	Price     float64 `json:"price"`
+	PriceType string  `json:"priceType"`
 }
 
 type CreateBookingResp struct {
@@ -40,8 +50,6 @@ type CreateBookingResp struct {
 }
 
 type FilterBookingReq struct {
-	HomestayID   *int    `json:"homestayId,omitempty"`
-	RoomID       *int    `json:"roomId,omitempty"`
 	Status       *string `json:"status,omitempty"`
 	CustomerName *string `json:"customerName,omitempty"`
 	DateFrom     *string `json:"dateFrom,omitempty"`
@@ -57,8 +65,18 @@ type FilterBookingResp struct {
 	PageSize int       `json:"pageSize"`
 }
 
+type Payment struct {
+	ID            int     `json:"id"`
+	Amount        float64 `json:"amount"`
+	PaymentMethod string  `json:"paymentMethod"`
+	PaymentStatus string  `json:"paymentStatus"`
+	TransactionID string  `json:"transactionId"`
+	PaymentDate   string  `json:"paymentDate"`
+}
+
 type BookingDetailResp struct {
-	Booking Booking `json:"booking"`
+	Booking  Booking   `json:"booking"`
+	Payments []Payment `json:"payments"`
 }
 
 type UpdateBookingStatusReq struct {
