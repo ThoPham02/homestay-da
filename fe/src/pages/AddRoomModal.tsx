@@ -16,6 +16,9 @@ const RoomAddPage: React.FC = () => {
 
     const handleSubmit = async (room: any) => {
         if (!id) return;
+
+        console.log("Submitting room:", room);
+
         try {
             await homestayService.createRoom({
                 homestayId: Number(id),
@@ -25,6 +28,8 @@ const RoomAddPage: React.FC = () => {
                 capacity: room.capacity,
                 price: room.price,
                 priceType: room.priceType || 'per_night',
+                amenities: room.amenities,
+                images: room.images,
             });
             // Chuyển về trang quản lý homestay với state để reload danh sách phòng
             navigate(`/management/homestay/${id}`, {

@@ -26,7 +26,6 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
   });
 
   const [newAmenity, setNewAmenity] = useState('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const roomTypes = [
     { value: 'Standard', label: 'Phòng Standard' },
@@ -95,13 +94,16 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
       .filter((album): album is UploadedAlbum => album !== null)
       .map((album) => album.url);
 
-    setImageUrls(validAlbums);
+    setFormData((prevData) => ({
+      ...prevData,
+      images: [...prevData.images, ...validAlbums],
+    }));
     setIsUploading(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.price || !formData.description) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
@@ -120,7 +122,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
 
     onSubmit(roomData);
     onClose();
-    
+
     // Reset form
     setFormData({
       name: '',
@@ -133,7 +135,6 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
       status: 'available'
     });
     setNewAmenity('');
-    setImageUrls([]);
   };
 
   if (!isOpen) return null;
@@ -162,7 +163,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder="VD: Phòng Deluxe 101"
                   required
@@ -175,7 +176,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value as Room['type']})}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as Room['type'] })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   required
                 >
@@ -191,11 +192,11 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 </label>
                 <select
                   value={formData.capacity}
-                  onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   required
                 >
-                  {[1,2,3,4,5,6,8,10].map(num => (
+                  {[1, 2, 3, 4, 5, 6, 8, 10].map(num => (
                     <option key={num} value={num}>{num} người</option>
                   ))}
                 </select>
@@ -208,7 +209,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 <input
                   type="number"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder="500000"
                   required
@@ -223,7 +224,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="Mô tả chi tiết về phòng..."
@@ -236,23 +237,22 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Tiện nghi phòng
               </label>
-              
+
               {/* Common Amenities */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
                 {commonAmenities.map((amenity) => (
                   <button
                     key={amenity}
                     type="button"
-                    onClick={() => 
-                      formData.amenities.includes(amenity) 
+                    onClick={() =>
+                      formData.amenities.includes(amenity)
                         ? removeAmenity(amenity)
                         : addAmenityToList(amenity)
                     }
-                    className={`p-2 text-sm rounded-lg border transition-colors ${
-                      formData.amenities.includes(amenity)
+                    className={`p-2 text-sm rounded-lg border transition-colors ${formData.amenities.includes(amenity)
                         ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
                         : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {amenity}
                   </button>
@@ -306,33 +306,33 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSubmit, 
                 Hình ảnh phòng *
               </label>
               <div className="mt-2 mb-4 flex flex-wrap">
-          {formData.images.map((image, index) => (
-            <div className="relative">
-              <img
-                src={image}
-                alt={`Ảnh phòng ${index + 1}`}
-                className="w-40 h-40 mr-4 mb-4 object-cover rounded-lg"
-                key={image}
-              />
+                {formData.images.map((image, index) => (
+                  <div className="relative">
+                    <img
+                      src={image}
+                      alt={`Ảnh phòng ${index + 1}`}
+                      className="w-40 h-40 mr-4 mb-4 object-cover rounded-lg"
+                      key={index}
+                    />
 
-                <TbXboxX
-                  className="text-red-500 text-3xl absolute top-2 right-6"
-                  onClick={() =>
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      images: prevData.images.filter((img) => img !== image),
-                    }))
-                  }
+                    <TbXboxX
+                      className="text-red-500 text-3xl absolute top-2 right-6"
+                      onClick={() =>
+                        setFormData((prevData) => ({
+                          ...prevData,
+                          images: prevData.images.filter((img) => img !== image),
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+
+                <CusFormUpload
+                  disabled={false}
+                  handleUpload={handleImageUpload}
+                  isUploading={isUploading}
                 />
-            </div>
-          ))}
-
-          <CusFormUpload
-            disabled={false}
-            handleUpload={handleImageUpload}
-            isUploading={isUploading}
-          />
-        </div>
+              </div>
             </div>
 
             {/* Submit Buttons */}

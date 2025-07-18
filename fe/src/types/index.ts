@@ -192,6 +192,8 @@ export interface CreateRoomRequest {
   capacity: number;
   price: number;
   priceType: 'per_night' | 'per_person';
+  amenities: string[];
+  images: string[];
 }
 
 export interface UpdateRoomRequest {
@@ -202,6 +204,8 @@ export interface UpdateRoomRequest {
   price?: number;
   priceType?: 'per_night' | 'per_person';
   status?: 'available' | 'occupied' | 'maintenance';
+  amenities?: string[];
+  images?: string[];
 }
 
 export interface CreateAvailabilityRequest {

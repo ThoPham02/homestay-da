@@ -46,7 +46,7 @@ const HomestayDetailView: React.FC<HomestayDetailViewProps> = ({ homestay, onBac
     const checkIn = new Date(bookingData.checkIn);
     const checkOut = new Date(bookingData.checkOut);
     const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-    const price = selectedRoom ? selectedRoom.price : homestay.price;
+    const price = selectedRoom ? selectedRoom.price : 0;
     return nights > 0 ? nights * price : 0;
   };
 

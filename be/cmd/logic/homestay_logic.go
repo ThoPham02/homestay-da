@@ -6,6 +6,8 @@ import (
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
 	"homestay-be/cmd/types"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type HomestayLogic struct {
@@ -121,6 +123,28 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 
 	respList := make([]types.Homestay, 0, len(homestays))
 	for _, hst := range homestays {
+		var rooms []types.Room
+		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 0, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, rm := range roomModels {
+			rooms = append(rooms, types.Room{
+				ID:          rm.ID,
+				Name:        rm.Name,
+				Description: rm.Description,
+				Capacity:    rm.Capacity,
+				Price:       rm.Price,
+				Status:      rm.Status,
+				CreatedAt:   rm.CreatedAt,
+				UpdatedAt:   rm.UpdatedAt,
+				HomestayID:  rm.HomestayID,
+			})
+		}
+
+		logx.Info("Rooms: ", rooms)
+
 		respList = append(respList, types.Homestay{
 			ID:          hst.ID,
 			Name:        hst.Name,
@@ -133,6 +157,7 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 			Longitude:   hst.Longitude,
 			HostID:      hst.OwnerID,
 			Status:      hst.Status,
+			Rooms:       rooms,
 			CreatedAt:   hst.CreatedAt,
 			UpdatedAt:   hst.UpdatedAt,
 		})

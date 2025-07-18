@@ -23,13 +23,15 @@ type Room struct {
 
 // RoomCreateRequest request tạo room mới
 type RoomCreateRequest struct {
-	HomestayID  int     `json:"homestayId" binding:"required"`
-	Name        string  `json:"name" binding:"required"`
-	Description string  `json:"description"`
-	Type        string  `json:"type" binding:"required"`
-	Capacity    int     `json:"capacity" binding:"required,min=1"`
-	Price       float64 `json:"price" binding:"required,min=0"`
-	PriceType   string  `json:"priceType" binding:"required"`
+	HomestayID  int      `json:"homestayId" binding:"required"`
+	Name        string   `json:"name" binding:"required"`
+	Description string   `json:"description"`
+	Type        string   `json:"type" binding:"required"`
+	Capacity    int      `json:"capacity" binding:"required,min=1"`
+	Price       float64  `json:"price" binding:"required,min=0"`
+	PriceType   string   `json:"priceType" binding:"required"`
+	Images      []string `json:"images"`
+	Amenities   []string `json:"amenities"`
 }
 
 // RoomUpdateRequest request cập nhật room

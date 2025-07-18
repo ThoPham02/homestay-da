@@ -20,7 +20,7 @@ const HomestayDetailManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [roomsLoading, setRoomsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview');
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'stats');
 
   const homestayId = parseInt(id || '0');
 

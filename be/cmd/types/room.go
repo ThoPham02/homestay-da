@@ -26,6 +26,8 @@ type CreateRoomRequest struct {
 	Capacity    int     `json:"capacity" validate:"required,min=1,max=20"`
 	Price       float64 `json:"price" validate:"required,min=0"`
 	PriceType   string  `json:"priceType" validate:"required,oneof=per_night per_person"`
+	Images      []string `json:"images"`
+	Amenities   []string `json:"amenities"`
 }
 
 // UpdateRoomRequest - Request to update a room

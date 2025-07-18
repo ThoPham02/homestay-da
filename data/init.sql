@@ -31,12 +31,13 @@ CREATE TABLE room (
     homestay_id INTEGER NOT NULL REFERENCES homestay(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('single', 'double', 'family', 'dormitory')),
+    type VARCHAR(20) NOT NULL,
     capacity INTEGER NOT NULL,
     price DECIMAL(12,2) NOT NULL,
     price_type VARCHAR(20) NOT NULL DEFAULT 'per_night' CHECK (price_type IN ('per_night', 'per_person')),
     status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance')),
-    image_urls TEXT,
+    image_urls TEXT, -- Mảng chứa các URL ảnh của phòng
+    amenities TEXT, -- Mảng chứa các tiện nghi của phòng
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

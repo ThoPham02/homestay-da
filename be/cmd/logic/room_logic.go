@@ -26,6 +26,8 @@ func NewRoomLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RoomLogic {
 
 // CreateRoom - Create a new room
 func (r *RoomLogic) CreateRoom(req *types.CreateRoomRequest, hostID int) (*types.RoomDetailResponse, error) {
+	logx.Info("Creating room:", req)
+
 	// Kiểm tra quyền sở hữu homestay
 	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
 	if err != nil {
