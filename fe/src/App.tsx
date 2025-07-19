@@ -19,6 +19,7 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import RoomDetailPage from './pages/RoomDetailPage';
 import RoomAddPage from './pages/AddRoomModal';
 import { ConfirmProvider } from './components/ConfirmDialog';
+import HomestayDetailGuest from './pages/HomestayDetailGuest';
 
 function App() {
   return (
@@ -93,6 +94,14 @@ function App() {
                   element={
                     <ProtectedRoute requiredRoles={['host', 'admin']}>
                       <RoomDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/guest/homestay/:id"
+                  element={
+                    <ProtectedRoute requiredRoles={['guest', 'host', 'admin']}>
+                      <HomestayDetailGuest />
                     </ProtectedRoute>
                   }
                 />

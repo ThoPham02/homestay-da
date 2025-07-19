@@ -107,12 +107,16 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 
 			// Initialize logic layers
 			homestayLogic := logic.NewHomestayLogic(ctx, serverCtx)
+			roomLogic := logic.NewRoomLogic(ctx, serverCtx)
 
 			// Initialize handlers
 			homestayHandler := NewHomestayHandler(homestayLogic)
+			roomHandler := NewRoomHandler(roomLogic)
 
 			// Homestay management
 			guest.GET("/homestays", homestayHandler.GetPublicHomestayList)
+			guest.GET("/homestays/:id", homestayHandler.GetPublicHomestayByID)
+			guest.GET("/rooms", roomHandler.GetPublicRoomList)
 		}
 	}
 

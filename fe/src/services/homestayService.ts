@@ -282,6 +282,27 @@ class HomestayService {
       throw error;
     }
   }
+
+  async getPublicHomestayById(id: number): Promise<HomestayDetailResponse> {
+    try {
+      const response = await api.get(`/api/guest/homestays/${id}`);
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thông tin homestay');
+      throw error;
+    }
+  }
+
+  async getPublicRoomList(params: RoomListRequest): Promise<RoomListResponse> {
+    try {
+      const response = await api.get('/api/guest/rooms', { params });
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách phòng');
+      throw error;
+    }
+  }
+
 }
 
 const homestayService = new HomestayService();

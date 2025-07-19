@@ -566,3 +566,77 @@ func (r *RoomLogic) GetRoomStats(homestayID, hostID int) (*types.RoomStatsRespon
 
 	return stats, nil
 }
+
+func (r *RoomLogic) GetPublicRoomList(req *types.RoomListRequest) (*types.RoomListResponse, error) {
+	logx.Infof("Lấy danh sách phòng cho homestay ID: %d", req.HomestayID)
+
+	// Lấy thông tin homestay (không kiểm tra quyền sở hữu)
+	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
+	if err != nil {
+		logx.Error(err)
+		return nil, fmt.Errorf("homestay không tồn tại")
+	}
+
+	// (Tuỳ chọn) Chỉ hiển thị nếu homestay ở trạng thái hoạt động
+	if homestay.Status != "active" {
+		return nil, fmt.Errorf("homestay không khả dụng")
+	}
+
+	// Pagination mặc định
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 100 {
+		req.PageSize = 100
+	}
+
+	// Tạo search request
+	searchReq := &model.RoomSearchRequest{
+		HomestayID: &req.HomestayID,
+		Status:     &req.Status,
+		Type:       &req.Type,
+		MinPrice:   req.MinPrice,
+		MaxPrice:   req.MaxPrice,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+	}
+
+	// Tìm kiếm phòng
+	rooms, total, err := r.svcCtx.RoomRepo.Search(r.ctx, searchReq)
+	if err != nil {
+		logx.Error(err)
+		return nil, fmt.Errorf("lỗi tìm kiếm rooms: %w", err)
+	}
+
+	// Chuyển sang types.Room
+	var roomList []types.Room
+	for _, room := range rooms {
+		roomList = append(roomList, types.Room{
+			ID:          room.ID,
+			HomestayID:  room.HomestayID,
+			Name:        room.Name,
+			Description: room.Description,
+			Type:        room.Type,
+			Capacity:    room.Capacity,
+			Price:       room.Price,
+			PriceType:   room.PriceType,
+			Status:      room.Status,
+			CreatedAt:   room.CreatedAt,
+			UpdatedAt:   room.UpdatedAt,
+		})
+	}
+
+	// Tổng số trang
+	totalPage := int(math.Ceil(float64(total) / float64(req.PageSize)))
+
+	return &types.RoomListResponse{
+		Rooms:     roomList,
+		Total:     total,
+		Page:      req.Page,
+		PageSize:  req.PageSize,
+		TotalPage: totalPage,
+	}, nil
+}

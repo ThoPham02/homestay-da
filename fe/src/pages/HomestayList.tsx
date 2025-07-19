@@ -12,7 +12,7 @@ const HomestayList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<HomestayListRequest>({
     page: 1,
-    pageSize: 12,
+    pageSize: 1,
     search: '',
     city: '',
     district: '',
@@ -42,7 +42,7 @@ const HomestayList: React.FC = () => {
   }, [filters]);
 
   const handleHomestayClick = (homestayId: number) => {
-    navigate(`/homestay/${homestayId}`);
+    navigate(`/guest/homestay/${homestayId}`);
   };
 
   const handleFiltersChange = (newFilters: HomestayListRequest) => {

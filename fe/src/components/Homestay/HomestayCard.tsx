@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, MapPin, Users, Bed, Bath, Square } from 'lucide-react';
-import { Homestay } from '../../types';
+import { Homestay, Room } from '../../types';
+import { homestayService } from '../../services/homestayService';
 
 interface HomestayCardProps {
   homestay: Homestay;
@@ -8,7 +9,25 @@ interface HomestayCardProps {
 }
 
 const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
-  const firstRoom = homestay.rooms?.[0];
+  const [firstRoom, setFirstRoom] = useState<Room | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchRooms = async () => {
+      try {
+        const res = await homestayService.getPublicRoomList({ homestayId: homestay.id, page: 1, pageSize: 1 });
+        if (mounted && res.rooms && res.rooms.length > 0) {
+          setFirstRoom(res.rooms[0]);
+        } else if (mounted) {
+          setFirstRoom(null);
+        }
+      } catch {
+        if (mounted) setFirstRoom(null);
+      }
+    };
+    fetchRooms();
+    return () => { mounted = false; };
+  }, [homestay.id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -61,7 +80,7 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
             </div>
             <div className="flex items-center">
               <Square className="h-4 w-4 mr-1" />
-              <span>- m²</span> {/* nếu có area */}
+              <span>{firstRoom?.area ? `${firstRoom.area} m²` : '- m²'}</span>
             </div>
           </div>
         </div>

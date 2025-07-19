@@ -349,3 +349,20 @@ func (h *RoomHandler) GetRoomStats(c *gin.Context) {
 
 	response.ResponseSuccess(c, stats)
 }
+
+func (h *RoomHandler) GetPublicRoomList(c *gin.Context) {
+	var req types.RoomListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	roomList, err := h.roomLogic.GetPublicRoomList(&req)
+	if err != nil {
+		logx.Error(err)
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, roomList)
+}

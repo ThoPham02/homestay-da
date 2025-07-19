@@ -373,3 +373,22 @@ func (h *HomestayHandler) GetPublicHomestayList(c *gin.Context) {
 
 	response.ResponseSuccess(c, homestayList)
 }
+
+func (h *HomestayHandler) GetPublicHomestayByID(c *gin.Context) {
+	// Get homestay ID from URL
+	homestayIDStr := c.Param("id")
+	homestayID, err := strconv.Atoi(homestayIDStr)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidID)
+		return
+	}
+
+	// Get homestay
+	homestayDetail, err := h.homestayLogic.GetPublicHomestayByID(homestayID)
+	if err != nil {
+		response.ResponseError(c, response.NotFound, response.MsgHomestayNotFound)
+		return
+	}
+
+	response.ResponseSuccess(c, homestayDetail)
+}

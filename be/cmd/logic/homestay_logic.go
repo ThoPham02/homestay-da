@@ -388,6 +388,9 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 	if req.District != "" {
 		searchReq.District = &req.District
 	}
+	if req.Status != "" {
+		searchReq.Status = &req.Status
+	}
 
 	homestays, total, err := h.svcCtx.HomestayRepo.Search(h.ctx, searchReq)
 	if err != nil {
@@ -444,4 +447,29 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 		PageSize:  pageSize,
 		TotalPage: totalPage,
 	}, nil
+}
+
+func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDetailResponse, error) {
+	found, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	resp := types.Homestay{
+		ID:          found.ID,
+		Name:        found.Name,
+		Description: found.Description,
+		Address:     found.Address,
+		City:        found.City,
+		District:    found.District,
+		Ward:        found.Ward,
+		Latitude:    found.Latitude,
+		Longitude:   found.Longitude,
+		HostID:      found.OwnerID,
+		Status:      found.Status,
+		CreatedAt:   found.CreatedAt,
+		UpdatedAt:   found.UpdatedAt,
+	}
+	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
