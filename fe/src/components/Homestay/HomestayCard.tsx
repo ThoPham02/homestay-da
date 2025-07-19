@@ -8,10 +8,12 @@ interface HomestayCardProps {
 }
 
 const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
+  const firstRoom = homestay.rooms?.[0];
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'VND',
     }).format(price);
   };
 
@@ -22,13 +24,10 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={homestay.images[0]}
+          src="/placeholder.jpg"
           alt={homestay.name}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
-        <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded-md text-sm">
-          {homestay.images.length} ảnh
-        </div>
       </div>
 
       <div className="p-6">
@@ -36,33 +35,33 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
           <h3 className="text-xl font-semibold text-gray-900 truncate">{homestay.name}</h3>
           <div className="flex items-center space-x-1">
             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="text-sm font-medium">{homestay.rating}</span>
-            <span className="text-sm text-gray-500">({homestay.reviews})</span>
+            <span className="text-sm font-medium">{homestay.rating ?? 0}</span>
+            <span className="text-sm text-gray-500">({homestay.reviews ?? 0})</span>
           </div>
         </div>
 
         <div className="flex items-center text-gray-600 mb-3">
           <MapPin className="h-4 w-4 mr-1" />
-          <span className="text-sm">{homestay.location}</span>
+          <span className="text-sm">{`${homestay.address}, ${homestay.ward}, ${homestay.district}, ${homestay.city}`}</span>
         </div>
 
         <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <Users className="h-4 w-4 mr-1" />
-              <span>{homestay.maxGuests}</span>
+              <span>{firstRoom?.capacity ?? '-'}</span>
             </div>
             <div className="flex items-center">
               <Bed className="h-4 w-4 mr-1" />
-              <span>{homestay.bedrooms}</span>
+              <span>{firstRoom ? 1 : '-'}</span>
             </div>
             <div className="flex items-center">
               <Bath className="h-4 w-4 mr-1" />
-              <span>{homestay.bathrooms}</span>
+              <span>-</span> {/* nếu có trường bathrooms, thay thế tại đây */}
             </div>
             <div className="flex items-center">
               <Square className="h-4 w-4 mr-1" />
-              <span>{homestay.area}m²</span>
+              <span>- m²</span> {/* nếu có area */}
             </div>
           </div>
         </div>
@@ -72,22 +71,9 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
         </p>
 
         <div className="flex items-center justify-between">
-          <div className="flex flex-wrap gap-1">
-            {homestay.amenities.slice(0, 3).map((amenity, index) => (
-              <span
-                key={index}
-                className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs"
-              >
-                {amenity}
-              </span>
-            ))}
-            {homestay.amenities.length > 3 && (
-              <span className="text-xs text-gray-500">+{homestay.amenities.length - 3}</span>
-            )}
-          </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-emerald-600">
-              {formatPrice(homestay.price)}
+              {firstRoom ? formatPrice(firstRoom.price) : 'Đang cập nhật'}
             </p>
             <p className="text-sm text-gray-500">/đêm</p>
           </div>

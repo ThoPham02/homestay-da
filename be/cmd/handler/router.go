@@ -103,7 +103,16 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 		guest.Use(middleware.AuthMiddleware(serverCtx))
 		guest.Use(middleware.RoleMiddleware("guest"))
 		{
-			// TODO: Add guest-specific routes
+			ctx := context.Background()
+
+			// Initialize logic layers
+			homestayLogic := logic.NewHomestayLogic(ctx, serverCtx)
+
+			// Initialize handlers
+			homestayHandler := NewHomestayHandler(homestayLogic)
+
+			// Homestay management
+			guest.GET("/homestays", homestayHandler.GetPublicHomestayList)
 		}
 	}
 

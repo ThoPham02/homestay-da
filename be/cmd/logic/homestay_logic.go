@@ -361,3 +361,87 @@ func (h *HomestayLogic) ToggleHomestayStatus(homestayID, hostID int) (*types.Hom
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
+
+// logic guest
+func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*types.HomestayListResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	searchReq := &model.HomestaySearchRequest{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	// Thêm các filter nếu có
+	if req.Search != "" {
+		searchReq.Name = &req.Search
+	}
+	if req.City != "" {
+		searchReq.City = &req.City
+	}
+	if req.District != "" {
+		searchReq.District = &req.District
+	}
+
+	homestays, total, err := h.svcCtx.HomestayRepo.Search(h.ctx, searchReq)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	respList := make([]types.Homestay, 0, len(homestays))
+	for _, hst := range homestays {
+		var rooms []types.Room
+		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 0, 0)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+
+		for _, rm := range roomModels {
+			rooms = append(rooms, types.Room{
+				ID:          rm.ID,
+				Name:        rm.Name,
+				Description: rm.Description,
+				Capacity:    rm.Capacity,
+				Price:       rm.Price,
+				Status:      rm.Status,
+				CreatedAt:   rm.CreatedAt,
+				UpdatedAt:   rm.UpdatedAt,
+				HomestayID:  rm.HomestayID,
+			})
+		}
+
+		respList = append(respList, types.Homestay{
+			ID:          hst.ID,
+			Name:        hst.Name,
+			Description: hst.Description,
+			Address:     hst.Address,
+			City:        hst.City,
+			District:    hst.District,
+			Ward:        hst.Ward,
+			Latitude:    hst.Latitude,
+			Longitude:   hst.Longitude,
+			HostID:      hst.OwnerID,
+			Status:      hst.Status,
+			Rooms:       rooms,
+			CreatedAt:   hst.CreatedAt,
+			UpdatedAt:   hst.UpdatedAt,
+		})
+	}
+
+	totalPage := (total + pageSize - 1) / pageSize
+	return &types.HomestayListResponse{
+		Homestays: respList,
+		Total:     total,
+		Page:      page,
+		PageSize:  pageSize,
+		TotalPage: totalPage,
+	}, nil
+}

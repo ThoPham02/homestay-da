@@ -45,6 +45,7 @@ class HomestayService {
     }
   }
 
+
   async getHomestayById(id: number): Promise<HomestayDetailResponse> {
     try {
       const response = await api.get(`/api/host/homestays/${id}`);
@@ -269,6 +270,17 @@ class HomestayService {
       maintenance: 'bg-orange-100 text-orange-800'
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  async getPublicHomestayList(params: HomestayListRequest = {}): Promise<HomestayListResponse> {
+    try {
+      const response = await api.get('/api/guest/homestays', { params });
+
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách homestay');
+      throw error;
+    }
   }
 }
 

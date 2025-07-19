@@ -28,7 +28,7 @@ const HomestayList: React.FC = () => {
   const loadHomestays = async () => {
     try {
       setLoading(true);
-      const response = await homestayService.getHomestayList(filters);
+      const response = await homestayService.getPublicHomestayList(filters);
       setHomestays(response.homestays);
     } catch (error) {
       console.error('Error loading homestays:', error);

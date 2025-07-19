@@ -355,3 +355,21 @@ func (h *HomestayHandler) ToggleHomestayStatus(c *gin.Context) {
 
 	response.ResponseSuccess(c, homestay)
 }
+
+// logic guest
+func (h *HomestayHandler) GetPublicHomestayList(c *gin.Context) {
+	var req types.HomestayListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// Get homestay list
+	homestayList, err := h.homestayLogic.GetPublicHomestayList(&req)
+	if err != nil {
+		response.ResponseError(c, response.InternalServerError, response.MsgDatabaseError)
+		return
+	}
+
+	response.ResponseSuccess(c, homestayList)
+}
