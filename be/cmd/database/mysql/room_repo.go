@@ -3,12 +3,14 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/database/repo"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type roomRepository struct {
@@ -22,37 +24,82 @@ func NewRoomRepository(db *sqlx.DB) repo.RoomRepository {
 
 // Create tạo room mới
 func (r *roomRepository) Create(ctx context.Context, req *model.RoomCreateRequest) (*model.Room, error) {
+	// Serialize images, amenities
+	imageUrls := ""
+	if len(req.Images) > 0 {
+		if b, err := json.Marshal(req.Images); err == nil {
+			imageUrls = string(b)
+		} else {
+			imageUrls = strings.Join(req.Images, ",")
+		}
+	}
+	amenities := ""
+	if len(req.Amenities) > 0 {
+		if b, err := json.Marshal(req.Amenities); err == nil {
+			amenities = string(b)
+		} else {
+			amenities = strings.Join(req.Amenities, ",")
+		}
+	}
 	query := `
-		INSERT INTO room (homestay_id, name, description, type, capacity, price, price_type, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, homestay_id, name, description, type, capacity, price, price_type, status
+		INSERT INTO room (homestay_id, name, description, type, capacity, price, price_type, status, image_urls, amenities)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id
 	`
 
-	var room model.Room
-	err := r.db.GetContext(ctx, &room, query, req.HomestayID, req.Name, req.Description, req.Type, req.Capacity, req.Price, req.PriceType, "available")
+	var roomID int
+	err := r.db.GetContext(ctx, &roomID, query, req.HomestayID, req.Name, req.Description, req.Type, req.Capacity, req.Price, req.PriceType, "available", imageUrls, amenities)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create room: %w", err)
 	}
 
-	return &room, nil
+	return r.GetByID(ctx, roomID)
 }
 
 // GetByID lấy room theo ID
 func (r *roomRepository) GetByID(ctx context.Context, id int) (*model.Room, error) {
 	query := `
-		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, r.image_urls, r.amenities, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.id = $1
 	`
 
-	var room model.Room
-	err := r.db.GetContext(ctx, &room, query, id)
+	type dbRoom struct {
+		model.Room
+		ImageUrls sql.NullString `db:"image_urls"`
+		Amenities sql.NullString `db:"amenities"`
+	}
+
+	var dbroom dbRoom
+	err := r.db.GetContext(ctx, &dbroom, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("room not found")
 		}
 		return nil, fmt.Errorf("failed to get room: %w", err)
+	}
+
+	logx.Info("Retrieved room:", dbroom)
+
+	room := dbroom.Room
+	// Parse images
+	if dbroom.ImageUrls.Valid && dbroom.ImageUrls.String != "" {
+		var imgs []string
+		if err := json.Unmarshal([]byte(dbroom.ImageUrls.String), &imgs); err == nil {
+			room.Images = imgs
+		} else {
+			room.Images = strings.Split(dbroom.ImageUrls.String, ",")
+		}
+	}
+	// Parse amenities
+	if dbroom.Amenities.Valid && dbroom.Amenities.String != "" {
+		var ams []string
+		if err := json.Unmarshal([]byte(dbroom.Amenities.String), &ams); err == nil {
+			room.Amenities = ams
+		} else {
+			room.Amenities = strings.Split(dbroom.Amenities.String, ",")
+		}
 	}
 
 	return &room, nil
@@ -106,6 +153,39 @@ func (r *roomRepository) Update(ctx context.Context, id int, req *model.RoomUpda
 		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argIndex))
 		args = append(args, *req.Status)
 		argIndex++
+	}
+
+	// Thêm cập nhật images
+	if imgs, ok := any(req).(map[string]interface{}); ok {
+		if v, ok := imgs["images"]; ok && v != nil {
+			var imageUrls string
+			if arr, ok := v.([]string); ok {
+				if b, err := json.Marshal(arr); err == nil {
+					imageUrls = string(b)
+				} else {
+					imageUrls = strings.Join(arr, ",")
+				}
+				setClauses = append(setClauses, fmt.Sprintf("image_urls = $%d", argIndex))
+				args = append(args, imageUrls)
+				argIndex++
+			}
+		}
+	}
+	// Thêm cập nhật amenities
+	if ams, ok := any(req).(map[string]interface{}); ok {
+		if v, ok := ams["amenities"]; ok && v != nil {
+			var amenities string
+			if arr, ok := v.([]string); ok {
+				if b, err := json.Marshal(arr); err == nil {
+					amenities = string(b)
+				} else {
+					amenities = strings.Join(arr, ",")
+				}
+				setClauses = append(setClauses, fmt.Sprintf("amenities = $%d", argIndex))
+				args = append(args, amenities)
+				argIndex++
+			}
+		}
 	}
 
 	if len(setClauses) == 0 {

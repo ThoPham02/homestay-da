@@ -171,12 +171,28 @@ const RoomDetailPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
                   <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">{room.description}</div>
                 </div>
+                {/* Tiện ích */}
+                {Array.isArray(room.amenities) && room.amenities.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tiện ích</label>
+                    <div className="flex flex-wrap gap-2">
+                      {room.amenities.map((amenity, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"
+                        >
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {/* Nếu có images thì hiển thị */}
-                {Array.isArray((room as any).images) && (room as any).images.length > 0 && (
+                {Array.isArray(room.images) && room.images.length > 0 && (
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
                     <div className="flex flex-wrap gap-4">
-                      {(room as any).images.map((img: string, idx: number) => (
+                      {room.images.map((img, idx) => (
                         <img
                           key={idx}
                           src={img}

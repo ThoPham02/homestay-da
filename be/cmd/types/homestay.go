@@ -15,7 +15,7 @@ type Homestay struct {
 	Longitude   float64   `json:"longitude" db:"longitude"`
 	HostID      int       `json:"hostId" db:"host_id"`
 	Status      string    `json:"status" db:"status"` // active, inactive, pending
-	Rooms       []Room    `json:"rooms"`    // Optional, populated in detail response
+	Rooms       []Room    `json:"rooms"`              // Optional, populated in detail response
 	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
 }
@@ -78,4 +78,6 @@ type HomestayStatsResponse struct {
 	AvailableRooms  int     `json:"availableRooms"`
 	TotalBookings   int     `json:"totalBookings"`
 	TotalRevenue    float64 `json:"totalRevenue"`
+	MonthlyRevenue  float64 `json:"monthlyRevenue"`
+	OccupancyRate   float64 `json:"occupancyRate"`
 }

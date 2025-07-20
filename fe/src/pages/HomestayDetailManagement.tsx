@@ -6,6 +6,7 @@ import { homestayService } from '../services/homestayService';
 import { Booking, Homestay, HomestayStats, Room, RoomStats } from '../types';
 import { useConfirm } from '../components/ConfirmDialog';
 import NewBookingModal from '../components/Booking/NewBookingModal';
+import DEFAULT_ROOM_IMAGE from '../asset/default-image.jpg';
 
 const mockBookings: Booking[] = [
   {
@@ -409,6 +410,29 @@ const HomestayDetailManagement: React.FC = () => {
   
       setBookings(prev => [booking, ...prev]);
     };
+  
+  const handleEditRoom = (room: Room) => {
+    navigate(`/management/homestay/${homestayId}/rooms/${room.id}/edit`);
+  }
+
+  const handleDeleteRoom = (roomId: number) => {
+    confirm({
+      title: 'Xác nhận xóa phòng',
+      description: 'Bạn có chắc chắn muốn xóa phòng này?',
+      confirmText: 'Xóa',
+      cancelText: 'Không'
+    }).then(async (result) => {
+      if (result) {
+        try {
+          await homestayService.deleteRoom(roomId);
+          setRooms(prev => prev.filter(room => room.id !== roomId));
+        } catch (error) {
+          console.error('Error deleting room:', error);
+        }
+      }
+    });
+  }
+    
 
   if (loading) {
     return (
@@ -485,7 +509,7 @@ const HomestayDetailManagement: React.FC = () => {
               </button>
               <button
               onClick={() => setShowNewBookingForm(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Tạo đặt phòng mới
@@ -642,6 +666,20 @@ const HomestayDetailManagement: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rooms.map((room) => (
                       <div key={room.id} className="bg-gray-50 rounded-lg p-6">
+                        {/* Ảnh đại diện phòng */}
+                        {room.images && room.images.length > 0 ? (
+                          <img
+                            src={room.images[0]}
+                            alt={room.name}
+                            className="w-full h-40 object-cover rounded-md mb-4"
+                          />
+                        ) : (
+                          <img
+                            src={DEFAULT_ROOM_IMAGE}
+                            alt="Ảnh mặc định"
+                            className="w-full h-40 object-cover rounded-md mb-4"
+                          />
+                        )}
                         <div className="flex justify-between items-start mb-4">
                           <h3 className="text-lg font-medium">{room.name}</h3>
                           <span className={`px-2 py-1 rounded-full text-xs ${homestayService.getStatusColor(room.status)}`}>
@@ -664,6 +702,20 @@ const HomestayDetailManagement: React.FC = () => {
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             Xem chi tiết
+                          </button>
+                          <button
+                            onClick={() => handleEditRoom && handleEditRoom(room)}
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Sửa
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRoom && handleDeleteRoom(room.id)}
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Xóa
                           </button>
                         </div>
                       </div>

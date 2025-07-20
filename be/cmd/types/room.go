@@ -15,17 +15,19 @@ type Room struct {
 	Status      string    `json:"status" db:"status"`        // available, occupied, maintenance
 	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
+	Images      []string  `json:"images" db:"image_urls"`
+	Amenities   []string  `json:"amenities" db:"amenities"`
 }
 
 // CreateRoomRequest - Request to create a new room
 type CreateRoomRequest struct {
-	HomestayID  int     `json:"homestayId" validate:"required"`
-	Name        string  `json:"name" validate:"required,min=2,max=100"`
-	Description string  `json:"description" validate:"required,min=10,max=500"`
-	Type        string  `json:"type" validate:"required,oneof=single double family dormitory"`
-	Capacity    int     `json:"capacity" validate:"required,min=1,max=20"`
-	Price       float64 `json:"price" validate:"required,min=0"`
-	PriceType   string  `json:"priceType" validate:"required,oneof=per_night per_person"`
+	HomestayID  int      `json:"homestayId" validate:"required"`
+	Name        string   `json:"name" validate:"required,min=2,max=100"`
+	Description string   `json:"description" validate:"required,min=10,max=500"`
+	Type        string   `json:"type" validate:"required,oneof=single double family dormitory"`
+	Capacity    int      `json:"capacity" validate:"required,min=1,max=20"`
+	Price       float64  `json:"price" validate:"required,min=0"`
+	PriceType   string   `json:"priceType" validate:"required,oneof=per_night per_person"`
 	Images      []string `json:"images"`
 	Amenities   []string `json:"amenities"`
 }
