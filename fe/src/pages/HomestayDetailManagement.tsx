@@ -8,6 +8,7 @@ import { useConfirm } from '../components/ConfirmDialog';
 import NewBookingModal from '../components/Booking/NewBookingModal';
 import DEFAULT_ROOM_IMAGE from '../asset/default-image.jpg';
 import AddRoomModal from '../components/Room/AddRoomModal';
+import ViewRoomModal from '../components/Room/ViewRoomModal';
 
 const mockBookings: Booking[] = [
   {
@@ -274,9 +275,12 @@ const HomestayDetailManagement: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  
+
   const [showNewBookingForm, setShowNewBookingForm] = useState(false);
   const [showAddRoomModal, setShowAddRoomModal] = useState(false);
+  const [showEditRoomModal, setShowEditRoomModal] = useState(false);
+  const [roomData, setRoomData] = useState<Room | null>(null);
+  const [isEdit, setIsEdit] = useState(false);
 
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [homestay, setHomestay] = useState<Homestay | null>(null);
@@ -292,7 +296,7 @@ const HomestayDetailManagement: React.FC = () => {
 
   const loadData = async () => {
     if (!homestayId) return;
-    
+
     try {
       setLoading(true);
       const [homestayDetail, stats, roomStatsData] = await Promise.all([
@@ -300,7 +304,7 @@ const HomestayDetailManagement: React.FC = () => {
         homestayService.getHomestayStatsById(homestayId),
         homestayService.getRoomStats(homestayId)
       ]);
-      
+
       setHomestay(homestayDetail.homestay);
       setHomestayStats(stats);
       setRoomStats(roomStatsData);
@@ -313,7 +317,7 @@ const HomestayDetailManagement: React.FC = () => {
 
   const loadRooms = async () => {
     if (!homestayId) return;
-    
+
     try {
       setRoomsLoading(true);
       const roomList = await homestayService.getRoomList({
@@ -356,41 +360,41 @@ const HomestayDetailManagement: React.FC = () => {
   };
 
   const handleEditHomestay = () => {
-    navigate(`/management/homestay/${homestayId}/edit`);
+    setShowEditRoomModal(true)
   };
 
   const handleAddRoomClose = () => {
-        setShowAddRoomModal(false);
-    };
+    setShowAddRoomModal(false);
+  };
 
-    const handleAddRoomSubmit = async (room: any) => {
-        if (!id) return;
+  const handleAddRoomSubmit = async (room: any) => {
+    if (!id) return;
 
-        console.log("Submitting room:", room);
+    console.log("Submitting room:", room);
 
-        try {
-            await homestayService.createRoom({
-                homestayId: Number(id),
-                name: room.name,
-                description: room.description,
-                type: room.type,
-                capacity: room.capacity,
-                price: room.price,
-                priceType: room.priceType || 'per_night',
-                amenities: room.amenities,
-                images: room.images,
-            });
-            // Chuyển về trang quản lý homestay với state để reload danh sách phòng
-            navigate(`/management/homestay/${id}`, {
-                state: {
-                    activeTab: 'rooms',
-                    refreshRooms: true
-                }
-            });
-        } catch (error) {
-            // Có thể show toast lỗi ở đây nếu muốn
+    try {
+      await homestayService.createRoom({
+        homestayId: Number(id),
+        name: room.name,
+        description: room.description,
+        type: room.type,
+        capacity: room.capacity,
+        price: room.price,
+        priceType: room.priceType || 'per_night',
+        amenities: room.amenities,
+        images: room.images,
+      });
+      // Chuyển về trang quản lý homestay với state để reload danh sách phòng
+      navigate(`/management/homestay/${id}`, {
+        state: {
+          activeTab: 'rooms',
+          refreshRooms: true
         }
-    };
+      });
+    } catch (error) {
+      // Có thể show toast lỗi ở đây nếu muốn
+    }
+  };
 
   const handleDeleteHomestay = async () => {
     if (!homestay) return;
@@ -412,11 +416,26 @@ const HomestayDetailManagement: React.FC = () => {
   };
 
   const handleAddRoom = () => {
-    navigate(`/management/homestay/${homestayId}/rooms/add`);
+    setShowAddRoomModal(true);
   };
 
-  const handleViewRoom = (roomId: number) => {
-    navigate(`/management/homestay/${homestayId}/rooms/${roomId}`);
+  const handleViewRoom = async (roomId: number) => {
+    console.log("Viewing room:", roomId);
+
+    const roomDetail = await homestayService.getRoomById(roomId);
+    setRoomData({
+      id: roomDetail.room.id,
+      name: roomDetail.room.name,
+      description: roomDetail.room.description,
+      type: roomDetail.room.type,
+      capacity: roomDetail.room.capacity,
+      price: roomDetail.room.price,
+      priceType: roomDetail.room.priceType,
+      amenities: roomDetail.room.amenities,
+      images: roomDetail.room.images,
+    } as Room);
+    setIsEdit(true);
+    setShowEditRoomModal(true);
   };
 
   const handleRefreshRooms = async () => {
@@ -424,31 +443,46 @@ const HomestayDetailManagement: React.FC = () => {
   };
 
   const handleCreateBooking = (bookingData: Omit<Booking, 'id' | 'bookingCode' | 'status' | 'bookingDate' | 'nights'>) => {
-      const newId = Math.max(...bookings.map(b => b.id)) + 1;
-      const bookingCode = `BK${String(newId).padStart(3, '0')}`;
-      
-      // Calculate total nights from bookingData.checkIn and bookingData.checkOut
-      const checkInDate = new Date(bookingData.checkIn);
-      const checkOutDate = new Date(bookingData.checkOut);
-      const nights = Math.max(
-        Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
-        1
-      );
-  
-      const booking: Booking = {
-        id: newId,
-        bookingCode,
-        ...bookingData,
-        nights,
-        status: 'pending',
-        bookingDate: new Date().toISOString().split('T')[0]
-      };
-  
-      setBookings(prev => [booking, ...prev]);
+    const newId = Math.max(...bookings.map(b => b.id)) + 1;
+    const bookingCode = `BK${String(newId).padStart(3, '0')}`;
+
+    // Calculate total nights from bookingData.checkIn and bookingData.checkOut
+    const checkInDate = new Date(bookingData.checkIn);
+    const checkOutDate = new Date(bookingData.checkOut);
+    const nights = Math.max(
+      Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
+      1
+    );
+
+    const booking: Booking = {
+      id: newId,
+      bookingCode,
+      ...bookingData,
+      nights,
+      status: 'pending',
+      bookingDate: new Date().toISOString().split('T')[0]
     };
-  
-  const handleEditRoom = (room: Room) => {
-    navigate(`/management/homestay/${homestayId}/rooms/${room.id}/edit`);
+
+    setBookings(prev => [booking, ...prev]);
+  };
+
+  const handleEditRoom = async (roomId: number) => {
+    console.log("Viewing room:", roomId);
+
+    const roomDetail = await homestayService.getRoomById(roomId);
+    setRoomData({
+      id: roomDetail.room.id,
+      name: roomDetail.room.name,
+      description: roomDetail.room.description,
+      type: roomDetail.room.type,
+      capacity: roomDetail.room.capacity,
+      price: roomDetail.room.price,
+      priceType: roomDetail.room.priceType,
+      amenities: roomDetail.room.amenities,
+      images: roomDetail.room.images,
+    } as Room);
+    setIsEdit(true);
+    setShowEditRoomModal(true);
   }
 
   const handleDeleteRoom = (roomId: number) => {
@@ -468,7 +502,7 @@ const HomestayDetailManagement: React.FC = () => {
       }
     });
   }
-    
+
 
   if (loading) {
     return (
@@ -544,12 +578,12 @@ const HomestayDetailManagement: React.FC = () => {
                 Chỉnh sửa
               </button>
               <button
-              onClick={() => setShowNewBookingForm(true)}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Tạo đặt phòng mới
-            </button>
+                onClick={() => setShowNewBookingForm(true)}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo đặt phòng mới
+              </button>
               <button
                 onClick={handleDeleteHomestay}
                 className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
@@ -626,32 +660,29 @@ const HomestayDetailManagement: React.FC = () => {
             <nav className="flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'stats'
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'stats'
                     ? 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 Tổng quan
               </button>
               <button
                 onClick={() => setActiveTab('rooms')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'rooms'
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'rooms'
                     ? 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 Phòng ({rooms.length})
               </button>
 
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'reviews'
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews'
                     ? 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 Đánh giá ({homestay.reviews || 0})
               </button>
@@ -740,7 +771,7 @@ const HomestayDetailManagement: React.FC = () => {
                             Xem
                           </button>
                           <button
-                            onClick={() => handleEditRoom && handleEditRoom(room)}
+                            onClick={() => handleEditRoom(room.id)}
                             className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
                           >
                             <Edit className="h-4 w-4 mr-1" />
@@ -855,11 +886,18 @@ const HomestayDetailManagement: React.FC = () => {
       />
 
       <AddRoomModal
-            isOpen={showAddRoomModal}
-            onClose={handleAddRoomClose}
-            onSubmit={handleAddRoomSubmit}
-            homestayId={id ? Number(id) : 0}
-        />
+        isOpen={showAddRoomModal}
+        onClose={handleAddRoomClose}
+        onSubmit={handleAddRoomSubmit}
+        homestayId={id ? Number(id) : 0}
+      />
+
+      <ViewRoomModal 
+        isOpen={showEditRoomModal}
+        onClose={() => setShowEditRoomModal(false)}
+        room={roomData}
+        isEdit={isEdit}
+      />
     </div>
   );
 };

@@ -216,6 +216,17 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 	// Chuyển đổi sang types.Room
 	var roomList []types.Room
 	for _, room := range rooms {
+
+		// Chuyển đổi Images string sang types []string
+		var images []string
+		if len(room.Images) > 0 {
+			err = json.Unmarshal([]byte(room.Images), &images)
+			if err != nil {
+				logx.Error(err)
+				return nil, err
+			}
+		}
+
 		roomList = append(roomList, types.Room{
 			ID:          room.ID,
 			HomestayID:  room.HomestayID,
@@ -228,6 +239,7 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 			Status:      room.Status,
 			CreatedAt:   room.CreatedAt,
 			UpdatedAt:   room.UpdatedAt,
+			Images:      images,
 		})
 	}
 

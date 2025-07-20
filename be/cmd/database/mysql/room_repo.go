@@ -300,7 +300,7 @@ func (r *roomRepository) Search(ctx context.Context, req *model.RoomSearchReques
 	// Lấy danh sách room
 	offset := (req.Page - 1) * req.PageSize
 	query := fmt.Sprintf(`
-		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, r.image_urls, h.name as homestay_name
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
