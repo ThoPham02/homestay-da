@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
@@ -48,6 +49,8 @@ func (r *RoomLogic) CreateRoom(req *types.CreateRoomRequest, hostID int) (*types
 		Capacity:    req.Capacity,
 		Price:       req.Price,
 		PriceType:   req.PriceType,
+		Images:      req.Images,
+		Amenities:   req.Amenities,
 	}
 
 	// Tạo room
@@ -108,6 +111,25 @@ func (r *RoomLogic) GetRoomByID(roomID, hostID int) (*types.RoomDetailResponse, 
 		availabilities = []*model.RoomAvailability{}
 	}
 
+	// Chuyển đổi Amenities string sang types []string
+	var amenities []string
+	if len(room.Amenities) > 0 {
+		err = json.Unmarshal([]byte(room.Amenities), &amenities)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+	}
+
+	var images []string
+	if len(room.Images) > 0 {
+		err = json.Unmarshal([]byte(room.Images), &images)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+	}
+
 	// Tạo response
 	response := &types.RoomDetailResponse{
 		Room: types.Room{
@@ -122,6 +144,8 @@ func (r *RoomLogic) GetRoomByID(roomID, hostID int) (*types.RoomDetailResponse, 
 			Status:      room.Status,
 			CreatedAt:   room.CreatedAt,
 			UpdatedAt:   room.UpdatedAt,
+			Amenities:   amenities,
+			Images:      images,
 		},
 		Homestay: types.Homestay{
 			ID:   homestay.ID,

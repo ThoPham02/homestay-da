@@ -275,6 +275,8 @@ const HomestayDetailManagement: React.FC = () => {
   const { user } = useAuth();
   
   const [showNewBookingForm, setShowNewBookingForm] = useState(false);
+  const [showAddRoomModal, setShowAddRoomModal] = useState(false);
+
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [homestay, setHomestay] = useState<Homestay | null>(null);
   const [homestayStats, setHomestayStats] = useState<HomestayStats | null>(null);
@@ -701,7 +703,7 @@ const HomestayDetailManagement: React.FC = () => {
                             className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-50"
                           >
                             <Eye className="h-4 w-4 mr-1" />
-                            Xem chi tiết
+                            Xem
                           </button>
                           <button
                             onClick={() => handleEditRoom && handleEditRoom(room)}

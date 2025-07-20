@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toastService } from '../../services/toastService';
 
 interface LoginFormProps {
   onClose: () => void;

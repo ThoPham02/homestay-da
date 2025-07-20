@@ -64,15 +64,9 @@ func (r *roomRepository) GetByID(ctx context.Context, id int) (*model.Room, erro
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.id = $1
 	`
+	var room model.Room
 
-	type dbRoom struct {
-		model.Room
-		ImageUrls sql.NullString `db:"image_urls"`
-		Amenities sql.NullString `db:"amenities"`
-	}
-
-	var dbroom dbRoom
-	err := r.db.GetContext(ctx, &dbroom, query, id)
+	err := r.db.GetContext(ctx, &room, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("room not found")
@@ -80,27 +74,7 @@ func (r *roomRepository) GetByID(ctx context.Context, id int) (*model.Room, erro
 		return nil, fmt.Errorf("failed to get room: %w", err)
 	}
 
-	logx.Info("Retrieved room:", dbroom)
-
-	room := dbroom.Room
-	// Parse images
-	if dbroom.ImageUrls.Valid && dbroom.ImageUrls.String != "" {
-		var imgs []string
-		if err := json.Unmarshal([]byte(dbroom.ImageUrls.String), &imgs); err == nil {
-			room.Images = imgs
-		} else {
-			room.Images = strings.Split(dbroom.ImageUrls.String, ",")
-		}
-	}
-	// Parse amenities
-	if dbroom.Amenities.Valid && dbroom.Amenities.String != "" {
-		var ams []string
-		if err := json.Unmarshal([]byte(dbroom.Amenities.String), &ams); err == nil {
-			room.Amenities = ams
-		} else {
-			room.Amenities = strings.Split(dbroom.Amenities.String, ",")
-		}
-	}
+	logx.Info(room)
 
 	return &room, nil
 }

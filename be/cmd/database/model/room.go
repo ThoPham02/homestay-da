@@ -17,8 +17,8 @@ type Room struct {
 	Status      string    `db:"status" json:"status"`
 	CreatedAt   time.Time `db:"created_at" json:"createdAt"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updatedAt"`
-	Images      []string  `db:"image_urls" json:"images"`
-	Amenities   []string  `db:"amenities" json:"amenities"`
+	Images      string  `db:"image_urls" json:"images"`
+	Amenities   string  `db:"amenities" json:"amenities"`
 	// Thông tin bổ sung từ join
 	HomestayName string `db:"homestay_name" json:"homestayName,omitempty"`
 }
