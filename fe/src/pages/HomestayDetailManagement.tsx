@@ -7,6 +7,7 @@ import { Booking, Homestay, HomestayStats, Room, RoomStats } from '../types';
 import { useConfirm } from '../components/ConfirmDialog';
 import NewBookingModal from '../components/Booking/NewBookingModal';
 import DEFAULT_ROOM_IMAGE from '../asset/default-image.jpg';
+import AddRoomModal from '../components/Room/AddRoomModal';
 
 const mockBookings: Booking[] = [
   {
@@ -357,6 +358,39 @@ const HomestayDetailManagement: React.FC = () => {
   const handleEditHomestay = () => {
     navigate(`/management/homestay/${homestayId}/edit`);
   };
+
+  const handleAddRoomClose = () => {
+        setShowAddRoomModal(false);
+    };
+
+    const handleAddRoomSubmit = async (room: any) => {
+        if (!id) return;
+
+        console.log("Submitting room:", room);
+
+        try {
+            await homestayService.createRoom({
+                homestayId: Number(id),
+                name: room.name,
+                description: room.description,
+                type: room.type,
+                capacity: room.capacity,
+                price: room.price,
+                priceType: room.priceType || 'per_night',
+                amenities: room.amenities,
+                images: room.images,
+            });
+            // Chuyển về trang quản lý homestay với state để reload danh sách phòng
+            navigate(`/management/homestay/${id}`, {
+                state: {
+                    activeTab: 'rooms',
+                    refreshRooms: true
+                }
+            });
+        } catch (error) {
+            // Có thể show toast lỗi ở đây nếu muốn
+        }
+    };
 
   const handleDeleteHomestay = async () => {
     if (!homestay) return;
@@ -819,6 +853,13 @@ const HomestayDetailManagement: React.FC = () => {
         rooms={mockRooms}
         existingBookings={bookings}
       />
+
+      <AddRoomModal
+            isOpen={showAddRoomModal}
+            onClose={handleAddRoomClose}
+            onSubmit={handleAddRoomSubmit}
+            homestayId={id ? Number(id) : 0}
+        />
     </div>
   );
 };

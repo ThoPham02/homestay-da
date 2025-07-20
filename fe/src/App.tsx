@@ -1,12 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { ConfirmProvider } from './components/ConfirmDialog';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+
 import Layout from './components/Layout/Layout';
+
 import Home from './pages/Home';
 import HomestayList from './pages/HomestayList';
-import HomestayDetail from './pages/HomestayDetail';
 import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -15,10 +19,7 @@ import Management from './pages/Management';
 import AddHomestay from './pages/AddHomestay';
 import EditHomestay from './pages/EditHomestay';
 import HomestayDetailManagement from './pages/HomestayDetailManagement';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
 import RoomDetailPage from './pages/RoomDetailPage';
-import RoomAddPage from './pages/AddRoomModal';
-import { ConfirmProvider } from './components/ConfirmDialog';
 import HomestayDetailGuest from './pages/HomestayDetailGuest';
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/homestays" element={<HomestayList />} />
-                <Route path="/homestay/:id" element={<HomestayDetail />} />
+                {/* <Route path="/homestay/:id" element={<HomestayDetail />} /> */}
                 <Route path="/about" element={<About />} />
 
                 {/* Auth Routes */}
@@ -81,14 +82,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
+                {/* <Route
                   path="/management/homestay/:id/rooms/add"
                   element={
                     <ProtectedRoute requiredRoles={['host', 'admin']}>
                       <RoomAddPage />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 <Route
                   path="/management/homestay/:homestayId/rooms/:roomId"
                   element={
