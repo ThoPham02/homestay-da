@@ -98,6 +98,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			// Booking requests
 			// filter booking
 			host.GET("/booking", bookingHandler.FilterBookings)
+			host.POST("/booking", bookingHandler.CreateBooking)
 		}
 
 		// Guest routes (cần role guest)

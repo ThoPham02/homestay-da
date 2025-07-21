@@ -7,8 +7,10 @@ import (
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/database/repo"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type bookingRepository struct {
@@ -22,14 +24,16 @@ func NewBookingRepository(db *sqlx.DB) repo.BookingRepository {
 
 // Create tạo booking mới
 func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreateRequest) (*model.Booking, error) {
+	logx.Info(req)
+
 	query := `
-		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW())
-		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at
+		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW(), $8, $9)
+		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount
 	`
 
 	var booking model.Booking
-	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, 0)
+	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.BookingCode, req.PaidAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -363,11 +367,11 @@ func (r *bookingRepository) GetByBookingRequestID(ctx context.Context, bookingRe
 
 // InsertBookingRoom lưu 1 bản ghi booking_room
 func (r *bookingRepository) InsertBookingRoom(ctx context.Context, bookingRoom *model.BookingRoom) (*model.BookingRoom, error) {
-	query := `INSERT INTO booking_room (booking_id, room_id, capacity, price, price_type, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, booking_id, room_id, capacity, price, price_type, created_at`
+	query := `INSERT INTO booking_room (booking_id, room_id, room_name, room_type, capacity, price, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, booking_id, room_id, room_name, room_type, capacity, price, created_at`
 	var br model.BookingRoom
-	err := r.db.GetContext(ctx, &br, query, bookingRoom.BookingID, bookingRoom.RoomID, bookingRoom.Capacity, bookingRoom.Price, bookingRoom.PriceType, bookingRoom.CreatedAt)
+	err := r.db.GetContext(ctx, &br, query, bookingRoom.BookingID, bookingRoom.RoomID, bookingRoom.RoomName, bookingRoom.RoomType, bookingRoom.Capacity, bookingRoom.Price, bookingRoom.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -407,4 +411,26 @@ func (r *bookingRepository) GetByHomestayID(ctx context.Context, homestayID int,
 	}
 
 	return bookings, total, nil
+}
+
+// CheckRoomExists kiểm tra xem phòng đã tồn tại trong booking hay chưa
+func (r *bookingRepository) CheckRoomExists(ctx context.Context, roomID int, checkIn, checkOut time.Time) (bool, error) {
+	query := `
+		SELECT COUNT(*) 
+		FROM booking b
+		JOIN booking_room br ON b.id = br.booking_id
+		WHERE br.room_id = $1 AND (
+			(b.check_in < $2 AND b.check_out > $2) OR 
+			(b.check_in < $3 AND b.check_out > $3) OR 
+			(b.check_in >= $2 AND b.check_out <= $3)
+		)
+	`
+
+	var count int
+	err := r.db.GetContext(ctx, &count, query, roomID, checkIn, checkOut)
+	if err != nil {
+		return false, fmt.Errorf("failed to check room existence: %w", err)
+	}
+
+	return count > 0, nil
 }

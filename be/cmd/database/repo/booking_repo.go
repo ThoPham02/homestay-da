@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"homestay-be/cmd/database/model"
+	"time"
 )
 
 // BookingRepository định nghĩa các phương thức thao tác với bảng booking
@@ -45,4 +46,7 @@ type BookingRepository interface {
 
 	// GetBookingsByHomestayID lấy danh sách booking theo homestay ID
 	GetByHomestayID(ctx context.Context, homestayID int, page, pageSize int) ([]*model.Booking, int, error)
+
+	// CheckRoomExists kiểm tra xem phòng đã tồn tại trong booking hay chưa
+	CheckRoomExists(ctx context.Context, roomID int, checkIn, checkOut time.Time) (bool, error)
 }

@@ -13,17 +13,18 @@ import (
 type Booking struct {
 	ID            int           `db:"id" json:"id"`
 	BookingCode   string        `db:"booking_code" json:"bookingCode"`
+	Name          string        `db:"name" json:"name"`
+	Email         string        `db:"email" json:"email"`
+	Phone         string        `db:"phone" json:"phone"`
 	CheckIn       time.Time     `db:"check_in" json:"check_in"`
 	CheckOut      time.Time     `db:"check_out" json:"check_out"`
 	NumGuests     int           `db:"num_guests" json:"num_guests"`
 	TotalAmount   float64       `db:"total_amount" json:"total_amount"`
-	Status        string        `db:"status" json:"status"`
-	CreatedAt     time.Time     `db:"created_at" json:"created_at"`
-	Name          string        `db:"name" json:"name"`
-	Email         string        `db:"email" json:"email"`
-	Phone         string        `db:"phone" json:"phone"`
-	Rooms         []BookingRoom `json:"rooms"`
+	PaidAmount    float64       `db:"paid_amount" json:"paid_amount"`
 	PaymentMethod string        `db:"payment_method" json:"paymentMethod"`
+	Status        string        `db:"status" json:"status"`
+	Rooms         []BookingRoom `json:"rooms"`
+	CreatedAt     time.Time     `db:"created_at" json:"created_at"`
 }
 
 // BookingCreateRequest request tạo booking mới
@@ -31,13 +32,16 @@ type Booking struct {
 // Nếu cần truyền nhiều thông tin cho từng phòng, dùng []BookingRoom
 
 type BookingCreateRequest struct {
-	Name      string                     `json:"name" binding:"required"`
-	Email     string                     `json:"email" binding:"required"`
-	Phone     string                     `json:"phone" binding:"required"`
-	CheckIn   time.Time                  `json:"check_in" binding:"required"`
-	CheckOut  time.Time                  `json:"check_out" binding:"required"`
-	NumGuests int                        `json:"num_guests" binding:"required,min=1"`
-	Rooms     []BookingRoomCreateRequest `json:"rooms" binding:"required,dive"`
+	BookingCode   string    `db:"booking_code" json:"bookingCode"`
+	Name          string    `json:"name" binding:"required"`
+	Email         string    `json:"email" binding:"required"`
+	Phone         string    `json:"phone" binding:"required"`
+	CheckIn       time.Time `json:"check_in" binding:"required"`
+	CheckOut      time.Time `json:"check_out" binding:"required"`
+	NumGuests     int       `json:"num_guests" binding:"required,min=1"`
+	TotalAmount   float64   `db:"total_amount" json:"total_amount"`
+	PaidAmount    float64   `db:"paid_amount" json:"paid_amount"`
+	PaymentMethod string    `json:"payment_method"`
 }
 
 type BookingRoomCreateRequest struct {

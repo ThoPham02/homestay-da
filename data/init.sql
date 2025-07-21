@@ -53,10 +53,10 @@ CREATE TABLE booking (
     check_out DATE NOT NULL,
     num_guests INTEGER NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
-    
     status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'checked_in', 'checked_out', 'cancelled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     payment_method VARCHAR(50) NOT NULL, -- 'cash', 'bank_transfer', 'credit_card', etc.
+    paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0;
 );
 
 -- Tạo bảng booking_room để quản lý mối quan hệ giữa booking và room
@@ -64,9 +64,10 @@ CREATE TABLE booking_room (
     id SERIAL PRIMARY KEY,
     booking_id INTEGER NOT NULL REFERENCES booking(id) ON DELETE CASCADE,
     room_id INTEGER NOT NULL REFERENCES room(id) ON DELETE CASCADE,
+    room_name VARCHAR(100) NOT NULL,
+    room_type VARCHAR(20) NOT NULL,
     capacity INTEGER NOT NULL CHECK (capacity > 0),
     price DECIMAL(12,2) NOT NULL,
-    price_type VARCHAR(20) NOT NULL DEFAULT 'per_night' CHECK (price_type IN ('per_night', 'per_person')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

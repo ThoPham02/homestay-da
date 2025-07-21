@@ -18,13 +18,13 @@ type Booking struct {
 }
 
 type BookingRoom struct {
-	RoomID    int     `json:"id"`
-	RoomName  string  `json:"name"`
-	RoomType  string  `json:"type"`
-	Capacity  int     `json:"capacity"`
-	Price     float64 `json:"pricePerNight"`
-	Nights    int     `json:"nights"`
-	SubTotal  float64 `json:"subtotal"`
+	RoomID   int     `json:"id"`
+	RoomName string  `json:"name"`
+	RoomType string  `json:"type"`
+	Capacity int     `json:"capacity"`
+	Price    float64 `json:"pricePerNight"`
+	Nights   int     `json:"nights"`
+	SubTotal float64 `json:"subtotal"`
 }
 
 type CreateBookingReq struct {
@@ -36,14 +36,19 @@ type CreateBookingReq struct {
 	Guests        int              `json:"guests"`
 	PaymentMethod string           `json:"paymentMethod"`
 	Notes         string           `json:"notes,omitempty"`
+	TotalAmount   float64          `json:"totalAmount"`
+	PaidAmount    float64          `json:"paidAmount,omitempty"`
 	Rooms         []BookingRoomReq `json:"rooms"`
 }
 
 type BookingRoomReq struct {
-	RoomID    int     `json:"roomId"`
-	Capacity  int     `json:"capacity"`
-	Price     float64 `json:"price"`
-	PriceType string  `json:"priceType"`
+	RoomID   int     `json:"id"`
+	RoomName string  `json:"name"`
+	RoomType string  `json:"type"`
+	Capacity int     `json:"capacity"`
+	Price    float64 `json:"pricePerNight"`
+	Nights   int     `json:"nights"`
+	SubTotal float64 `json:"subtotal"`
 }
 
 type CreateBookingResp struct {

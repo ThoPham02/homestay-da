@@ -2,6 +2,8 @@ package logic
 
 import (
 	"context"
+	"errors"
+	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
 	"homestay-be/cmd/types"
 	"time"
@@ -91,80 +93,120 @@ func (l *BookingLogic) FilterBookings(ctx context.Context, req *types.FilterBook
 
 // CreateBooking - Logic to create a new booking
 func (l *BookingLogic) CreateBooking(ctx context.Context, req *types.CreateBookingReq) (*types.CreateBookingResp, error) {
-	// // 1. Tạo booking (bảng booking)
-	// bookingModel := &model.BookingCreateRequest{
-	// 	Name:      req.CustomerName,
-	// 	Email:     req.CustomerEmail,
-	// 	Phone:     req.CustomerPhone,
-	// 	CheckIn:   parseDate(req.CheckIn),
-	// 	CheckOut:  parseDate(req.CheckOut),
-	// 	NumGuests: req.Guests,
-	// 	Rooms:     nil, // sẽ insert sau
-	// }
-	// booking, err := l.svcCtx.BookingRepo.Create(ctx, bookingModel)
-	// if err != nil {
-	// 	logx.Error(err)
-	// 	return nil, err
-	// }
+	logx.Info(req)
 
-	// // 2. Tạo các bản ghi booking_room
-	// for _, room := range req.Rooms {
-	// 	roomModel := &model.BookingRoom{
-	// 		BookingID: booking.ID,
-	// 		RoomID:    room.RoomID,
-	// 		Capacity:  room.Capacity,
-	// 		Price:     room.Price,
-	// 		PriceType: room.PriceType,
-	// 		CreatedAt: time.Now(),
-	// 	}
-	// 	// Giả sử có hàm InsertBookingRoom trong repo
-	// 	_, err := l.svcCtx.BookingRepo.InsertBookingRoom(ctx, roomModel)
-	// 	if err != nil {
-	// 		logx.Error(err)
-	// 		return nil, err
-	// 	}
-	// }
+	// validate request
+	if req.CustomerName == "" || req.CustomerEmail == "" || req.CheckIn == "" || req.CheckOut == "" || len(req.Rooms) == 0 {
+		return nil, errors.New("các trường bắt buộc không được để trống")
+	}
 
-	// // 3. Lấy lại danh sách phòng vừa insert
-	// rooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, booking.ID)
-	// if err != nil {
-	// 	logx.Error(err)
-	// 	return nil, err
-	// }
+	// validate check-in/check-out date
+	checkIn, err := time.Parse("2006-01-02", req.CheckIn)
+	if err != nil {
+		return nil, errors.New("ngày check-in không hợp lệ")
+	}
+	checkOut, err := time.Parse("2006-01-02", req.CheckOut)
+	if err != nil {
+		return nil, errors.New("ngày check-out không hợp lệ")
+	}
+	if checkIn.After(checkOut) {
+		return nil, errors.New("ngày check-in phải trước ngày check-out")
+	}
+	// validate guests
+	if req.Guests <= 0 {
+		return nil, errors.New("số lượng khách phải lớn hơn 0")
+	}
 
-	// // 4. Mapping sang types.BookingRoom
-	// var respRooms []types.BookingRoom
-	// for _, r := range rooms {
-	// 	respRooms = append(respRooms, types.BookingRoom{
-	// 		RoomID:   r.RoomID,
-	// 		RoomName: "", // Có thể join thêm nếu cần
-	// 		RoomType: "",
-	// 		Capacity: r.Capacity,
-	// 		Price:    r.Price,
-	// 		// PriceType: r.PriceType,
-	// 	})
-	// }
+	// kiểm tra phòng đã được đặt hay chưa
+	for _, room := range req.Rooms {
+		if room.RoomID == 0 {
+			return nil, errors.New("phòng không hợp lệ")
+		}
+		// Kiểm tra xem phòng đã được đặt hay chưa
+		exists, err := l.svcCtx.BookingRepo.CheckRoomExists(ctx, room.RoomID, checkIn, checkOut)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+		if exists {
+			return nil, errors.New("phòng đã được đặt trong khoảng thời gian này")
+		}
+	}
+	// thêm booking
+	var bookingCode string = "BK" + time.Now().Format("20060102150405")
 
-	// // 5. Mapping sang types.Booking
-	// respBooking := types.Booking{
-	// 	ID:            booking.ID,
-	// 	CustomerName:  booking.Name,
-	// 	CustomerPhone: booking.Phone,
-	// 	CustomerEmail: booking.Email,
-	// 	CheckIn:       booking.CheckIn.Format("2006-01-02"),
-	// 	CheckOut:      booking.CheckOut.Format("2006-01-02"),
-	// 	TotalAmount:   booking.TotalAmount,
-	// 	Status:        booking.Status,
-	// 	Rooms:         respRooms,
-	// }
+	bookingModel := &model.BookingCreateRequest{
+		BookingCode:   bookingCode,
+		Name:          req.CustomerName,
+		Email:         req.CustomerEmail,
+		Phone:         req.CustomerPhone,
+		CheckIn:       parseDate(req.CheckIn),
+		CheckOut:      parseDate(req.CheckOut),
+		NumGuests:     req.Guests,
+		TotalAmount:   req.TotalAmount,
+		PaidAmount:    req.PaidAmount,
+		PaymentMethod: req.PaymentMethod,
+	}
+	booking, err := l.svcCtx.BookingRepo.Create(ctx, bookingModel)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
 
-	// return &types.CreateBookingResp{Booking: respBooking}, nil
+	// 2. Tạo các bản ghi booking_room
+	for _, room := range req.Rooms {
+		roomModel := &model.BookingRoom{
+			BookingID: booking.ID,
+			RoomID:    room.RoomID,
+			RoomName:  room.RoomName,
+			RoomType:  room.RoomType,
+			Capacity:  room.Capacity,
+			Price:     room.Price,
+			CreatedAt: time.Now(),
+		}
+		
+		// Giả sử có hàm InsertBookingRoom trong repo
+		_, err := l.svcCtx.BookingRepo.InsertBookingRoom(ctx, roomModel)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+	}
 
+	// 3. Lấy lại danh sách phòng vừa insert
+	rooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, booking.ID)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
 
+	// 4. Mapping sang types.BookingRoom
+	var respRooms []types.BookingRoom
+	for _, r := range rooms {
+		respRooms = append(respRooms, types.BookingRoom{
+			RoomID:   r.RoomID,
+			RoomName: "", // Có thể join thêm nếu cần
+			RoomType: "",
+			Capacity: r.Capacity,
+			Price:    r.Price,
+			// PriceType: r.PriceType,
+		})
+	}
 
+	// 5. Mapping sang types.Booking
+	respBooking := types.Booking{
+		ID:            booking.ID,
+		CustomerName:  booking.Name,
+		CustomerPhone: booking.Phone,
+		CustomerEmail: booking.Email,
+		CheckIn:       booking.CheckIn.Format("2006-01-02"),
+		CheckOut:      booking.CheckOut.Format("2006-01-02"),
+		TotalAmount:   booking.TotalAmount,
+		Status:        booking.Status,
+		Rooms:         respRooms,
+	}
 
-
-	return nil, nil
+	return &types.CreateBookingResp{Booking: respBooking}, nil
 }
 
 func parseDate(dateStr string) time.Time {
