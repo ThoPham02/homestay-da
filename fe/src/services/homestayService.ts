@@ -18,7 +18,8 @@ import {
   CreateAvailabilityRequest,
   UpdateAvailabilityRequest,
   BulkAvailabilityRequest,
-  RoomAvailability
+  RoomAvailability,
+  Booking
 } from '../types';
 
 class HomestayService {
@@ -299,6 +300,17 @@ class HomestayService {
       return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách phòng');
+      throw error;
+    }
+  }
+
+  async getBookingsByHomestayId(homestayId: number) : Promise<{ bookings: Booking[] }> {
+    try {
+      const response = await api.get(`/api/host/homestays/${homestayId}/bookings`);
+      
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách đặt phòng');
       throw error;
     }
   }

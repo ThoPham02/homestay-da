@@ -112,3 +112,25 @@ func (h *BookingHandler) UpdateStatusBooking(c *gin.Context) {
 
 	response.ResponseSuccess(c, resp)
 }
+
+// GetBookingsByHomestayID - Get bookings for a specific homestay
+func (h *BookingHandler) GetBookingsByHomestayID(c *gin.Context) {
+	ctx := context.Background()
+
+	// Get homestay ID from URL parameters
+	homestayIDStr := c.Param("id")
+	homestayID, err := strconv.Atoi(homestayIDStr)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// Call the logic layer to get bookings by homestay ID
+	resp, err := h.bookingLogic.GetBookingsByHomestayID(ctx, homestayID)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, resp)
+}

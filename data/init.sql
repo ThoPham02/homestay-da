@@ -45,6 +45,7 @@ CREATE TABLE room (
 -- Tạo bảng booking (sau khi được xác nhận)
 CREATE TABLE booking (
     id SERIAL PRIMARY KEY,
+    booking_code VARCHAR(50) UNIQUE NOT NULL, -- Mã đặt phòng duy nhất
     email VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
@@ -52,8 +53,10 @@ CREATE TABLE booking (
     check_out DATE NOT NULL,
     num_guests INTEGER NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
+    
     status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'checked_in', 'checked_out', 'cancelled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    payment_method VARCHAR(50) NOT NULL, -- 'cash', 'bank_transfer', 'credit_card', etc.
 );
 
 -- Tạo bảng booking_room để quản lý mối quan hệ giữa booking và room

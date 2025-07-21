@@ -373,3 +373,38 @@ func (r *bookingRepository) InsertBookingRoom(ctx context.Context, bookingRoom *
 	}
 	return &br, nil
 }
+
+// GetBookingsByHomestayID lấy danh sách booking theo homestay ID
+func (r *bookingRepository) GetByHomestayID(ctx context.Context, homestayID int, page, pageSize int) ([]*model.Booking, int, error) {
+	// Đếm tổng số records
+	countQuery := `SELECT COUNT(*) FROM booking b
+		JOIN room r ON b.room_id = r.id
+		WHERE r.homestay_id = $1`
+	var total int
+	err := r.db.GetContext(ctx, &total, countQuery, homestayID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count bookings: %w", err)
+	}
+
+	// Lấy danh sách booking
+	offset := (page - 1) * pageSize
+	query := `
+		SELECT b.id, b.booking_request_id, b.user_id, b.room_id, b.check_in, b.check_out, b.num_guests, 
+		       b.total_amount, b.status, b.created_at,
+		       u.name as user_name, r.name as room_name, h.name as homestay_name
+		FROM booking b
+		JOIN room r ON b.room_id = r.id
+		JOIN homestay h ON r.homestay_id = h.id
+		WHERE r.homestay_id = $1
+		ORDER BY b.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	var bookings []*model.Booking
+	err = r.db.SelectContext(ctx, &bookings, query, homestayID, pageSize, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get bookings by homestay ID: %w", err)
+	}
+
+	return bookings, total, nil
+}

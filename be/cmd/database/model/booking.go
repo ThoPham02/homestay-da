@@ -11,17 +11,19 @@ import (
 // Nếu không còn dùng BookingRequestID/UserID thì có thể bỏ
 
 type Booking struct {
-	ID          int           `db:"id" json:"id"`
-	CheckIn     time.Time     `db:"check_in" json:"check_in"`
-	CheckOut    time.Time     `db:"check_out" json:"check_out"`
-	NumGuests   int           `db:"num_guests" json:"num_guests"`
-	TotalAmount float64       `db:"total_amount" json:"total_amount"`
-	Status      string        `db:"status" json:"status"`
-	CreatedAt   time.Time     `db:"created_at" json:"created_at"`
-	Name        string        `db:"name" json:"name"`
-	Email       string        `db:"email" json:"email"`
-	Phone       string        `db:"phone" json:"phone"`
-	Rooms       []BookingRoom `json:"rooms"`
+	ID            int           `db:"id" json:"id"`
+	BookingCode   string        `db:"booking_code" json:"bookingCode"`
+	CheckIn       time.Time     `db:"check_in" json:"check_in"`
+	CheckOut      time.Time     `db:"check_out" json:"check_out"`
+	NumGuests     int           `db:"num_guests" json:"num_guests"`
+	TotalAmount   float64       `db:"total_amount" json:"total_amount"`
+	Status        string        `db:"status" json:"status"`
+	CreatedAt     time.Time     `db:"created_at" json:"created_at"`
+	Name          string        `db:"name" json:"name"`
+	Email         string        `db:"email" json:"email"`
+	Phone         string        `db:"phone" json:"phone"`
+	Rooms         []BookingRoom `json:"rooms"`
+	PaymentMethod string        `db:"payment_method" json:"paymentMethod"`
 }
 
 // BookingCreateRequest request tạo booking mới

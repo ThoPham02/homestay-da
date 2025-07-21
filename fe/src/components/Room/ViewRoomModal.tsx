@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit } from 'lucide-react';
+import { X, Edit, Plus } from 'lucide-react';
 import { Room } from '../../types';
 import { homestayService } from '../../services/homestayService';
 
@@ -177,7 +177,7 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                 />
               </div>
               {/* Tiện ích */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Tiện nghi phòng</label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
                   {commonAmenities.map((amenity) => (
@@ -222,6 +222,73 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                     </span>
                   ))}
                 </div>
+              </div> */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Tiện nghi phòng
+                </label>
+
+                {/* Common Amenities */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                  {commonAmenities.map((amenity) => (
+                    <button
+                      key={amenity}
+                      type="button"
+                      onClick={() =>
+                        formData.amenities?.includes(amenity)
+                          ? removeAmenity(amenity)
+                          : addAmenityToList(amenity)
+                      }
+                      className={`p-2 text-sm rounded-lg border transition-colors ${formData.amenities?.includes(amenity)
+                        ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                    >
+                      {amenity}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Amenity */}
+                <div className="flex space-x-2 mb-4">
+                  <input
+                    type="text"
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Thêm tiện nghi khác..."
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomAmenity())}
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomAmenity}
+                    className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Selected Amenities */}
+                {Array.isArray(formData.amenities) && formData.amenities.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.amenities.map((amenity) => (
+                      <span
+                        key={amenity}
+                        className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1"
+                      >
+                        <span>{amenity}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAmenity(amenity)}
+                          className="text-emerald-600 hover:text-emerald-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* Ảnh phòng */}
               {formData.images && formData.images.length > 0 && (

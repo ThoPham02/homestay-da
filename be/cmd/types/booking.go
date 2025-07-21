@@ -18,12 +18,13 @@ type Booking struct {
 }
 
 type BookingRoom struct {
-	RoomID    int     `json:"roomId"`
-	RoomName  string  `json:"roomName"`
-	RoomType  string  `json:"roomType"`
+	RoomID    int     `json:"id"`
+	RoomName  string  `json:"name"`
+	RoomType  string  `json:"type"`
 	Capacity  int     `json:"capacity"`
-	Price     float64 `json:"price"`
-	PriceType string  `json:"priceType"`
+	Price     float64 `json:"pricePerNight"`
+	Nights    int     `json:"nights"`
+	SubTotal  float64 `json:"subtotal"`
 }
 
 type CreateBookingReq struct {
@@ -92,4 +93,9 @@ type UploadFileReq struct {
 
 type UploadFileRes struct {
 	Url string `json:"url"`
+}
+
+type GetBookingsByHomestayIDResp struct {
+	Bookings []Booking `json:"bookings"`
+	Total    int       `json:"total"`
 }

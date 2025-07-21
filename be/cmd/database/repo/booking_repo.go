@@ -42,4 +42,7 @@ type BookingRepository interface {
 
 	// GetByBookingRequestID lấy booking theo booking request ID
 	GetByBookingRequestID(ctx context.Context, bookingRequestID int) (*model.Booking, error)
+
+	// GetBookingsByHomestayID lấy danh sách booking theo homestay ID
+	GetByHomestayID(ctx context.Context, homestayID int, page, pageSize int) ([]*model.Booking, int, error)
 }
