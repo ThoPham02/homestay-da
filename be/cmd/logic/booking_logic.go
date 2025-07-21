@@ -164,7 +164,7 @@ func (l *BookingLogic) CreateBooking(ctx context.Context, req *types.CreateBooki
 			Price:     room.Price,
 			CreatedAt: time.Now(),
 		}
-		
+
 		// Giả sử có hàm InsertBookingRoom trong repo
 		_, err := l.svcCtx.BookingRepo.InsertBookingRoom(ctx, roomModel)
 		if err != nil {
@@ -216,29 +216,33 @@ func parseDate(dateStr string) time.Time {
 
 // Get Detail Booking - Logic to get details of a booking
 func (l *BookingLogic) GetBookingDetail(ctx context.Context, bookingID int) (*types.BookingDetailResp, error) {
-	// // 1. Lấy booking
-	// booking, err := l.svcCtx.BookingRepo.GetByID(ctx, bookingID)
-	// if err != nil {
-	// 	logx.Error(err)
-	// 	return nil, err
-	// }
-	// // 2. Lấy danh sách phòng
-	// rooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, bookingID)
-	// if err != nil {
-	// 	logx.Error(err)
-	// 	return nil, err
-	// }
-	// var respRooms []types.BookingRoom
-	// for _, r := range rooms {
-	// 	respRooms = append(respRooms, types.BookingRoom{
-	// 		RoomID:   r.RoomID,
-	// 		RoomName: "",
-	// 		RoomType: "",
-	// 		Capacity: r.Capacity,
-	// 		Price:    r.Price,
-	// 		// PriceType: r.PriceType,
-	// 	})
-	// }
+	// 1. Lấy booking
+	booking, err := l.svcCtx.BookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+	// 2. Lấy danh sách phòng
+	rooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, bookingID)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	var nights int = int(booking.CheckOut.Sub(booking.CheckIn).Hours() / 24) // Tính số đêm
+	var respRooms []types.BookingRoom
+	for _, r := range rooms {
+		respRooms = append(respRooms, types.BookingRoom{
+			RoomID:   r.RoomID,
+			RoomName: r.RoomName,
+			RoomType: r.RoomType,
+			Capacity: r.Capacity,
+			Price:    r.Price,
+			Nights:   nights,                    // Tính số đêm
+			SubTotal: r.Price * float64(nights), // Tính số đêm
+		})
+	}
+
 	// // 3. Lấy danh sách payment
 	// payments, _, err := l.svcCtx.PaymentRepo.GetByBookingID(ctx, bookingID, 1, 100)
 	// if err != nil {
@@ -256,24 +260,27 @@ func (l *BookingLogic) GetBookingDetail(ctx context.Context, bookingID int) (*ty
 	// 		PaymentDate:   p.PaymentDate.Format("2006-01-02 15:04:05"),
 	// 	})
 	// }
-	// // 4. Mapping sang types.Booking
-	// respBooking := types.Booking{
-	// 	ID:            booking.ID,
-	// 	CustomerName:  booking.Name,
-	// 	CustomerPhone: booking.Phone,
-	// 	CustomerEmail: booking.Email,
-	// 	CheckIn:       booking.CheckIn.Format("2006-01-02"),
-	// 	CheckOut:      booking.CheckOut.Format("2006-01-02"),
-	// 	TotalAmount:   booking.TotalAmount,
-	// 	Status:        booking.Status,
-	// 	Rooms:         respRooms,
-	// }
-	// return &types.BookingDetailResp{
-	// 	Booking:  respBooking,
-	// 	Payments: respPayments,
-	// }, nil
-
-	return nil, nil // Chưa implement
+	// 4. Mapping sang types.Booking
+	respBooking := types.Booking{
+		ID:            booking.ID,
+		CustomerName:  booking.Name,
+		CustomerPhone: booking.Phone,
+		CustomerEmail: booking.Email,
+		CheckIn:       booking.CheckIn.Format("2006-01-02"),
+		CheckOut:      booking.CheckOut.Format("2006-01-02"),
+		TotalAmount:   booking.TotalAmount,
+		PaidAmount:    booking.PaidAmount,
+		Status:        booking.Status,
+		BookingCode:   booking.BookingCode,
+		BookingDate:   booking.CreatedAt.Format("2006-01-02 15:04:05"),
+		PaymentMethod: booking.PaymentMethod,
+		Nights:        nights,
+		Rooms:         respRooms,
+	}
+	return &types.BookingDetailResp{
+		Booking:  respBooking,
+		// Payments: respPayments,
+	}, nil
 }
 
 // UpdateBookingStatus - Logic to update the status of a booking

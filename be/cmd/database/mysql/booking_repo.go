@@ -44,13 +44,8 @@ func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreate
 // GetByID lấy booking theo ID
 func (r *bookingRepository) GetByID(ctx context.Context, id int) (*model.Booking, error) {
 	query := `
-		SELECT b.id, b.booking_request_id, b.user_id, b.room_id, b.check_in, b.check_out, b.num_guests, 
-		       b.total_amount, b.status, b.created_at,
-		       u.name as user_name, r.name as room_name, h.name as homestay_name
+		SELECT b.id, b.email, b.name, b.phone, b.check_in, b.check_out, b.num_guests, b.total_amount, b.status, b.created_at, b.booking_code, b.paid_amount
 		FROM booking b
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE b.id = $1
 	`
 
