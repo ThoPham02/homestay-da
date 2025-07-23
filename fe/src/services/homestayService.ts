@@ -318,6 +318,7 @@ class HomestayService {
   async getPublicRoomList(params: RoomListRequest): Promise<RoomListResponse> {
     try {
       const response = await api.get('/api/guest/rooms', { params });
+
       return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách phòng');
@@ -329,6 +330,17 @@ class HomestayService {
     try {
       const response = await api.get(`/api/host/homestays/${homestayId}/bookings`);
       
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách đặt phòng');
+      throw error;
+    }
+  }
+
+  async getGuestBookingsByHomestayId(homestayId: number) : Promise<{ bookings: Booking[] }> {
+    try {
+      const response = await api.get(`/api/guest/homestays/${homestayId}/bookings`);
+
       return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách đặt phòng');

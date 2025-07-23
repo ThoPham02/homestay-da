@@ -1,6 +1,6 @@
 import { MapPin, Users, Wifi, Car, Coffee, Tv, Bath, Wind, Star, Camera } from 'lucide-react';
 import { Homestay } from '../../types';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { homestayService } from '../../services/homestayService';
 
@@ -23,8 +23,11 @@ const getAmenityIcon = (amenity: string) => {
     }
 };
 
+
+
 function HomestayDetailView() {
     const { id } = useParams<{ id: string }>();
+     const navigate = useNavigate();
     const [homestay, setHomestay] = useState<Homestay>({} as Homestay);
 
     useEffect(() => {
@@ -46,6 +49,10 @@ function HomestayDetailView() {
         }).format(price);
     };
 
+    const handleBookingClick = (id: number) => {
+        navigate(`/guest/homestay/${id}/booking`);
+    };
+
     return (
         <div className="min-h-screen bg-emerald-50">
             {/* Header */}
@@ -61,8 +68,8 @@ function HomestayDetailView() {
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-1">
                                     <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                                    <span className="font-semibold">{homestay.rating}</span>
-                                    <span className="text-emerald-200">({homestay.reviews} đánh giá)</span>
+                                    <span className="font-semibold">{homestay.rating || 0}</span>
+                                    <span className="text-emerald-200">({homestay.reviews || 0} đánh giá)</span>
                                 </div>
                             </div>
                         </div>
@@ -77,9 +84,13 @@ function HomestayDetailView() {
             {/* Rooms Section */}
             <div className="max-w-6xl mx-auto px-4 py-12">
                 <div className="space-y-6 mt-12">
-                    <div className="mb-8">
+                    <div className="mb-8 flex items-center justify-between">
                         <h2 className="text-3xl font-bold text-gray-800 mb-2">Danh sách chi tiết phòng</h2>
-                        <p className="text-gray-600">Xem thông tin chi tiết từng phòng</p>
+                        
+                            <button className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold transition-colors duration-200"
+                                onClick={() => handleBookingClick(Number(id))}>
+                                Đặt phòng ngay
+                            </button>
                     </div>
 
                     {homestay?.rooms?.map((room) => (
@@ -143,9 +154,6 @@ function HomestayDetailView() {
                                     <div className="flex gap-3">
                                         <button className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200">
                                             Chi tiết phòng
-                                        </button>
-                                        <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 transform hover:scale-105">
-                                            Đặt phòng
                                         </button>
                                     </div>
                                 </div>
@@ -249,21 +257,6 @@ function HomestayDetailView() {
                                 <p>Bản đồ sẽ được hiển thị tại đây</p>
                             </div>
                         </div>
-
-                        {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                <div className="font-semibold text-emerald-700">5 phút</div>
-                <div className="text-sm text-gray-600">đến trung tâm thành phố</div>
-              </div>
-              <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                <div className="font-semibold text-emerald-700">10 phút</div>
-                <div className="text-sm text-gray-600">đến sân bay</div>
-              </div>
-              <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                <div className="font-semibold text-emerald-700">2 phút</div>
-                <div className="text-sm text-gray-600">đến bến xe bus</div>
-              </div>
-            </div> */}
                     </div>
                 </div>
 
@@ -346,10 +339,8 @@ function HomestayDetailView() {
                             Trải nghiệm kỳ nghỉ tuyệt vời tại {homestay.name} với dịch vụ chất lượng cao và không gian thoải mái
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="bg-white text-emerald-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors duration-200">
-                                Xem tất cả phòng
-                            </button>
-                            <button className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold transition-colors duration-200">
+                            <button className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold transition-colors duration-200"
+                                onClick={() => handleBookingClick(Number(id))}>
                                 Đặt ngay
                             </button>
                         </div>

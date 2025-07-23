@@ -21,6 +21,7 @@ import EditHomestay from './pages/EditHomestay';
 import HomestayDetailManagement from './pages/HomestayDetailManagement';
 import RoomDetailPage from './pages/RoomDetailPage';
 import HomestayDetailView from './components/Homestay/HomestayDetailView';
+import GuestNewBooking from './components/Booking/GuestNewBooking';
 
 function App() {
   return (
@@ -98,14 +99,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* <Route
-                  path="/guest/homestay/:id"
+                <Route
+                  path="/guest/homestay/:id/booking"
                   element={
-                    <ProtectedRoute requiredRoles={['guest', 'host', 'admin']}>
-                      <HomestayDetailGuest />
+                    <ProtectedRoute requiredRoles={['guest']}>
+                      <GuestNewBooking />
                     </ProtectedRoute>
                   }
-                /> */}
+                />
               </Routes>
             </Layout>
           </DataProvider>

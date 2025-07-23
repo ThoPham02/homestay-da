@@ -174,16 +174,6 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 	// Kiểm tra quyền sở hữu homestay
 	logx.Info(req.HomestayID)
 
-	homestay, err := r.svcCtx.HomestayRepo.GetByID(r.ctx, req.HomestayID)
-	if err != nil {
-		logx.Error(err)
-		return nil, fmt.Errorf("homestay không tồn tại")
-	}
-	if homestay.OwnerID != hostID {
-		logx.Error(err)
-		return nil, fmt.Errorf("không có quyền truy cập homestay này")
-	}
-
 	// Thiết lập giá trị mặc định cho pagination
 	if req.Page <= 0 {
 		req.Page = 1
