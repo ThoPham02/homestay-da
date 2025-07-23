@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Star, MapPin, Users, Bed, Bath, Square } from 'lucide-react';
-import { Homestay, Room } from '../../types';
-import { homestayService } from '../../services/homestayService';
+import { Homestay } from '../../types';
 
 interface HomestayCardProps {
   homestay: Homestay;
@@ -9,7 +8,7 @@ interface HomestayCardProps {
 }
 
 const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
-  const [firstRoom, setFirstRoom] = useState<Room | null>(homestay.rooms?.[0] || null);
+  const firstRoom = homestay.rooms?.[0] || null;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
