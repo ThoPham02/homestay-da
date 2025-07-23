@@ -42,7 +42,7 @@ const HomestayList: React.FC = () => {
   }, [filters]);
 
   const handleHomestayClick = (homestayId: number) => {
-    navigate(`/guest/homestay/${homestayId}`);
+    navigate(`/homestay/${homestayId}`);
   };
 
   const handleFiltersChange = (newFilters: HomestayListRequest) => {

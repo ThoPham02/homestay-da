@@ -57,6 +57,17 @@ class HomestayService {
     }
   }
 
+  async getPublicHomestayDetail(id: number): Promise<Homestay> {
+    try {
+      const response = await api.get(`/api/public/homestays/${id}`);
+
+      return response.data.homestay;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thông tin homestay');
+      throw error;
+    }
+  }
+
   async updateHomestay(id: number, data: UpdateHomestayRequest): Promise<Homestay> {
     try {
       const response = await api.put(`/api/host/homestays/${id}`, data);
@@ -275,7 +286,7 @@ class HomestayService {
 
   async getPublicHomestayList(params: HomestayListRequest = {}): Promise<HomestayListResponse> {
     try {
-      const response = await api.get('/api/guest/homestays', { params });
+      const response = await api.get('/api/public/homestays', { params });
 
       return response.data;
     } catch (error: any) {
@@ -296,7 +307,7 @@ class HomestayService {
 
   async getPublicHomestayById(id: number): Promise<HomestayDetailResponse> {
     try {
-      const response = await api.get(`/api/guest/homestays/${id}`);
+      const response = await api.get(`/api/public/homestays/${id}`);
       return response.data;
     } catch (error: any) {
       toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy thông tin homestay');

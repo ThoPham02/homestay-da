@@ -20,7 +20,7 @@ import AddHomestay from './pages/AddHomestay';
 import EditHomestay from './pages/EditHomestay';
 import HomestayDetailManagement from './pages/HomestayDetailManagement';
 import RoomDetailPage from './pages/RoomDetailPage';
-import HomestayDetailGuest from './pages/HomestayDetailGuest';
+import HomestayDetailView from './components/Homestay/HomestayDetailView';
 
 function App() {
   return (
@@ -32,7 +32,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/homestays" element={<HomestayList />} />
-                {/* <Route path="/homestay/:id" element={<HomestayDetail />} /> */}
+                <Route path="/homestay/:id" element={<HomestayDetailView />} />
                 <Route path="/about" element={<About />} />
 
                 {/* Auth Routes */}
@@ -98,14 +98,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
+                {/* <Route
                   path="/guest/homestay/:id"
                   element={
                     <ProtectedRoute requiredRoles={['guest', 'host', 'admin']}>
                       <HomestayDetailGuest />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
               </Routes>
             </Layout>
           </DataProvider>

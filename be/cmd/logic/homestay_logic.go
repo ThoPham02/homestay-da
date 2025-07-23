@@ -402,13 +402,23 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 	respList := make([]types.Homestay, 0, len(homestays))
 	for _, hst := range homestays {
 		var rooms []types.Room
-		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 0, 0)
+		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 1, 100)
 		if err != nil {
 			logx.Error(err)
 			return nil, err
 		}
 
 		for _, rm := range roomModels {
+
+			var images []string
+			if len(rm.Images) > 0 {
+				// unmarshal JSON string to slice
+				err := json.Unmarshal([]byte(rm.Images), &images)
+				if err != nil {
+					logx.Error(err)
+					return nil, err
+				}
+			}
 			rooms = append(rooms, types.Room{
 				ID:          rm.ID,
 				Name:        rm.Name,
@@ -419,6 +429,7 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 				CreatedAt:   rm.CreatedAt,
 				UpdatedAt:   rm.UpdatedAt,
 				HomestayID:  rm.HomestayID,
+				Images:      images,
 			})
 		}
 
@@ -457,6 +468,36 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 		return nil, err
 	}
 
+	var rooms []types.Room
+	roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, homestayID, 1, 100)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+	for _, rm := range roomModels {
+		var images []string
+		if len(rm.Images) > 0 {
+			// unmarshal JSON string to slice
+			err := json.Unmarshal([]byte(rm.Images), &images)
+			if err != nil {
+				logx.Error(err)
+				return nil, err
+			}
+		}
+		rooms = append(rooms, types.Room{
+			ID:          rm.ID,
+			Name:        rm.Name,
+			Description: rm.Description,
+			Capacity:    rm.Capacity,
+			Price:       rm.Price,
+			Status:      rm.Status,
+			CreatedAt:   rm.CreatedAt,
+			UpdatedAt:   rm.UpdatedAt,
+			HomestayID:  rm.HomestayID,
+			Images:      images,
+		})
+	}
+
 	resp := types.Homestay{
 		ID:          found.ID,
 		Name:        found.Name,
@@ -469,8 +510,10 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 		Longitude:   found.Longitude,
 		HostID:      found.OwnerID,
 		Status:      found.Status,
-		CreatedAt:   found.CreatedAt,
-		UpdatedAt:   found.UpdatedAt,
+		// Rate:        found.Rate,
+		Rooms:     rooms,
+		CreatedAt: found.CreatedAt,
+		UpdatedAt: found.UpdatedAt,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }

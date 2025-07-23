@@ -18,7 +18,7 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
   };
 
   return (
-    <div 
+    <div
       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
       onClick={onClick}
     >
@@ -72,10 +72,42 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
 
         <div className="flex items-center justify-between">
           <div className="text-right">
-            <p className="text-2xl font-bold text-emerald-600">
-              {firstRoom ? formatPrice(firstRoom.price) : 'Đang cập nhật'}
-            </p>
-            <p className="text-sm text-gray-500">/đêm</p>
+            {(() => {
+              const rooms = homestay.rooms || [];
+              if (rooms.length === 0) {
+                return (
+                  <>
+                    <p className="text-2xl font-bold text-emerald-600">Đang cập nhật</p>
+                    <p className="text-sm text-gray-500">/đêm</p>
+                  </>
+                );
+              }
+
+              if (rooms.length === 1) {
+                return (
+                  <>
+                    <p className="text-2xl font-bold text-emerald-600">
+                      {formatPrice(rooms[0].price)}
+                    </p>
+                    <p className="text-sm text-gray-500">/đêm</p>
+                  </>
+                );
+              }
+
+              const prices = rooms.map(r => r.price);
+              const min = Math.min(...prices);
+              const max = Math.max(...prices);
+
+              return (
+                <>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {`${formatPrice(min)} - ${formatPrice(max)}`}
+                  </p>
+                  <p className="text-sm text-gray-500">/đêm</p>
+                </>
+              );
+            })()}
+
           </div>
         </div>
       </div>

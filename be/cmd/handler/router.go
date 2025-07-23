@@ -40,6 +40,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 		{
 			public.GET("/homestays/top", homestayHandler.GetTopHomestays)
 			public.GET("/homestays", homestayHandler.GetPublicHomestayList)
+			public.GET("/homestays/:id", homestayHandler.GetPublicHomestayByID)
 		}
 
 		// Protected routes (cần authentication)
