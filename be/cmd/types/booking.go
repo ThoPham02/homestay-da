@@ -56,12 +56,13 @@ type CreateBookingResp struct {
 }
 
 type FilterBookingReq struct {
-	Status       *string `json:"status,omitempty"`
-	CustomerName *string `json:"customerName,omitempty"`
-	DateFrom     *string `json:"dateFrom,omitempty"`
-	DateTo       *string `json:"dateTo,omitempty"`
-	Page         int     `json:"page"`
-	PageSize     int     `json:"pageSize"`
+	Status        *string `form:"status"`
+	CustomerName  *string `form:"customerName"`
+	CustomerPhone *string `form:"customerPhone"`
+	DateFrom      *string `form:"dateFrom"`
+	DateTo        *string `form:"dateTo"`
+	Page          int     `form:"page"`
+	PageSize      int     `form:"pageSize"`
 }
 
 type FilterBookingResp struct {

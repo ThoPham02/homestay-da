@@ -3,13 +3,13 @@ import api from './api';
 export const bookingService = {
   // Lọc danh sách booking (filter)
   filterBookings: async (params: any): Promise<any> => {
-    const response = await api.get('/api/booking', { params });
+    const response = await api.get('/api/host/booking', { params });
     return response.data;
   },
 
   // Tạo booking mới
   createBooking: async (bookingData: any): Promise<any> => {
-    const response = await api.post('/api/booking', bookingData);
+    const response = await api.post('/api/host/booking', bookingData);
     return response.data;
   },
 
@@ -21,7 +21,7 @@ export const bookingService = {
 
   // Cập nhật trạng thái booking
   updateBookingStatus: async (id: number, status: string): Promise<any> => {
-    const response = await api.patch(`/api/booking/${id}/status`, { status });
+    const response = await api.put(`/api/host/booking/${id}/status`, { status });
     return response.data;
   },
 };

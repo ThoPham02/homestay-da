@@ -53,10 +53,10 @@ CREATE TABLE booking (
     check_out DATE NOT NULL,
     num_guests INTEGER NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'checked_in', 'checked_out', 'cancelled')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    payment_method VARCHAR(50) NOT NULL, -- 'cash', 'bank_transfer', 'credit_card', etc.
-    paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0;
+    status VARCHAR(20) NOT NULL DEFAULT 'confirmed',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50) NOT NULL,
+    paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0
 );
 
 -- Tạo bảng booking_room để quản lý mối quan hệ giữa booking và room
@@ -77,7 +77,7 @@ CREATE TABLE payment (
     booking_id INTEGER NOT NULL REFERENCES booking(id) ON DELETE CASCADE,
     amount DECIMAL(12,2) NOT NULL,
     payment_method VARCHAR(50) NOT NULL, -- 'cash', 'bank_transfer', 'credit_card', etc.
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'completed', 'failed', 'refunded')),
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     transaction_id VARCHAR(100), -- Mã giao dịch từ cổng thanh toán
     payment_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

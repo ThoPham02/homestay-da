@@ -14,8 +14,11 @@ type BookingRepository interface {
 	// GetByID lấy booking theo ID
 	GetByID(ctx context.Context, id int) (*model.Booking, error)
 
+	// Update status cập nhật thông tin booking
+	UpdateStatus(ctx context.Context, id int, booking *model.BookingUpdateRequest) (*model.Booking, error)
+
 	// Update cập nhật thông tin booking
-	Update(ctx context.Context, id int, booking *model.BookingUpdateRequest) (*model.Booking, error)
+	Update(ctx context.Context, id int, bookings *model.Booking) (*model.Booking, error)
 
 	// Delete xóa booking
 	Delete(ctx context.Context, id int) error

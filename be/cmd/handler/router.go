@@ -78,8 +78,6 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.PUT("/homestays/:id/toggle-status", homestayHandler.ToggleHomestayStatus)
 			host.DELETE("/homestays/:id", homestayHandler.DeleteHomestay)
 			host.GET("/homestays/:id/stats", homestayHandler.GetHomestayStatsByID)
-			// Booking management
-			host.GET("/homestays/:id/bookings", bookingHandler.GetBookingsByHomestayID)
 
 			// Room management
 			host.POST("/rooms", roomHandler.CreateRoom)
@@ -96,10 +94,11 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.GET("/homestays/:id/rooms/stats", roomHandler.GetRoomStats)
 
 			// Booking requests
-			// filter booking
 			host.GET("/booking", bookingHandler.FilterBookings)
 			host.POST("/booking", bookingHandler.CreateBooking)
 			host.GET("/booking/:id", bookingHandler.GetBookingDetail)
+			host.GET("/homestays/:id/bookings", bookingHandler.GetBookingsByHomestayID)
+			host.PUT("/booking/:id/status", bookingHandler.UpdateStatusBooking)
 		}
 
 		// Guest routes (cần role guest)

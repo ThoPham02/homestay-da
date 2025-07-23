@@ -27,13 +27,13 @@ func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreate
 	logx.Info(req)
 
 	query := `
-		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW(), $8, $9)
-		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount
+		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW(), $8, $9, $10)
+		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method
 	`
 
 	var booking model.Booking
-	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.BookingCode, req.PaidAmount)
+	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.BookingCode, req.PaidAmount, req.PaymentMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreate
 // GetByID lấy booking theo ID
 func (r *bookingRepository) GetByID(ctx context.Context, id int) (*model.Booking, error) {
 	query := `
-		SELECT b.id, b.email, b.name, b.phone, b.check_in, b.check_out, b.num_guests, b.total_amount, b.status, b.created_at, b.booking_code, b.paid_amount
+		SELECT b.id, b.email, b.name, b.phone, b.check_in, b.check_out, b.num_guests, b.total_amount, b.status, b.created_at, b.booking_code, b.paid_amount, b.payment_method
 		FROM booking b
 		WHERE b.id = $1
 	`
@@ -62,7 +62,7 @@ func (r *bookingRepository) GetByID(ctx context.Context, id int) (*model.Booking
 }
 
 // Update cập nhật thông tin booking
-func (r *bookingRepository) Update(ctx context.Context, id int, req *model.BookingUpdateRequest) (*model.Booking, error) {
+func (r *bookingRepository) UpdateStatus(ctx context.Context, id int, req *model.BookingUpdateRequest) (*model.Booking, error) {
 	// Xây dựng query động
 	query := `UPDATE booking SET `
 	var args []interface{}
@@ -72,6 +72,12 @@ func (r *bookingRepository) Update(ctx context.Context, id int, req *model.Booki
 	if req.Status != nil {
 		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argIndex))
 		args = append(args, *req.Status)
+		argIndex++
+	}
+
+	if req.PaidAmount != nil {
+		setClauses = append(setClauses, fmt.Sprintf("paid_amount = $%d", argIndex))
+		args = append(args, *req.PaidAmount)
 		argIndex++
 	}
 
@@ -91,6 +97,26 @@ func (r *bookingRepository) Update(ctx context.Context, id int, req *model.Booki
 
 	// Lấy thông tin booking sau khi update
 	return r.GetByID(ctx, id)
+}
+
+// Update cập nhật thông tin booking
+func (r *bookingRepository) Update(ctx context.Context, id int, booking *model.Booking) (*model.Booking, error) {
+	query := `
+		UPDATE booking
+		SET name = $1, email = $2, phone = $3, check_in = $4, check_out = $5, num_guests = $6, total_amount = $7, status = $8, updated_at = NOW()
+		WHERE id = $9
+		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method
+	`
+	var updatedBooking model.Booking
+
+	err := r.db.GetContext(ctx, &updatedBooking, query, booking.Name, booking.Email, booking.Phone, booking.CheckIn, booking.CheckOut, booking.NumGuests, booking.TotalAmount, booking.Status, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("booking not found")
+		}
+		return nil, fmt.Errorf("failed to update booking: %w", err)
+	}
+	return &updatedBooking, nil
 }
 
 // Delete xóa booking
@@ -147,24 +173,10 @@ func (r *bookingRepository) List(ctx context.Context, page, pageSize int) ([]*mo
 	return bookings, total, nil
 }
 
-// Search tìm kiếm booking
 func (r *bookingRepository) Search(ctx context.Context, req *model.BookingSearchRequest) ([]*model.Booking, int, error) {
-	// Xây dựng query tìm kiếm
 	whereClauses := []string{}
 	var args []interface{}
 	argIndex := 1
-
-	if req.UserID != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("b.user_id = $%d", argIndex))
-		args = append(args, *req.UserID)
-		argIndex++
-	}
-
-	if req.RoomID != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("b.room_id = $%d", argIndex))
-		args = append(args, *req.RoomID)
-		argIndex++
-	}
 
 	if req.Status != nil && *req.Status != "" {
 		whereClauses = append(whereClauses, fmt.Sprintf("b.status = $%d", argIndex))
@@ -184,6 +196,18 @@ func (r *bookingRepository) Search(ctx context.Context, req *model.BookingSearch
 		argIndex++
 	}
 
+	if req.CustomerName != nil && *req.CustomerName != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("b.name ILIKE $%d", argIndex))
+		args = append(args, "%"+*req.CustomerName+"%")
+		argIndex++
+	}
+
+	if req.CustomerPhone != nil && *req.CustomerPhone != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("b.phone ILIKE $%d", argIndex))
+		args = append(args, "%"+*req.CustomerPhone+"%")
+		argIndex++
+	}
+
 	whereClause := ""
 	if len(whereClauses) > 0 {
 		whereClause = "WHERE " + strings.Join(whereClauses, " AND ")
@@ -193,32 +217,26 @@ func (r *bookingRepository) Search(ctx context.Context, req *model.BookingSearch
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*) 
 		FROM booking b
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
 	`, whereClause)
+
 	var total int
 	err := r.db.GetContext(ctx, &total, countQuery, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count bookings: %w", err)
 	}
 
-	// Lấy danh sách booking
-	offset := (req.Page - 1) * req.PageSize
+	// Truy vấn danh sách bookings
 	query := fmt.Sprintf(`
-		SELECT b.id, b.booking_request_id, b.user_id, b.room_id, b.check_in, b.check_out, b.num_guests, 
-		       b.total_amount, b.status, b.created_at,
-		       u.name as user_name, r.name as room_name, h.name as homestay_name
+		SELECT b.id, b.email, b.name, b.phone, b.check_in, b.check_out, b.num_guests, 
+		       b.total_amount, b.status, b.created_at, b.booking_code, 
+		       b.paid_amount, b.payment_method
 		FROM booking b
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
 		ORDER BY b.created_at DESC
 		LIMIT $%d OFFSET $%d
 	`, whereClause, argIndex, argIndex+1)
-	args = append(args, req.PageSize, offset)
+	args = append(args, req.PageSize, (req.Page-1)*req.PageSize)
 
 	var bookings []*model.Booking
 	err = r.db.SelectContext(ctx, &bookings, query, args...)
@@ -377,7 +395,8 @@ func (r *bookingRepository) InsertBookingRoom(ctx context.Context, bookingRoom *
 func (r *bookingRepository) GetByHomestayID(ctx context.Context, homestayID int, page, pageSize int) ([]*model.Booking, int, error) {
 	// Đếm tổng số records
 	countQuery := `SELECT COUNT(*) FROM booking b
-		JOIN room r ON b.room_id = r.id
+		JOIN booking_room br ON b.id = br.booking_id
+		JOIN room r ON br.room_id = r.id
 		WHERE r.homestay_id = $1`
 	var total int
 	err := r.db.GetContext(ctx, &total, countQuery, homestayID)
@@ -388,11 +407,11 @@ func (r *bookingRepository) GetByHomestayID(ctx context.Context, homestayID int,
 	// Lấy danh sách booking
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT b.id, b.booking_request_id, b.user_id, b.room_id, b.check_in, b.check_out, b.num_guests, 
-		       b.total_amount, b.status, b.created_at,
-		       u.name as user_name, r.name as room_name, h.name as homestay_name
+		SELECT b.id, b.booking_code, b.name, b.phone, b.email, b.check_in, b.check_out, b.num_guests,
+			b.total_amount, b.paid_amount, b.status, b.created_at, b.payment_method
 		FROM booking b
-		JOIN room r ON b.room_id = r.id
+		JOIN booking_room br ON b.id = br.booking_id
+		JOIN room r ON br.room_id = r.id
 		JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.homestay_id = $1
 		ORDER BY b.created_at DESC

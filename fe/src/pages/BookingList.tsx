@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Calendar, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  ChevronLeft, 
+import { useEffect, useState } from 'react';
+import {
+  Calendar,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  ChevronLeft,
   ChevronRight,
   Phone,
   MapPin,
@@ -19,7 +18,8 @@ import {
 } from 'lucide-react';
 import { Booking, Room } from '../types';
 import EditBookingModal from '../components/Booking/EditBookingModal';
-import NewBookingModal from '../components/Booking/NewBookingModal';
+import { bookingService } from '../services/bookingService';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const mockRooms: Room[] = [
   {
@@ -280,10 +280,10 @@ const mockBookings: Booking[] = [
   }
 ];
 
-function App() {
+function BookingList() {
+  const confirm = useConfirm();
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const [showNewBookingForm, setShowNewBookingForm] = useState(false);
   const [showEditBookingForm, setShowEditBookingForm] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [filters, setFilters] = useState({
@@ -295,6 +295,28 @@ function App() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const bookingList = await bookingService.filterBookings({
+          customerName: filters.customerName,
+          customerPhone: filters.customerPhone,
+          dateFrom: filters.dateFrom,
+          dateTo: filters.dateTo,
+          status: filters.status,
+          page: currentPage,
+          pageSize: itemsPerPage
+        });
+
+        setBookings(bookingList.bookings || []);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+
+    fetchBookings();
+  }, [filters, currentPage]);
 
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -355,34 +377,10 @@ function App() {
     setCurrentPage(1);
   };
 
-  const handleCreateBooking = (bookingData: Omit<Booking, 'id' | 'bookingCode' | 'status' | 'bookingDate' | 'nights'>) => {
-    const newId = Math.max(...bookings.map(b => b.id)) + 1;
-    const bookingCode = `BK${String(newId).padStart(3, '0')}`;
-    
-    // Calculate total nights from bookingData.checkIn and bookingData.checkOut
-    const checkInDate = new Date(bookingData.checkIn);
-    const checkOutDate = new Date(bookingData.checkOut);
-    const nights = Math.max(
-      Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)),
-      1
-    );
+  const handleUpdateBooking = async (updatedBooking: Booking) => {
+    console.log("Updating booking:", updatedBooking);
 
-    const booking: Booking = {
-      id: newId,
-      bookingCode,
-      ...bookingData,
-      nights,
-      status: 'pending',
-      bookingDate: new Date().toISOString().split('T')[0]
-    };
-
-    setBookings(prev => [booking, ...prev]);
-  };
-
-  const handleUpdateBooking = (updatedBooking: Booking) => {
-    setBookings(prev => prev.map(b => 
-      b.id === updatedBooking.id ? updatedBooking : b
-    ));
+    // await bookingService.updateBookingStatus(updatedBooking.id, updatedBooking.status);
   };
 
   const handleEditBooking = (booking: Booking) => {
@@ -393,13 +391,18 @@ function App() {
 
   const getAvailableActions = (booking: Booking) => {
     const actions = [];
-    
+
     // Luôn có thao tác xem chi tiết
     actions.push({
       label: 'Xem chi tiết',
       icon: Eye,
       color: 'text-blue-600 hover:text-blue-800',
-      action: () => console.log('View booking', booking.id)
+      action: () => {
+        console.log('View booking', booking.id);
+
+        // Mở modal xem chi tiết booking
+        // setShowDetailBooking(booking);
+      }
     });
 
     // Thao tác theo trạng thái
@@ -407,13 +410,31 @@ function App() {
       case 'pending':
         actions.push(
           {
-            label: 'Xác nhận',
+            label: 'Xác nhận đặt phòng',
             icon: Check,
             color: 'text-green-600 hover:text-green-800',
-            action: () => {
-              setBookings(prev => prev.map(b => 
-                b.id === booking.id ? { ...b, status: 'confirmed' as const } : b
-              ));
+            action: async () => {
+              var result = await confirm({
+                title: 'Xác nhận đặt phòng',
+                description: `Bạn có chắc chắn muốn đặt phòng này?`,
+                confirmText: 'Xác nhận',
+                cancelText: 'Không'
+              });
+              if (result) {
+                await bookingService.updateBookingStatus(booking.id, 'confirmed');
+
+                const bookingList = await bookingService.filterBookings({
+                  customerName: filters.customerName,
+                  customerPhone: filters.customerPhone,
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  status: filters.status,
+                  page: currentPage,
+                  pageSize: itemsPerPage
+                });
+
+                setBookings(bookingList.bookings || []);
+              }
               setActiveDropdown(null);
             }
           },
@@ -421,34 +442,61 @@ function App() {
             label: 'Hủy đặt phòng',
             icon: X,
             color: 'text-red-600 hover:text-red-800',
-            action: () => {
-              setBookings(prev => prev.map(b => 
-                b.id === booking.id ? { ...b, status: 'cancelled' as const } : b
-              ));
+            action: async () => {
+              var result = await confirm({
+                title: 'Xác nhận hủy đặt phòng',
+                description: `Bạn có chắc chắn muốn hủy đặt phòng này?`,
+                confirmText: 'Hủy',
+                cancelText: 'Không'
+              });
+              if (result) {
+                await bookingService.updateBookingStatus(booking.id, 'cancelled');
+
+                const bookingList = await bookingService.filterBookings({
+                  customerName: filters.customerName,
+                  customerPhone: filters.customerPhone,
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  status: filters.status,
+                  page: currentPage,
+                  pageSize: itemsPerPage
+                });
+
+                setBookings(bookingList.bookings || []);
+              }
               setActiveDropdown(null);
             }
           }
         );
         break;
-      
+
       case 'confirmed':
         if (booking.paidAmount < booking.totalAmount) {
           actions.push({
-            label: 'Thêm thanh toán',
+            label: 'Xác nhận thanh toán',
             icon: Plus,
             color: 'text-green-600 hover:text-green-800',
-            action: () => {
-              const additionalPayment = prompt('Nhập số tiền thanh toán thêm:');
-              if (additionalPayment) {
-                const amount = parseFloat(additionalPayment);
-                if (!isNaN(amount) && amount > 0) {
-                  setBookings(prev => prev.map(b => 
-                    b.id === booking.id ? { 
-                      ...b, 
-                      paidAmount: Math.min(b.paidAmount + amount, b.totalAmount)
-                    } : b
-                  ));
-                }
+            action: async () => {
+              var result = await confirm({
+                title: 'Xác nhận thanh toán',
+                description: `Bạn có chắc chắn muốn xác nhận thanh toán cho đặt phòng này?`,
+                confirmText: 'Xác nhận',
+                cancelText: 'Không'
+              });
+              if (result) {
+                await bookingService.updateBookingStatus(booking.id, 'completed');
+
+                const bookingList = await bookingService.filterBookings({
+                  customerName: filters.customerName,
+                  customerPhone: filters.customerPhone,
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  status: filters.status,
+                  page: currentPage,
+                  pageSize: itemsPerPage
+                });
+
+                setBookings(bookingList.bookings || []);
               }
               setActiveDropdown(null);
             }
@@ -458,17 +506,33 @@ function App() {
           label: 'Hủy đặt phòng',
           icon: X,
           color: 'text-red-600 hover:text-red-800',
-          action: () => {
-            if (confirm('Bạn có chắc chắn muốn hủy đặt phòng này?')) {
-              setBookings(prev => prev.map(b => 
-                b.id === booking.id ? { ...b, status: 'cancelled' as const } : b
-              ));
+          action: async () => {
+            var result = await confirm({
+              title: 'Xác nhận hủy đặt phòng',
+              description: `Bạn có chắc chắn muốn hủy đặt phòng này?`,
+              confirmText: 'Hủy',
+              cancelText: 'Không'
+            });
+            if (result) {
+              await bookingService.updateBookingStatus(booking.id, 'cancelled');
+
+              const bookingList = await bookingService.filterBookings({
+                customerName: filters.customerName,
+                customerPhone: filters.customerPhone,
+                dateFrom: filters.dateFrom,
+                dateTo: filters.dateTo,
+                status: filters.status,
+                page: currentPage,
+                pageSize: itemsPerPage
+              });
+
+              setBookings(bookingList.bookings || []);
             }
             setActiveDropdown(null);
           }
         });
         break;
-      
+
       case 'completed':
         actions.push({
           label: 'Chỉnh sửa',
@@ -477,19 +541,8 @@ function App() {
           action: () => handleEditBooking(booking)
         });
         break;
-      
+
       case 'cancelled':
-        actions.push({
-          label: 'Xóa',
-          icon: Trash2,
-          color: 'text-red-600 hover:text-red-800',
-          action: () => {
-            if (confirm('Bạn có chắc chắn muốn xóa đặt phòng này?')) {
-              setBookings(prev => prev.filter(b => b.id !== booking.id));
-            }
-            setActiveDropdown(null);
-          }
-        });
         break;
     }
 
@@ -498,7 +551,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50" onClick={() => setActiveDropdown(null)}>
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         {/* <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -518,7 +571,7 @@ function App() {
             <Filter className="w-5 h-5 text-gray-600" />
             <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -617,14 +670,18 @@ function App() {
               Hiển thị {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredBookings.length)} của {filteredBookings.length} kết quả
             </div>
             <div className="text-sm font-medium text-gray-900">
-              Tổng doanh thu: {formatCurrency(filteredBookings.reduce((sum, booking) => sum + booking.totalAmount, 0))}
+              Tổng doanh thu: {formatCurrency(
+                filteredBookings
+                  .filter(booking => booking.status === 'completed' || booking.status === 'confirmed')
+                  .reduce((sum, booking) => sum + booking.totalAmount, 0)
+              )}
             </div>
           </div>
         </div>
 
         {/* Bookings Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto pb-32 min-h-[400px]">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -660,8 +717,8 @@ function App() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {startIndex + index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    <td className="px-2 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-blue-600 bg-blue-50 py-1 rounded">
                         {booking.bookingCode}
                       </div>
                     </td>
@@ -689,12 +746,11 @@ function App() {
                             <div className="text-sm font-medium text-gray-900">{room.name}</div>
                             <div className="text-sm text-gray-500 flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                room.type === 'Standard' ? 'bg-gray-100 text-gray-800' :
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${room.type === 'Standard' ? 'bg-gray-100 text-gray-800' :
                                 room.type === 'Deluxe' ? 'bg-blue-100 text-blue-800' :
-                                room.type === 'Premium' ? 'bg-purple-100 text-purple-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
+                                  room.type === 'Premium' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                }`}>
                                 {room.type}
                               </span>
                             </div>
@@ -721,16 +777,15 @@ function App() {
                       <div className="text-sm text-gray-900">
                         <div className="font-medium text-lg">{formatCurrency(booking.totalAmount)}</div>
                         <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            booking.paidAmount >= booking.totalAmount 
-                              ? 'bg-green-100 text-green-800' 
-                              : booking.paidAmount > 0 
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                          }`}>
-                            {booking.paidAmount >= booking.totalAmount 
-                              ? 'Đã thanh toán' 
-                              : booking.paidAmount > 0 
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${booking.paidAmount >= booking.totalAmount
+                            ? 'bg-green-100 text-green-800'
+                            : booking.paidAmount > 0
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                            }`}>
+                            {booking.paidAmount >= booking.totalAmount
+                              ? 'Đã thanh toán'
+                              : booking.paidAmount > 0
                                 ? `Còn lại ${formatCurrency(booking.totalAmount - booking.paidAmount)}`
                                 : 'Chưa thanh toán'
                             }
@@ -758,7 +813,6 @@ function App() {
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
-                        
                         {activeDropdown === booking.id && (
                           <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                             {getAvailableActions(booking).map((action, actionIndex) => (
@@ -776,6 +830,7 @@ function App() {
                             ))}
                           </div>
                         )}
+
                       </div>
                     </td>
                   </tr>
@@ -820,21 +875,20 @@ function App() {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === currentPage
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === currentPage
+                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
                     >
                       {page}
                     </button>
                   ))}
-                  
+
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
@@ -848,14 +902,6 @@ function App() {
           </div>
         )}
       </div>
-
-      <NewBookingModal
-        isOpen={showNewBookingForm}
-        onClose={() => setShowNewBookingForm(false)}
-        onCreateBooking={handleCreateBooking}
-        rooms={mockRooms}
-        existingBookings={bookings}
-      />
 
       <EditBookingModal
         isOpen={showEditBookingForm}
@@ -872,4 +918,4 @@ function App() {
   );
 }
 
-export default App;
+export default BookingList;

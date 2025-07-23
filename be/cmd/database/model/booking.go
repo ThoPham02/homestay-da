@@ -53,16 +53,18 @@ type BookingRoomCreateRequest struct {
 
 // BookingUpdateRequest giữ nguyên nếu chỉ update status
 type BookingUpdateRequest struct {
-	Status *string `json:"status" binding:"omitempty,oneof=confirmed checked_in checked_out cancelled"`
+	Status     *string  `json:"status"`
+	PaidAmount *float64 `json:"paid_amount"`
 }
 
 // BookingSearchRequest request tìm kiếm booking
 type BookingSearchRequest struct {
-	UserID    *int       `json:"user_id"`
-	RoomID    *int       `json:"room_id"`
-	Status    *string    `json:"status"`
-	StartDate *time.Time `json:"start_date"`
-	EndDate   *time.Time `json:"end_date"`
-	Page      int        `json:"page" binding:"min=1"`
-	PageSize  int        `json:"page_size" binding:"min=1,max=100"`
+	HomestayId    *int       `form:"homestayId"`
+	CustomerName  *string    `form:"customerName"`
+	CustomerPhone *string    `form:"customerPhone"`
+	Status        *string    `form:"status"`
+	StartDate     *time.Time `form:"startDate"`
+	EndDate       *time.Time `form:"endDate"`
+	Page          int        `form:"page"`
+	PageSize      int        `form:"pageSize"`
 }

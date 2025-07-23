@@ -40,6 +40,7 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
     name: string;
     type: string;
     pricePerNight: number;
+    capacity: number;
   }[]>([]);
   const [newBooking, setNewBooking] = useState({
     customerName: '',
@@ -50,6 +51,8 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
     paidAmount: 0,
     paymentMethod: 'Tiền mặt'
   });
+
+  console.log(existingBookings);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -120,7 +123,8 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
       id: room.id,
       name: room.name,
       type: room.type,
-      pricePerNight: room.price
+      pricePerNight: room.price,
+      capacity: room.capacity,
     }]);
     setRoomSearchQuery('');
     setShowRoomSuggestions(false);
@@ -160,7 +164,8 @@ const NewBookingModal: React.FC<NewBookingModalProps> = ({
       type: room.type,
       pricePerNight: room.pricePerNight,
       nights: nights,
-      subtotal: room.pricePerNight * nights
+      subtotal: room.pricePerNight * nights,
+      capacity: room.capacity
     }));
 
     onCreateBooking({
