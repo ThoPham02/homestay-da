@@ -331,7 +331,7 @@ func (r *roomRepository) GetByHomestayID(ctx context.Context, homestayID int, pa
 	// Lấy danh sách room
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name
+		SELECT r.id, r.homestay_id, r.name, r.description, r.type, r.capacity, r.price, r.price_type, r.status, h.name as homestay_name, r.image_urls
 		FROM room r
 		LEFT JOIN homestay h ON r.homestay_id = h.id
 		WHERE r.homestay_id = $1

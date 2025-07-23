@@ -9,25 +9,7 @@ interface HomestayCardProps {
 }
 
 const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
-  const [firstRoom, setFirstRoom] = useState<Room | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchRooms = async () => {
-      try {
-        const res = await homestayService.getPublicRoomList({ homestayId: homestay.id, page: 1, pageSize: 1 });
-        if (mounted && res.rooms && res.rooms.length > 0) {
-          setFirstRoom(res.rooms[0]);
-        } else if (mounted) {
-          setFirstRoom(null);
-        }
-      } catch {
-        if (mounted) setFirstRoom(null);
-      }
-    };
-    fetchRooms();
-    return () => { mounted = false; };
-  }, [homestay.id]);
+  const [firstRoom, setFirstRoom] = useState<Room | null>(homestay.rooms?.[0] || null);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -43,7 +25,7 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src="/placeholder.jpg"
+          src={firstRoom?.images?.[0] ?? ""}
           alt={homestay.name}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />

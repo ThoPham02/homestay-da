@@ -3,6 +3,7 @@ package types
 type Booking struct {
 	ID            int           `json:"id"`
 	BookingCode   string        `json:"bookingCode"`
+	HomestayID    int           `json:"homestayId"`
 	CustomerName  string        `json:"customerName"`
 	CustomerPhone string        `json:"customerPhone"`
 	CustomerEmail string        `json:"customerEmail"`

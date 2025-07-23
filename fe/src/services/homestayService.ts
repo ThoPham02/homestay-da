@@ -284,6 +284,16 @@ class HomestayService {
     }
   }
 
+  async getTopHomestays(limit: number = 8): Promise<Homestay[]> {
+    try {
+      const response = await api.get('/api/public/homestays/top', { params: { limit } });
+      return response.data;
+    } catch (error: any) {
+      toastService.error(error.response?.data?.result?.message || 'Lỗi khi lấy danh sách homestay nổi bật');
+      throw error;
+    }
+  }
+
   async getPublicHomestayById(id: number): Promise<HomestayDetailResponse> {
     try {
       const response = await api.get(`/api/guest/homestays/${id}`);

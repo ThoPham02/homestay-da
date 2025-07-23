@@ -392,3 +392,48 @@ func (r *HomestayRepo) GetByOwnerID(ctx context.Context, ownerID int, page, page
 
 	return homestays, total, nil
 }
+
+func (r *HomestayRepo) GetTopHomestays(ctx context.Context, limit int) ([]*model.Homestay, error) {
+	query := `
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+		       h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+		       COALESCE(SUM(r.rating), 0) AS total_rating
+		FROM homestay h
+		LEFT JOIN review r ON h.id = r.homestay_id
+		WHERE h.status = 'active'
+		GROUP BY h.id
+		ORDER BY total_rating DESC
+		LIMIT $1
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("error querying top homestays: %w", err)
+	}
+	defer rows.Close()
+
+	var homestays []*model.Homestay
+	for rows.Next() {
+		var homestay model.Homestay
+		var totalRating int
+
+		err := rows.Scan(
+			&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+			&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+			&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+			&homestay.CreatedAt, &homestay.UpdatedAt,
+			&totalRating,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning top homestay: %w", err)
+		}
+
+		homestays = append(homestays, &homestay)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating top homestays: %w", err)
+	}
+
+	return homestays, nil
+}

@@ -34,6 +34,14 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			auth.POST("/login", authHandler.Login)
 		}
 
+		// Public routes
+		homestayHandler := NewHomestayHandler(logic.NewHomestayLogic(context.Background(), serverCtx))
+		public := api.Group("/public")
+		{
+			public.GET("/homestays/top", homestayHandler.GetTopHomestays)
+			public.GET("/homestays", homestayHandler.GetPublicHomestayList)
+		}
+
 		// Protected routes (cần authentication)
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware(serverCtx))
@@ -41,14 +49,6 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			// User profile
 			protected.GET("/auth/profile", authHandler.GetProfile)
 			protected.POST("/auth/logout", authHandler.Logout)
-		}
-
-		// Admin routes (cần role admin)
-		admin := api.Group("/admin")
-		admin.Use(middleware.AuthMiddleware(serverCtx))
-		admin.Use(middleware.RoleMiddleware("admin"))
-		{
-			// TODO: Add admin-specific routes
 		}
 
 		// Host routes (cần role host hoặc admin)

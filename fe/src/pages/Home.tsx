@@ -1,18 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Home/Hero';
 import HomestayCard from '../components/Homestay/HomestayCard';
-import { useData } from '../contexts/DataContext';
+import { Homestay } from '../types';
+import { homestayService } from '../services/homestayService';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { homestays } = useData();
+  const [homestays, setHomestays] = React.useState<Homestay[]>([]);
+
+  useEffect(() => {
+    const fetchHomestays = async () => {
+      try {
+        const data = await homestayService.getTopHomestays(8);
+        
+        setHomestays(data);
+      } catch (error) {
+        console.error('Error fetching homestays:', error);
+      }
+    };
+
+    fetchHomestays();
+  }, []);
 
   const handleSearch = (filters: any) => {
     navigate('/homestays', { state: { filters } });
   };
 
-  const handleHomestayClick = (homestayId: string) => {
+  const handleHomestayClick = (homestayId: number) => {
     navigate(`/homestay/${homestayId}`);
   };
 

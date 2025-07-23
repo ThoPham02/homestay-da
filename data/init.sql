@@ -21,6 +21,7 @@ CREATE TABLE homestay (
     longitude DECIMAL(11, 8),
     owner_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    rate DECIMAL(3,2) DEFAULT 0 CHECK (rate >= 0 AND rate <= 5),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,6 +47,7 @@ CREATE TABLE room (
 CREATE TABLE booking (
     id SERIAL PRIMARY KEY,
     booking_code VARCHAR(50) UNIQUE NOT NULL, -- Mã đặt phòng duy nhất
+    homestay_id INTEGER NOT NULL REFERENCES homestay(id) ON DELETE CASCADE,
     email VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,

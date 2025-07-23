@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
@@ -472,4 +473,71 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 		UpdatedAt:   found.UpdatedAt,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
+}
+
+func (h *HomestayLogic) GetTopHomestays(limit int) ([]types.Homestay, error) {
+	if limit <= 0 {
+		limit = 8 // Default limit
+	}
+
+	homestays, err := h.svcCtx.HomestayRepo.GetTopHomestays(h.ctx, limit)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	respList := make([]types.Homestay, 0, len(homestays))
+	for _, hst := range homestays {
+		var rooms []types.Room
+		roomModels, _, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, hst.ID, 1, 100)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+
+		for _, rm := range roomModels {
+			logx.Info("Room: ", rm.Images)
+			var images []string
+
+			if len(rm.Images) > 0 {
+				// unmarshal JSON string to slice
+				err := json.Unmarshal([]byte(rm.Images), &images)
+				if err != nil {
+					logx.Error(err)
+					return nil, err
+				}
+			}
+
+			rooms = append(rooms, types.Room{
+				ID:          rm.ID,
+				Name:        rm.Name,
+				Description: rm.Description,
+				Capacity:    rm.Capacity,
+				Price:       rm.Price,
+				Status:      rm.Status,
+				CreatedAt:   rm.CreatedAt,
+				UpdatedAt:   rm.UpdatedAt,
+				HomestayID:  rm.HomestayID,
+				Images:      images, // Thêm trường Images
+			})
+		}
+
+		respList = append(respList, types.Homestay{
+			ID:          hst.ID,
+			Name:        hst.Name,
+			Description: hst.Description,
+			Address:     hst.Address,
+			City:        hst.City,
+			District:    hst.District,
+			Ward:        hst.Ward,
+			Latitude:    hst.Latitude,
+			Longitude:   hst.Longitude,
+			HostID:      hst.OwnerID,
+			Status:      hst.Status,
+			Rooms:       rooms,
+			CreatedAt:   hst.CreatedAt,
+			UpdatedAt:   hst.UpdatedAt,
+		})
+	}
+	return respList, nil
 }

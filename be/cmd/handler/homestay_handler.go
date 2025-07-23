@@ -392,3 +392,14 @@ func (h *HomestayHandler) GetPublicHomestayByID(c *gin.Context) {
 
 	response.ResponseSuccess(c, homestayDetail)
 }
+
+func (h *HomestayHandler) GetTopHomestays(c *gin.Context) {
+	// Get top homestays
+	topHomestays, err := h.homestayLogic.GetTopHomestays(8)
+	if err != nil {
+		response.ResponseError(c, response.InternalServerError, response.MsgDatabaseError)
+		return
+	}
+
+	response.ResponseSuccess(c, topHomestays)
+}

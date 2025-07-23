@@ -27,4 +27,7 @@ type HomestayRepository interface {
 	
 	// GetByOwnerID lấy danh sách homestay theo owner
 	GetByOwnerID(ctx context.Context, ownerID int, page, pageSize int) ([]*model.Homestay, int, error)
+
+	// GetTopHomestays lấy danh sách homestay nổi bật
+	GetTopHomestays(ctx context.Context, limit int) ([]*model.Homestay, error)
 } 
