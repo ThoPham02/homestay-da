@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -9,6 +10,15 @@ type Config struct {
 	Http     HttpServer `json:"http" yaml:"http"`
 	Database Database   `json:"database" yaml:"database"`
 	Storage  Storage    `json:"storage" yaml:"storage"`
+	Mail     MailConfig `json:"mail" yaml:"mail"`
+}
+
+type MailConfig struct {
+	From     string `json:"from" yaml:"from"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
+	Host     string `json:"host" yaml:"host"`
+	Port     int    `json:"port" yaml:"port"`
 }
 
 type Storage struct {
@@ -47,15 +57,15 @@ func (d *Database) GetDSN() string {
 func LoadConfig(configPath string) (*Config, error) {
 	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
-	
+
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("không thể đọc file config: %w", err)
 	}
-	
+
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("không thể parse config: %w", err)
 	}
-	
+
 	return &config, nil
 }

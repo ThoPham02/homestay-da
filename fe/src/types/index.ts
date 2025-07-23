@@ -137,6 +137,15 @@ export interface Booking {
   paymentMethod: string;
 }
 
+export interface Payment {
+  id: string;
+  bookingId: string;
+  amount: number;
+  method: 'Tiền mặt' | 'Thẻ tín dụng' | 'Chuyển khoản' | 'Momo';
+  status: 'paid' | 'unpaid' | 'refunded';
+  createdAt: string;
+}
+
 
 export interface User {
   id: number;
@@ -188,7 +197,7 @@ export interface CreateRoomRequest {
   homestayId: number;
   name: string;
   description: string;
-  type: 'single' | 'double' | 'family' | 'dormitory';
+  type: 'Standard' | 'Deluxe' | 'Premium' | 'Suite';
   capacity: number;
   price: number;
   priceType: 'per_night' | 'per_person';
@@ -199,7 +208,7 @@ export interface CreateRoomRequest {
 export interface UpdateRoomRequest {
   name?: string;
   description?: string;
-  type?: 'single' | 'double' | 'family' | 'dormitory';
+  type?: 'Standard' | 'Deluxe' | 'Premium' | 'Suite';
   capacity?: number;
   price?: number;
   priceType?: 'per_night' | 'per_person';

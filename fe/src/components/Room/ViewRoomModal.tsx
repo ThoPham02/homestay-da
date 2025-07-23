@@ -64,7 +64,7 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
       await homestayService.updateRoom(formData.id, {
         name: formData.name,
         description: formData.description,
-        type: formData.type as 'single' | 'double' | 'family' | 'dormitory',
+        type: formData.type as 'Standard' | 'Deluxe' | 'Premium' | 'Suite',
         capacity: formData.capacity,
         price: formData.price,
         status: formData.status,

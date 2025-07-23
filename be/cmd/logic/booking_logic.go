@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"homestay-be/cmd/database/model"
 	"homestay-be/cmd/svc"
 	"homestay-be/cmd/types"
@@ -345,10 +346,6 @@ func (l *BookingLogic) UpdateBookingStatus(ctx context.Context, bookingID int, r
 
 	// Nếu status là "completed" thì thêm payment tương ứng
 	if req.Status == "completed" {
-		if booking.PaidAmount < booking.TotalAmount {
-			return nil, errors.New("booking must be fully paid before completing")
-		}
-
 		// Giả sử có hàm AddPayment trong repo để thêm payment
 		payment := &model.PaymentCreateRequest{
 			BookingID:     booking.ID,
@@ -374,6 +371,52 @@ func (l *BookingLogic) UpdateBookingStatus(ctx context.Context, bookingID int, r
 	if err != nil {
 		logx.Error(err)
 		return &types.UpdateBookingStatusResp{Success: false}, err
+	}
+
+	// Gửi email thông báo nếu booking đã được xác nhận
+	if req.Status == "confirmed" {
+		var homestayName string
+
+		// Lấy thông tin homestay từ booking
+		bookingRoom, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, booking.ID)
+		if err != nil {
+			logx.Error("Lấy thông tin phòng thất bại:", err)
+			return &types.UpdateBookingStatusResp{Success: false}, err
+		}
+		if len(bookingRoom) != 0 {
+			room, err := l.svcCtx.RoomRepo.GetByID(ctx, bookingRoom[0].RoomID)
+			if err != nil {
+				logx.Error("Lấy thông tin phòng thất bại:", err)
+				return &types.UpdateBookingStatusResp{Success: false}, err
+			}
+			if room != nil {
+				homestay, err := l.svcCtx.HomestayRepo.GetByID(ctx, room.HomestayID)
+				if err != nil {
+					logx.Error("Lấy thông tin homestay thất bại:", err)
+					return &types.UpdateBookingStatusResp{Success: false}, err
+				}
+
+				if homestay != nil {
+					homestayName = homestay.Name
+				}
+			}
+		}
+
+		err = l.svcCtx.MailClient.SendBookingConfirmation(booking.Email, types.BookingEmailData{
+			GuestName:    booking.Name,
+			HomestayName: homestayName,
+			CheckInDate:  booking.CheckIn.Format("02-01-2006"),
+			CheckOutDate: booking.CheckOut.Format("02-01-2006"),
+			Nights:       int(booking.CheckOut.Sub(booking.CheckIn).Hours() / 24),
+			Rooms:        len(bookingRoom),
+			TotalPrice:   fmt.Sprintf("%.2f", booking.TotalAmount),
+			Year:         booking.CreatedAt.Year(),
+			BookingLink:  "http://localhost:5173/bookings",
+		})
+		if err != nil {
+			logx.Error("Gửi email xác nhận thất bại:", err)
+			return &types.UpdateBookingStatusResp{Success: false}, err
+		}
 	}
 
 	return &types.UpdateBookingStatusResp{Success: true}, nil

@@ -4,6 +4,7 @@ import (
 	"homestay-be/cmd/config"
 	"homestay-be/cmd/database/mysql"
 	"homestay-be/cmd/database/repo"
+	"homestay-be/cmd/mail"
 	"homestay-be/cmd/storage"
 	"log"
 
@@ -12,9 +13,10 @@ import (
 )
 
 type ServiceContext struct {
-	Config    config.Config
-	DB        *sqlx.DB
-	CldClient *storage.CloudinaryClient
+	Config     config.Config
+	DB         *sqlx.DB
+	CldClient  *storage.CloudinaryClient
+	MailClient *mail.MailClient // Thêm MailClient vào ServiceContext
 
 	// Repositories
 	UserRepo             repo.UserRepository
@@ -49,9 +51,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	logx.Info(c.Http.Path, c.Storage.APIKey, c.Storage.APISecret)
 
 	return &ServiceContext{
-		Config: c,
-		DB:     db,
+		Config:    c,
+		DB:        db,
 		CldClient: storage.NewCloudinaryClient(c.Storage.CloudName, c.Storage.APIKey, c.Storage.APISecret, "homestay"),
+		MailClient: mail.NewMailClient(c.Mail.From, c.Mail.Username, c.Mail.Password), // Khởi tạo MailClient
 		// Repositories
 		UserRepo:             repoFactory.UserRepo,
 		HomestayRepo:         repoFactory.HomestayRepo,

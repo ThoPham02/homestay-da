@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Calendar, DollarSign, Users, TrendingUp, Building, RefreshCw, Power } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, DollarSign, Users, Building, RefreshCw, Power } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { homestayService } from '../services/homestayService';
 import { bookingService } from '../services/bookingService';
-import { Homestay, HomestayStats, Room, Booking } from '../types';
+import { Homestay, HomestayStats, Booking } from '../types';
 import BookingList from './BookingList';
 import { useConfirm } from '../components/ConfirmDialog';
+import PaymentList from './PaymentList';
 
 const Management: React.FC = () => {
   const confirm = useConfirm();
@@ -17,15 +18,7 @@ const Management: React.FC = () => {
   const [stats, setStats] = useState<HomestayStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [bookingFilters, setBookingFilters] = useState({
-    guestName: '',
-    email: '',
-    phone: '',
-    status: '',
-    checkIn: '',
-    checkOut: '',
-    roomName: '',
-  });
+
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -61,13 +54,12 @@ const Management: React.FC = () => {
   const loadBookings = async () => {
     setBookingLoading(true);
     try {
-      // Giả sử host có thể xem tất cả bookings của các homestay mình sở hữu
-      // Nếu cần filter theo homestayId, có thể lặp qua homestays và gọi getHomestayBookings
       let allBookings: Booking[] = [];
       for (const homestay of homestays) {
         const res = await bookingService.filterBookings(homestay.id.toString());
         allBookings = allBookings.concat(res);
       }
+
       setBookings(allBookings);
     } catch (error) {
       setBookings([]);
@@ -112,14 +104,6 @@ const Management: React.FC = () => {
     }
   };
 
-  const handleViewBookings = (homestayId: number) => {
-    navigate(`/management/homestay/${homestayId}`, { state: { activeTab: 'bookings' } });
-  };
-
-  const handleAddRoom = (homestayId: number) => {
-    navigate(`/management/homestay/${homestayId}/rooms/add`);
-  };
-
   const handleToggleStatus = async (homestay: Homestay) => {
     const action = homestay.status === 'active' ? 'tắt' : 'bật';
     
@@ -137,10 +121,6 @@ const Management: React.FC = () => {
         console.error('Error toggling homestay status:', error);
       }
     }
-  };
-
-  const handleBookingFilterChange = (key: string, value: string) => {
-    setBookingFilters(prev => ({ ...prev, [key]: value }));
   };
 
   if (loading) {
@@ -430,9 +410,7 @@ const Management: React.FC = () => {
             )}
 
             {activeTab === 'payments' && (
-              <div>
-                {/* Payment details can be implemented here */}
-              </div>
+              <PaymentList />
             )}
           </div>
         </div>

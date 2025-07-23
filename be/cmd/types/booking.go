@@ -105,3 +105,15 @@ type GetBookingsByHomestayIDResp struct {
 	Bookings []Booking `json:"bookings"`
 	Total    int       `json:"total"`
 }
+
+type BookingEmailData struct {
+	GuestName    string
+	HomestayName string
+	CheckInDate  string
+	CheckOutDate string
+	Nights       int
+	Rooms        int
+	TotalPrice   string
+	Year         int
+	BookingLink  string
+}

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Homestay, Booking, Review, Room } from '../types';
-import { homestays as initialHomestays } from '../data/homestays';
 
 interface DataContextType {
   homestays: Homestay[];
@@ -42,7 +41,7 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [homestays, setHomestays] = useState<Homestay[]>(initialHomestays);
+  const [homestays, setHomestays] = useState<Homestay[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -86,8 +85,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const updateBooking = (id: string, updatedBooking: Partial<Booking>) => {
     setBookings(prev => 
-      prev.map(booking => 
-        booking.id === id ? { ...booking, ...updatedBooking } : booking
+      prev.map(booking => booking
       )
     );
   };
@@ -123,19 +121,12 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const getAvailableRooms = (homestayId: number | string, checkIn: string, checkOut: string) => {
     const homestayRooms = getRoomsByHomestayId(homestayId);
-    const conflictingBookings = bookings.filter(booking => 
-      booking.homestayId === homestayId &&
-      booking.status !== 'cancelled' &&
-      ((new Date(booking.checkIn) <= new Date(checkOut)) && 
-       (new Date(booking.checkOut) >= new Date(checkIn)))
-    );
+    const conflictingBookings = bookings
 
     const bookedRoomIds = conflictingBookings
-      .filter(booking => booking.roomId)
-      .map(booking => booking.roomId);
 
     return homestayRooms.filter(room => 
-      room.status === 'available' && !bookedRoomIds.includes(room.id)
+      room.status === 'available' && !bookedRoomIds
     );
   };
 
@@ -144,11 +135,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   };
 
   const getBookingsByHomestayId = (homestayId: number | string) => {
-    return bookings.filter(booking => booking.homestayId === homestayId);
+    return bookings.filter(booking => booking);
   };
 
   const getBookingsByUserId = (userId: number | string) => {
-    return bookings.filter(booking => booking.guestId === userId);
+    return bookings.filter(booking => booking);
   };
 
   const getReviewsByHomestayId = (homestayId: number | string) => {
