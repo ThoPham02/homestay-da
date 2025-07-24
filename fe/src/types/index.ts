@@ -3,7 +3,7 @@ export interface Room {
   homestayId: number;
   name: string;
   description: string;
-  type: 'Standard' | 'Deluxe' | 'Premium' | 'Suite';
+  type: string;
   capacity: number;
   price: number;
   priceType: 'per_night' | 'per_person';

@@ -3,6 +3,7 @@ import { Homestay } from '../../types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { homestayService } from '../../services/homestayService';
+import RoomList from '../../pages/RoomList';
 
 const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
@@ -27,7 +28,7 @@ const getAmenityIcon = (amenity: string) => {
 
 function HomestayDetailView() {
     const { id } = useParams<{ id: string }>();
-     const navigate = useNavigate();
+    const navigate = useNavigate();
     const [homestay, setHomestay] = useState<Homestay>({} as Homestay);
 
     useEffect(() => {
@@ -51,6 +52,10 @@ function HomestayDetailView() {
 
     const handleBookingClick = (id: number) => {
         navigate(`/guest/homestay/${id}/booking`);
+    };
+
+    const handleViewRoom = (roomId: number) => {
+        console.log('View room:', roomId);
     };
 
     return (
@@ -86,80 +91,19 @@ function HomestayDetailView() {
                 <div className="space-y-6 mt-12">
                     <div className="mb-8 flex items-center justify-between">
                         <h2 className="text-3xl font-bold text-gray-800 mb-2">Danh sách chi tiết phòng</h2>
-                        
-                            <button className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold transition-colors duration-200"
-                                onClick={() => handleBookingClick(Number(id))}>
-                                Đặt phòng ngay
-                            </button>
+                        <button
+                            className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold transition-colors duration-200"
+                            onClick={() => handleBookingClick(Number(id))}
+                        >
+                            Đặt phòng ngay
+                        </button>
                     </div>
 
-                    {homestay?.rooms?.map((room) => (
-                        <div
-                            key={room.id}
-                            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                        >
-                            {/* Room Image - Full Width at Top */}
-                            <div className="relative h-64 overflow-hidden">
-                                <img
-                                    src={room.images?.[0] || ''}
-                                    alt={room.name}
-                                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                                />
-                                <div className="absolute top-4 left-4">
-                                    <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                        {room.type}
-                                    </span>
-                                </div>
-                                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
-                                    <Camera className="w-4 h-4 text-emerald-600" />
-                                </div>
-                            </div>
-
-                            {/* Room Details */}
-                            <div className="p-6">
-                                <div className="flex items-start justify-between mb-3">
-                                    <h3 className="text-2xl font-bold text-gray-800">{room.name}</h3>
-                                    <div className="flex items-center gap-1 text-emerald-600">
-                                        <Users className="w-5 h-5" />
-                                        <span className="font-medium">{room.capacity} khách</span>
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 mb-4 leading-relaxed">{room.description}</p>
-
-                                {/* Amenities */}
-                                <div className="mb-6">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Tiện nghi:</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {room?.amenities?.map((amenity, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm"
-                                            >
-                                                {getAmenityIcon(amenity)}
-                                                <span>{amenity}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Price and CTA */}
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <div>
-                                        <div className="text-2xl font-bold text-emerald-600">
-                                            {formatPrice(room.price)}
-                                        </div>
-                                        <div className="text-sm text-gray-500">/ đêm</div>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <button className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                                            Chi tiết phòng
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                    {/* Use RoomList component instead of the original room mapping */}
+                    <RoomList
+                        rooms={homestay?.rooms || []}
+                        onViewRoom={handleViewRoom}
+                    />
                 </div>
 
                 {/* Gallery Section */}

@@ -60,6 +60,7 @@ class HomestayService {
   async getPublicHomestayDetail(id: number): Promise<Homestay> {
     try {
       const response = await api.get(`/api/public/homestays/${id}`);
+      console.log('Homestay detail response:', response.data.homestay);
 
       return response.data.homestay;
     } catch (error: any) {

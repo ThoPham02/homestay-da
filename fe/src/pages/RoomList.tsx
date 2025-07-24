@@ -4,7 +4,6 @@ import { Room } from '../types';
 interface RoomListProps {
   rooms: Room[];
   onViewRoom?: (roomId: number) => void;
-  onBookRoom?: (roomId: number) => void;
 }
 
 const priceTypeLabel = (type: Room['priceType']) =>
@@ -23,7 +22,7 @@ const statusLabel = (status: Room['status']) => {
   }
 };
 
-const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom, onBookRoom }) => {
+const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
   if (!rooms || rooms.length === 0) {
     return <div className="text-center text-gray-500 py-8">Chưa có phòng nào.</div>;
   }
@@ -80,10 +79,9 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom, onBookRoom }) =>
           {/* Cột 3: Nút đặt ngay */}
           <div className="md:w-1/4 w-full flex flex-col items-center justify-center p-4 border-t md:border-t-0 md:border-l border-gray-100">
             <button
-              onClick={() => (onBookRoom ? onBookRoom(room.id) : onViewRoom && onViewRoom(room.id))}
               className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition mb-2"
             >
-              Đặt ngay
+              Xem chi tiết
             </button>
           </div>
         </div>
