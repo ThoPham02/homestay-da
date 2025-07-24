@@ -83,6 +83,44 @@ func (h *BookingHandler) CreateGuestBooking(c *gin.Context) {
 	c.JSON(201, resp)
 }
 
+// Get Guest Bookings - Get bookings for the guest
+func (h *BookingHandler) GetGuestBookings(c *gin.Context) {
+	ctx := context.Background()
+
+	// Parse query parameters
+	var req types.FilterBookingReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// get guest ID from context (assuming middleware sets it)
+	userInterface, exists := c.Get("user")
+	if !exists {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	user, ok := userInterface.(*types.UserInfo)
+	if !ok {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	req.CustomerEmail = &user.Email
+
+	// Call the logic layer to get guest bookings
+	resp, err := h.bookingLogic.FilterBookings(ctx, &req)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, resp)
+}
+
 // GetBookingDetail - Get details of a booking
 func (h *BookingHandler) GetBookingDetail(c *gin.Context) {
 	ctx := context.Background()

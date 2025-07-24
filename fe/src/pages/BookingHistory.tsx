@@ -6,22 +6,14 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
-  Phone,
   MapPin,
   Clock,
-  User,
   MoreVertical,
-  Check,
   X,
-  Plus,
 } from 'lucide-react';
 import { Booking } from '../types';
 import { bookingService } from '../services/bookingService';
 import { useConfirm } from '../components/ConfirmDialog';
-
-// const mockRooms: Room[] = [];
-
-// const mockBookings: Booking[] = [];
 
 function BookingHistory() {
   const confirm = useConfirm();
@@ -40,9 +32,7 @@ function BookingHistory() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const bookingList = await bookingService.filterBookings({
-          customerName: filters.customerName,
-          customerPhone: filters.customerPhone,
+        const bookingList = await bookingService.getGuestBookings({
           dateFrom: filters.dateFrom,
           dateTo: filters.dateTo,
           status: filters.status,
@@ -134,9 +124,6 @@ function BookingHistory() {
       color: 'text-blue-600 hover:text-blue-800',
       action: () => {
         console.log('View booking', booking.id);
-
-        // Mở modal xem chi tiết booking
-        // setShowDetailBooking(booking);
       }
     });
 
@@ -145,33 +132,10 @@ function BookingHistory() {
       case 'pending':
         actions.push(
           {
-            label: 'Xác nhận đặt phòng',
-            icon: Check,
-            color: 'text-green-600 hover:text-green-800',
-            action: async () => {
-              var result = await confirm({
-                title: 'Xác nhận đặt phòng',
-                description: `Bạn có chắc chắn muốn đặt phòng này?`,
-                confirmText: 'Xác nhận',
-                cancelText: 'Không'
-              });
-              if (result) {
-                await bookingService.updateBookingStatus(booking.id, 'confirmed');
-
-                const bookingList = await bookingService.filterBookings({
-                  customerName: filters.customerName,
-                  customerPhone: filters.customerPhone,
-                  dateFrom: filters.dateFrom,
-                  dateTo: filters.dateTo,
-                  status: filters.status,
-                  page: currentPage,
-                  pageSize: itemsPerPage
-                });
-
-                setBookings(bookingList.bookings || []);
-              }
-              setActiveDropdown(null);
-            }
+            label: 'Chỉnh sửa',
+            icon: Edit,
+            color: 'text-blue-600 hover:text-blue-800',
+            action: () => handleEditBooking(booking)
           },
           {
             label: 'Hủy đặt phòng',
@@ -185,9 +149,9 @@ function BookingHistory() {
                 cancelText: 'Không'
               });
               if (result) {
-                await bookingService.updateBookingStatus(booking.id, 'cancelled');
+                await bookingService.updateGuestBookingStatus(booking.id, 'cancelled');
 
-                const bookingList = await bookingService.filterBookings({
+                const bookingList = await bookingService.getGuestBookings({
                   customerName: filters.customerName,
                   customerPhone: filters.customerPhone,
                   dateFrom: filters.dateFrom,
@@ -206,37 +170,6 @@ function BookingHistory() {
         break;
 
       case 'confirmed':
-        if (booking.paidAmount < booking.totalAmount) {
-          actions.push({
-            label: 'Xác nhận thanh toán',
-            icon: Plus,
-            color: 'text-green-600 hover:text-green-800',
-            action: async () => {
-              var result = await confirm({
-                title: 'Xác nhận thanh toán',
-                description: `Bạn có chắc chắn muốn xác nhận thanh toán cho đặt phòng này?`,
-                confirmText: 'Xác nhận',
-                cancelText: 'Không'
-              });
-              if (result) {
-                await bookingService.updateBookingStatus(booking.id, 'completed');
-
-                const bookingList = await bookingService.filterBookings({
-                  customerName: filters.customerName,
-                  customerPhone: filters.customerPhone,
-                  dateFrom: filters.dateFrom,
-                  dateTo: filters.dateTo,
-                  status: filters.status,
-                  page: currentPage,
-                  pageSize: itemsPerPage
-                });
-
-                setBookings(bookingList.bookings || []);
-              }
-              setActiveDropdown(null);
-            }
-          });
-        }
         actions.push({
           label: 'Hủy đặt phòng',
           icon: X,
@@ -270,13 +203,15 @@ function BookingHistory() {
 
       case 'completed':
         actions.push({
-          label: 'Chỉnh sửa',
-          icon: Edit,
+          label: 'Đánh giá Homestay',
+          icon: Eye,
           color: 'text-blue-600 hover:text-blue-800',
-          action: () => handleEditBooking(booking)
+          action: () => {
+            console.log('View booking', booking.id);
+          }
         });
-        break;
 
+        break;
       case 'cancelled':
         break;
     }
@@ -287,20 +222,7 @@ function BookingHistory() {
   return (
     <div className="min-h-screen bg-gray-50" onClick={() => setActiveDropdown(null)}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        {/* <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setShowNewBookingForm(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Tạo đặt phòng mới
-            </button>
-          </div>
-        </div> */}
 
-        {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-gray-600" />
@@ -308,38 +230,6 @@ function BookingHistory() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tên người đặt
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Nhập tên..."
-                  value={filters.customerName}
-                  onChange={(e) => handleFilterChange('customerName', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số điện thoại
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Nhập số điện thoại..."
-                  value={filters.customerPhone}
-                  onChange={(e) => handleFilterChange('customerPhone', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ngày đặt từ
@@ -404,13 +294,6 @@ function BookingHistory() {
             <div className="text-sm text-gray-600">
               Hiển thị {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredBookings.length)} của {filteredBookings.length} kết quả
             </div>
-            <div className="text-sm font-medium text-gray-900">
-              Tổng doanh thu: {formatCurrency(
-                filteredBookings
-                  .filter(booking => booking.status === 'completed' || booking.status === 'confirmed')
-                  .reduce((sum, booking) => sum + booking.totalAmount, 0)
-              )}
-            </div>
           </div>
         </div>
 
@@ -425,9 +308,6 @@ function BookingHistory() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Mã đặt phòng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thông tin người đặt
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thông tin phòng
@@ -455,23 +335,6 @@ function BookingHistory() {
                     <td className="px-2 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-blue-600 bg-blue-50 py-1 rounded">
                         {booking.bookingCode}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <User className="h-5 w-5 text-blue-600" />
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {booking.customerPhone}
-                          </div>
-                          <div className="text-sm text-gray-500">{booking.customerEmail}</div>
-                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

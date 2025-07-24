@@ -155,7 +155,7 @@ const GuestNewBooking = () => {
         setNewBooking(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (selectedRooms.length === 0) {
@@ -180,7 +180,7 @@ const GuestNewBooking = () => {
             capacity: room.capacity
         }));
 
-        bookingService.createGuestBooking({
+        await bookingService.createGuestBooking({
             homestayId: Number(id),
             customerName: newBooking.customerName,
             customerPhone: newBooking.customerPhone,
@@ -193,21 +193,6 @@ const GuestNewBooking = () => {
             paidAmount: newBooking.paidAmount,
             paymentMethod: newBooking.paymentMethod
         })
-
-        // // Reset form
-        // setSelectedRooms([]);
-        // setNewBooking({
-        //     customerName: userInfo ? JSON.parse(userInfo).name : '',
-        //     customerPhone: '',
-        //     customerEmail: userInfo ? JSON.parse(userInfo).email : '',
-        //     checkIn: '',
-        //     checkOut: '',
-        //     paidAmount: 0,
-        //     paymentMethod: 'Tiền mặt'
-        // });
-        // setRoomSearchQuery('');
-
-        // chuyển hướng về trang danh sách booking
         navigate(`/bookings`);
     };
 

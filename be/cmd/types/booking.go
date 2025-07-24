@@ -59,6 +59,7 @@ type CreateBookingResp struct {
 type FilterBookingReq struct {
 	Status        *string `form:"status"`
 	CustomerName  *string `form:"customerName"`
+	CustomerEmail *string `form:"customerEmail"`
 	CustomerPhone *string `form:"customerPhone"`
 	DateFrom      *string `form:"dateFrom"`
 	DateTo        *string `form:"dateTo"`

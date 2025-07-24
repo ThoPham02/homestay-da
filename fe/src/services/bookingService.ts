@@ -5,6 +5,14 @@ export const bookingService = {
   // Lọc danh sách booking (filter)
   filterBookings: async (params: any): Promise<any> => {
     const response = await api.get('/api/host/booking', { params });
+
+    return response.data;
+  },
+
+  // Lấy danh sách booking của khách
+  getGuestBookings: async (params: any): Promise<any> => {
+    const response = await api.get(`/api/guest/booking`, { params });
+
     return response.data;
   },
 
@@ -41,4 +49,16 @@ export const bookingService = {
     }
     return response.data;
   },
+
+  // Cập nhật trạng thái booking của khách
+  updateGuestBookingStatus: async (id: number, status: string): Promise<any> => {
+    const response = await api.put(`/api/guest/booking/${id}/status`, { status });
+
+    if (response.status === 200) {
+      toastService.success('Cập nhật trạng thái booking thành công');
+    } else {
+      toastService.error('Cập nhật trạng thái booking thất bại');
+    }
+    return response.data;
+  }
 };

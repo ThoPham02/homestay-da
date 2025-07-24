@@ -126,6 +126,8 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			guest.GET("/homestays/:id/bookings", bookingHandler.GetBookingsByHomestayID)
 			guest.GET("/booking/:id", bookingHandler.GetBookingDetail)
 			guest.POST("/booking", bookingHandler.CreateGuestBooking)
+			guest.GET("/booking", bookingHandler.GetGuestBookings)
+			guest.PUT("/booking/:id/status", bookingHandler.UpdateStatusBooking)
 		}
 	}
 

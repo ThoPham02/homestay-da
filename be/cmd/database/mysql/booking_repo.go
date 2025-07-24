@@ -208,6 +208,12 @@ func (r *bookingRepository) Search(ctx context.Context, req *model.BookingSearch
 		argIndex++
 	}
 
+	if req.CustomerEmail != nil && *req.CustomerEmail != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("b.email = $%d", argIndex))
+		args = append(args, *req.CustomerEmail)
+		argIndex++
+	}
+
 	whereClause := ""
 	if len(whereClauses) > 0 {
 		whereClause = "WHERE " + strings.Join(whereClauses, " AND ")

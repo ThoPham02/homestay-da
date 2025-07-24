@@ -62,6 +62,7 @@ type BookingUpdateRequest struct {
 type BookingSearchRequest struct {
 	HomestayId    *int       `form:"homestayId"`
 	CustomerName  *string    `form:"customerName"`
+	CustomerEmail *string    `form:"customerEmail"`
 	CustomerPhone *string    `form:"customerPhone"`
 	Status        *string    `form:"status"`
 	StartDate     *time.Time `form:"startDate"`

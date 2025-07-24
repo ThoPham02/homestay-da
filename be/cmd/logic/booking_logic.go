@@ -32,6 +32,7 @@ func (l *BookingLogic) FilterBookings(ctx context.Context, req *types.FilterBook
 	searchReq := &model.BookingSearchRequest{
 		Status:        req.Status,
 		CustomerName:  req.CustomerName,
+		CustomerEmail: req.CustomerEmail,
 		CustomerPhone: req.CustomerPhone,
 		Page:          req.Page,
 		PageSize:      req.PageSize,
