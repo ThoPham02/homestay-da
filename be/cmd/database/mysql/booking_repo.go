@@ -28,12 +28,12 @@ func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreate
 
 	query := `
 		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', NOW(), $8, $9, $10)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, $10, $11)
 		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method
 	`
 
 	var booking model.Booking
-	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.BookingCode, req.PaidAmount, req.PaymentMethod)
+	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.Status, req.BookingCode, req.PaidAmount, req.PaymentMethod)
 	if err != nil {
 		return nil, err
 	}

@@ -41,6 +41,7 @@ type BookingCreateRequest struct {
 	NumGuests     int       `json:"num_guests" binding:"required,min=1"`
 	TotalAmount   float64   `db:"total_amount" json:"total_amount"`
 	PaidAmount    float64   `db:"paid_amount" json:"paid_amount"`
+	Status        string    `db:"status" json:"status"`
 	PaymentMethod string    `json:"payment_method"`
 }
 

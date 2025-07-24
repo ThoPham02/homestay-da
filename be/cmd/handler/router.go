@@ -124,6 +124,8 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			guest.GET("/homestays/:id", homestayHandler.GetPublicHomestayByID)
 			guest.GET("/rooms", roomHandler.GetRoomList)
 			guest.GET("/homestays/:id/bookings", bookingHandler.GetBookingsByHomestayID)
+			guest.GET("/booking/:id", bookingHandler.GetBookingDetail)
+			guest.POST("/booking", bookingHandler.CreateGuestBooking)
 		}
 	}
 

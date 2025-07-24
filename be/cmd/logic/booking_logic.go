@@ -152,15 +152,18 @@ func (l *BookingLogic) CreateBooking(ctx context.Context, req *types.CreateBooki
 	}
 	// thêm booking
 	var bookingCode string = "BK" + time.Now().Format("20060102150405")
-
+	var status string = "confirmed" // Mặc định là confirmed
+	if req.PaidAmount >= req.TotalAmount {
+		status = "completed" // Nếu đã thanh toán đủ thì chuyển sang completed
+	}
 	bookingModel := &model.BookingCreateRequest{
-		BookingCode: bookingCode,
-		Name:        req.CustomerName,
-		Email:       req.CustomerEmail,
-		Phone:       req.CustomerPhone,
-		CheckIn:     parseDate(req.CheckIn),
-		CheckOut:    parseDate(req.CheckOut),
-		// NumGuests:     req.Guests,
+		BookingCode:   bookingCode,
+		Name:          req.CustomerName,
+		Email:         req.CustomerEmail,
+		Phone:         req.CustomerPhone,
+		CheckIn:       parseDate(req.CheckIn),
+		CheckOut:      parseDate(req.CheckOut),
+		Status:        status,
 		TotalAmount:   req.TotalAmount,
 		PaidAmount:    req.PaidAmount,
 		PaymentMethod: req.PaymentMethod,
@@ -169,6 +172,165 @@ func (l *BookingLogic) CreateBooking(ctx context.Context, req *types.CreateBooki
 	if err != nil {
 		logx.Error(err)
 		return nil, err
+	}
+
+	if booking.PaidAmount > 0 {
+		// Xử lý thanh toán
+		payment := &model.PaymentCreateRequest{
+			BookingID:     booking.ID,
+			Amount:        booking.PaidAmount,
+			PaymentMethod: booking.PaymentMethod,
+			PaymentStatus: "completed",
+			TransactionID: "",
+			PaymentDate:   time.Now(),
+		}
+		_, err := l.svcCtx.PaymentRepo.Create(ctx, payment)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+	}
+
+	// 2. Tạo các bản ghi booking_room
+	for _, room := range req.Rooms {
+		roomModel := &model.BookingRoom{
+			BookingID: booking.ID,
+			RoomID:    room.RoomID,
+			RoomName:  room.RoomName,
+			RoomType:  room.RoomType,
+			Capacity:  room.Capacity,
+			Price:     room.Price,
+			CreatedAt: time.Now(),
+		}
+
+		// Giả sử có hàm InsertBookingRoom trong repo
+		_, err := l.svcCtx.BookingRepo.InsertBookingRoom(ctx, roomModel)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+	}
+
+	// 3. Lấy lại danh sách phòng vừa insert
+	rooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, booking.ID)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	// 4. Mapping sang types.BookingRoom
+	var respRooms []types.BookingRoom
+	for _, r := range rooms {
+		respRooms = append(respRooms, types.BookingRoom{
+			RoomID:   r.RoomID,
+			RoomName: r.RoomName,
+			RoomType: r.RoomType,
+			Capacity: r.Capacity,
+			Price:    r.Price,
+			Nights:   int(booking.CheckOut.Sub(booking.CheckIn).Hours() / 24),                  // Tính số đêm
+			SubTotal: r.Price * float64(int(booking.CheckOut.Sub(booking.CheckIn).Hours()/24)), // Tính số đêm
+		})
+	}
+
+	// 5. Mapping sang types.Booking
+	respBooking := types.Booking{
+		ID:            booking.ID,
+		BookingCode:   booking.BookingCode,
+		CustomerName:  booking.Name,
+		CustomerPhone: booking.Phone,
+		CustomerEmail: booking.Email,
+		CheckIn:       booking.CheckIn.Format("2006-01-02"),
+		CheckOut:      booking.CheckOut.Format("2006-01-02"),
+		TotalAmount:   booking.TotalAmount,
+		PaidAmount:    booking.PaidAmount,
+		BookingDate:   booking.CreatedAt.Format("2006-01-02 15:04:05"),
+		PaymentMethod: booking.PaymentMethod,
+		Status:        booking.Status,
+		Nights:        int(booking.CheckOut.Sub(booking.CheckIn).Hours() / 24), // Tính số đêm
+		Rooms:         respRooms,
+	}
+
+	return &types.CreateBookingResp{Booking: respBooking}, nil
+}
+
+// create guest booking
+func (l *BookingLogic) CreateGuestBooking(ctx context.Context, req *types.CreateBookingReq) (*types.CreateBookingResp, error) {
+	logx.Info(req)
+
+	// validate request
+	if req.CustomerName == "" || req.CustomerEmail == "" || req.CheckIn == "" || req.CheckOut == "" || len(req.Rooms) == 0 {
+		return nil, errors.New("các trường bắt buộc không được để trống")
+	}
+
+	// validate check-in/check-out date
+	checkIn, err := time.Parse("2006-01-02", req.CheckIn)
+	if err != nil {
+		return nil, errors.New("ngày check-in không hợp lệ")
+	}
+	checkOut, err := time.Parse("2006-01-02", req.CheckOut)
+	if err != nil {
+		return nil, errors.New("ngày check-out không hợp lệ")
+	}
+	if checkIn.After(checkOut) {
+		return nil, errors.New("ngày check-in phải trước ngày check-out")
+	}
+
+	// // validate guests
+	// if req.Guests <= 0 {
+	// 	return nil, errors.New("số lượng khách phải lớn hơn 0")
+	// }
+
+	// kiểm tra phòng đã được đặt hay chưa
+	for _, room := range req.Rooms {
+		if room.RoomID == 0 {
+			return nil, errors.New("phòng không hợp lệ")
+		}
+		// Kiểm tra xem phòng đã được đặt hay chưa
+		exists, err := l.svcCtx.BookingRepo.CheckRoomExists(ctx, room.RoomID, checkIn, checkOut)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+		if exists {
+			return nil, errors.New("phòng đã được đặt trong khoảng thời gian này")
+		}
+	}
+	// thêm booking
+	var bookingCode string = "BK" + time.Now().Format("20060102150405")
+
+	bookingModel := &model.BookingCreateRequest{
+		BookingCode:   bookingCode,
+		Name:          req.CustomerName,
+		Email:         req.CustomerEmail,
+		Phone:         req.CustomerPhone,
+		CheckIn:       parseDate(req.CheckIn),
+		CheckOut:      parseDate(req.CheckOut),
+		TotalAmount:   req.TotalAmount,
+		Status:        "pending",
+		PaidAmount:    req.PaidAmount,
+		PaymentMethod: req.PaymentMethod,
+	}
+	booking, err := l.svcCtx.BookingRepo.Create(ctx, bookingModel)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	if booking.PaidAmount > 0 {
+		// Xử lý thanh toán
+		payment := &model.PaymentCreateRequest{
+			BookingID:     booking.ID,
+			Amount:        booking.PaidAmount,
+			PaymentMethod: booking.PaymentMethod,
+			PaymentStatus: "completed",
+			TransactionID: "",
+			PaymentDate:   time.Now(),
+		}
+		_, err := l.svcCtx.PaymentRepo.Create(ctx, payment)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
 	}
 
 	// 2. Tạo các bản ghi booking_room

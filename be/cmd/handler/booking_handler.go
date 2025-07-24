@@ -62,6 +62,27 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	c.JSON(201, resp)
 }
 
+// CreateGuestBooking - Create a booking for a guest
+func (h *BookingHandler) CreateGuestBooking(c *gin.Context) {
+	ctx := context.Background()
+
+	// Parse request body
+	var req types.CreateBookingReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// Call the logic layer to create a guest booking
+	resp, err := h.bookingLogic.CreateGuestBooking(ctx, &req)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	c.JSON(201, resp)
+}
+
 // GetBookingDetail - Get details of a booking
 func (h *BookingHandler) GetBookingDetail(c *gin.Context) {
 	ctx := context.Background()

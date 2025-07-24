@@ -9,21 +9,18 @@ import {
     ArrowLeft
 } from 'lucide-react';
 import { Booking, Room } from '../../types';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { homestayService } from '../../services/homestayService';
-
-// interface NewBookingModalProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   onCreateBooking: (booking: Omit<Booking, 'id' | 'bookingCode' | 'status' | 'bookingDate'>) => void;
-//   rooms: Room[];
-//   existingBookings: Booking[];
-// }
+import { bookingService } from '../../services/bookingService';
 
 const GuestNewBooking = () => {
     const { id } = useParams<{ id: string }>();
     const [rooms, setRooms] = useState<Room[]>([]); // Replace with actual rooms data
     const [existingBookings, setExistingBookings] = useState<Booking[]>([]); // Replace with actual bookings data
+    const navigate = useNavigate();
+
+    // get user info from localStorage
+    const userInfo = localStorage.getItem('user');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -60,9 +57,9 @@ const GuestNewBooking = () => {
         capacity: number;
     }[]>([]);
     const [newBooking, setNewBooking] = useState({
-        customerName: '',
+        customerName: userInfo ? JSON.parse(userInfo).name : '',
         customerPhone: '',
-        customerEmail: '',
+        customerEmail: userInfo ? JSON.parse(userInfo).email : '',
         checkIn: '',
         checkOut: '',
         paidAmount: 0,
@@ -183,47 +180,35 @@ const GuestNewBooking = () => {
             capacity: room.capacity
         }));
 
-        // onCreateBooking({
-        //   customerName: newBooking.customerName,
-        //   customerPhone: newBooking.customerPhone,
-        //   customerEmail: newBooking.customerEmail,
-        //   rooms: bookingRooms,
-        //   checkIn: newBooking.checkIn,
-        //   checkOut: newBooking.checkOut,
-        //   nights: nights,
-        //   totalAmount: totalAmount,
-        //   paidAmount: newBooking.paidAmount,
-        //   paymentMethod: newBooking.paymentMethod
+        bookingService.createGuestBooking({
+            homestayId: Number(id),
+            customerName: newBooking.customerName,
+            customerPhone: newBooking.customerPhone,
+            customerEmail: newBooking.customerEmail,
+            rooms: bookingRooms,
+            checkIn: newBooking.checkIn,
+            checkOut: newBooking.checkOut,
+            nights: nights,
+            totalAmount: totalAmount,
+            paidAmount: newBooking.paidAmount,
+            paymentMethod: newBooking.paymentMethod
+        })
+
+        // // Reset form
+        // setSelectedRooms([]);
+        // setNewBooking({
+        //     customerName: userInfo ? JSON.parse(userInfo).name : '',
+        //     customerPhone: '',
+        //     customerEmail: userInfo ? JSON.parse(userInfo).email : '',
+        //     checkIn: '',
+        //     checkOut: '',
+        //     paidAmount: 0,
+        //     paymentMethod: 'Tiền mặt'
         // });
+        // setRoomSearchQuery('');
 
-        // Reset form
-        setSelectedRooms([]);
-        setNewBooking({
-            customerName: '',
-            customerPhone: '',
-            customerEmail: '',
-            checkIn: '',
-            checkOut: '',
-            paidAmount: 0,
-            paymentMethod: 'Tiền mặt'
-        });
-        setRoomSearchQuery('');
-    };
-
-    const handleClose = () => {
-        // Reset form when closing
-        setSelectedRooms([]);
-        setNewBooking({
-            customerName: '',
-            customerPhone: '',
-            customerEmail: '',
-            checkIn: '',
-            checkOut: '',
-            paidAmount: 0,
-            paymentMethod: 'Tiền mặt'
-        });
-        setRoomSearchQuery('');
-        setShowRoomSuggestions(false);
+        // chuyển hướng về trang danh sách booking
+        navigate(`/bookings`);
     };
 
     const handleBack = () => {
@@ -235,13 +220,13 @@ const GuestNewBooking = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <button
-            onClick={handleBack}
-            className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Quay lại</span>
-          </button>
-            
+                    onClick={handleBack}
+                    className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-4"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                    <span>Quay lại</span>
+                </button>
+
                 {/* Modal Header */}
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-gray-900">Tạo đặt phòng mới</h2>
@@ -268,6 +253,7 @@ const GuestNewBooking = () => {
                                         onChange={(e) => setNewBooking(prev => ({ ...prev, customerName: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Nhập tên khách hàng"
+                                        disabled={!!userInfo} // Disable if user info is available
                                     />
                                 </div>
                                 <div>
@@ -293,6 +279,7 @@ const GuestNewBooking = () => {
                                         onChange={(e) => setNewBooking(prev => ({ ...prev, customerEmail: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Nhập email"
+                                        disabled={!!userInfo} // Disable if user info is available
                                     />
                                 </div>
                             </div>
@@ -556,13 +543,6 @@ const GuestNewBooking = () => {
 
                         {/* Form Actions */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                            >
-                                Hủy
-                            </button>
                             <button
                                 type="submit"
                                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
