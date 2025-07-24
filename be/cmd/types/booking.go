@@ -119,3 +119,9 @@ type BookingEmailData struct {
 	Year         int
 	BookingLink  string
 }
+
+type CreateReviewReq struct {
+	BookingID int    `json:"bookingId"`
+	Content   string `json:"content"`
+	Rating    int    `json:"rating"`
+}

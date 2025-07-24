@@ -527,6 +527,10 @@ func (l *BookingLogic) UpdateBookingStatus(ctx context.Context, bookingID int, r
 		// Cập nhật lại số tiền đã thanh toán
 		booking.PaidAmount += payment.Amount
 		updateReq.PaidAmount = &booking.PaidAmount
+		if booking.PaidAmount >= booking.TotalAmount {
+			statusCompleted := "completed"
+			updateReq.Status = &statusCompleted
+		}
 	}
 
 	// update booking status
@@ -646,4 +650,65 @@ func (l *BookingLogic) GetBookingsByHomestayID(ctx context.Context, homestayID i
 		Bookings: respBookings,
 		Total:    total,
 	}, nil
+}
+
+// Create Review - Logic to create a review for a booking
+func (l *BookingLogic) CreateReview(ctx context.Context, userID int, req *types.CreateReviewReq) error {
+	logx.Info(req)
+
+	// Validate request
+	if req.BookingID <= 0 || req.Content == "" || req.Rating < 1 || req.Rating > 5 {
+		return errors.New("các trường bắt buộc không được để trống và rating phải từ 1 đến 5")
+	}
+
+	// Lấy thông tin booking
+	booking, err := l.svcCtx.BookingRepo.GetByID(ctx, req.BookingID)
+	if err != nil {
+		logx.Error(err)
+		return err
+	}
+
+	if booking == nil {
+		return errors.New("booking không tồn tại")
+	}
+
+	// get booking room
+	bookingRooms, err := l.svcCtx.BookingRepo.GetRoomsByBookingID(ctx, req.BookingID)
+	if err != nil {
+		logx.Error(err)
+		return err
+	}
+
+	if len(bookingRooms) == 0 {
+		return errors.New("booking không có phòng nào")
+	}
+
+	// Lấy homestay ID từ phòng đầu tiên trong booking
+	room, err := l.svcCtx.RoomRepo.GetByID(ctx, bookingRooms[0].RoomID)
+	if err != nil {
+		logx.Error(err)
+		return err
+	}
+	if room == nil {
+		return errors.New("phòng không tồn tại")
+	}
+
+	var homestayID int = room.HomestayID
+
+	// Tạo review
+	review := &model.ReviewCreateRequest{
+		BookingID:  req.BookingID,
+		HomestayID: homestayID,
+		UserID:     userID,
+		Comment:    req.Content,
+		Rating:     req.Rating,
+	}
+
+	// Lưu review vào DB
+	if _, err := l.svcCtx.BookingRepo.CreateReview(ctx, review); err != nil {
+		logx.Error(err)
+		return err
+	}
+
+	return nil
 }

@@ -10,10 +10,12 @@ import {
   Clock,
   MoreVertical,
   X,
+  Check,
 } from 'lucide-react';
-import { Booking } from '../types';
+import { Booking, Review } from '../types';
 import { bookingService } from '../services/bookingService';
 import { useConfirm } from '../components/ConfirmDialog';
+import ReviewModal from '../components/Review/ReviewModal';
 
 function BookingHistory() {
   const confirm = useConfirm();
@@ -26,6 +28,8 @@ function BookingHistory() {
     dateTo: '',
     status: ''
   });
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking>({} as Booking);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -110,7 +114,7 @@ function BookingHistory() {
 
   const handleEditBooking = (booking: Booking) => {
     console.log('Edit booking', booking.id);
-
+    setSelectedBooking(booking);
     setActiveDropdown(null);
   };
 
@@ -204,10 +208,13 @@ function BookingHistory() {
       case 'completed':
         actions.push({
           label: 'Đánh giá Homestay',
-          icon: Eye,
-          color: 'text-blue-600 hover:text-blue-800',
+          icon: Check,
+          color: 'text-green-600 hover:text-green-800',
           action: () => {
             console.log('View booking', booking.id);
+
+            setSelectedBooking(booking);
+            setIsReviewModalOpen(true);
           }
         });
 
@@ -217,6 +224,16 @@ function BookingHistory() {
     }
 
     return actions;
+  };
+
+  const handleReviewSubmit = async (review: Review) => {
+    try {
+      await bookingService.createReview(review);
+      
+      setIsReviewModalOpen(false);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
   };
 
   return (
@@ -500,6 +517,13 @@ function BookingHistory() {
           </div>
         )}
       </div>
+
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        booking={selectedBooking}
+        onSubmit={handleReviewSubmit}
+      />
     </div>
   );
 }

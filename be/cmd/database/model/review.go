@@ -9,7 +9,7 @@ type Review struct {
 	ID         int       `db:"id" json:"id"`
 	UserID     int       `db:"user_id" json:"userId"`
 	HomestayID int       `db:"homestay_id" json:"homestayId"`
-	BookingID  *int      `db:"booking_id" json:"bookingId"` // Có thể null
+	BookingID  int       `db:"booking_id" json:"bookingId"`
 	Rating     int       `db:"rating" json:"rating"`
 	Comment    string    `db:"comment" json:"comment"`
 	CreatedAt  time.Time `db:"created_at" json:"createdAt"`
@@ -22,7 +22,7 @@ type Review struct {
 type ReviewCreateRequest struct {
 	UserID     int    `json:"userId" binding:"required"`
 	HomestayID int    `json:"homestayId" binding:"required"`
-	BookingID  *int   `json:"bookingId"`
+	BookingID  int   `json:"bookingId"`
 	Rating     int    `json:"rating" binding:"required,min=1,max=5"`
 	Comment    string `json:"comment"`
 }

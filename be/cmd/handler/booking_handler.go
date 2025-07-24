@@ -193,3 +193,39 @@ func (h *BookingHandler) GetBookingsByHomestayID(c *gin.Context) {
 
 	response.ResponseSuccess(c, resp)
 }
+
+// CreateReview - Create a review for a booking
+func (h *BookingHandler) CreateReview(c *gin.Context) {
+	ctx := context.Background()
+
+	// Parse request body for review
+	var req types.CreateReviewReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// get guest ID from context (assuming middleware sets it)
+	userInterface, exists := c.Get("user")
+	if !exists {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	user, ok := userInterface.(*types.UserInfo)
+	if !ok {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	// Call the logic layer to create a review
+	err := h.bookingLogic.CreateReview(ctx, user.ID, &req)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, nil)
+}

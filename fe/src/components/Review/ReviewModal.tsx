@@ -1,82 +1,49 @@
 import React, { useState } from 'react';
-import { Star, X, Camera, Upload } from 'lucide-react';
-import { Review, Booking, Homestay } from '../../types';
+import { Star, X, MapPin } from 'lucide-react';
+import { Review, Booking } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   booking: Booking;
-  homestay: Homestay;
   onSubmit: (review: Review) => void;
 }
 
-const ReviewModal: React.FC<ReviewModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  booking, 
-  homestay, 
-  onSubmit 
+const ReviewModal: React.FC<ReviewModalProps> = ({
+  isOpen,
+  onClose,
+  booking,
+  onSubmit
 }) => {
   const { user } = useAuth();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  const [images, setImages] = useState<string[]>([]);
-  const [imageUrl, setImageUrl] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
-
-  const sampleImages = [
-    'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=400',
-    'https://images.pexels.com/photos/2062426/pexels-photo-2062426.jpeg?auto=compress&cs=tinysrgb&w=400',
-    'https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg?auto=compress&cs=tinysrgb&w=400',
-    'https://images.pexels.com/photos/2724748/pexels-photo-2724748.jpeg?auto=compress&cs=tinysrgb&w=400'
-  ];
-
-  const addImage = (url: string) => {
-    if (url && !images.includes(url) && images.length < 5) {
-      setImages(prev => [...prev, url]);
-    }
-  };
-
-  const removeImage = (url: string) => {
-    setImages(prev => prev.filter(img => img !== url));
-  };
-
-  const addImageUrl = () => {
-    if (imageUrl.trim()) {
-      addImage(imageUrl.trim());
-      setImageUrl('');
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!comment.trim()) {
       alert('Vui lòng nhập nhận xét!');
       return;
     }
 
     const review: Review = {
-      id: Date.now().toString(),
-      homestayId: homestay.id,
+      homestayId: 0, // This should be set to the actual homestay ID
       bookingId: booking.id,
-      guestId: user?.id || '',
-      guestName: user?.name || booking.guestName,
+      guestId: user?.id || 0,
       rating,
-      comment: comment.trim(),
-      images: images.length > 0 ? images : undefined,
-      createdAt: new Date().toISOString()
+      comment,
+      createdAt: new Date().toISOString(),
     };
 
     onSubmit(review);
     onClose();
-    
+
     // Reset form
     setRating(5);
     setComment('');
-    setImages([]);
-    setImageUrl('');
   };
 
   if (!isOpen) return null;
@@ -97,16 +64,29 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
           <div className="mb-6">
             <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-              <img
-                src={homestay.images[0]}
-                alt={homestay.name}
-                className="w-16 h-16 object-cover rounded-lg"
-              />
               <div>
-                <h3 className="font-semibold text-gray-900">{homestay.name}</h3>
-                <p className="text-sm text-gray-600">{homestay.location}</p>
-                <p className="text-sm text-gray-500">
-                  {booking.checkIn} - {booking.checkOut}
+                <div className="space-y-1">
+                  {booking.rooms.map((room, index) => (
+                    <div key={index}>
+                      <div className="text-sm font-medium text-gray-900">{room.name}</div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${room.type === 'Standard' ? 'bg-gray-100 text-gray-800' :
+                          room.type === 'Deluxe' ? 'bg-blue-100 text-blue-800' :
+                            room.type === 'Premium' ? 'bg-purple-100 text-purple-800' :
+                              'bg-yellow-100 text-yellow-800'
+                          }`}>
+                          {room.type}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  {booking.rooms.length} phòng • {booking.nights} đêm
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                 Từ {booking.checkIn} đến {booking.checkOut}
                 </p>
               </div>
             </div>
@@ -129,11 +109,10 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                     className="focus:outline-none"
                   >
                     <Star
-                      className={`h-8 w-8 ${
-                        star <= (hoveredRating || rating)
+                      className={`h-8 w-8 ${star <= (hoveredRating || rating)
                           ? 'text-yellow-400 fill-current'
                           : 'text-gray-300'
-                      }`}
+                        }`}
                     />
                   </button>
                 ))}
@@ -160,74 +139,6 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                 placeholder="Chia sẻ trải nghiệm của bạn về homestay này..."
                 required
               />
-            </div>
-
-            {/* Images */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Hình ảnh (tùy chọn)
-              </label>
-              
-              {/* Sample Images */}
-              <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-2">Chọn từ thư viện mẫu:</div>
-                <div className="grid grid-cols-4 gap-2">
-                  {sampleImages.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Sample ${index + 1}`}
-                        className="w-full h-16 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-emerald-300"
-                        onClick={() => addImage(url)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Image URL */}
-              <div className="flex space-x-2 mb-4">
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Hoặc nhập URL hình ảnh..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
-                />
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Upload className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Selected Images */}
-              {images.length > 0 && (
-                <div>
-                  <div className="text-sm text-gray-600 mb-2">Hình ảnh đã chọn:</div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {images.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Selected ${index + 1}`}
-                          className="w-full h-16 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(url)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Submit Buttons */}

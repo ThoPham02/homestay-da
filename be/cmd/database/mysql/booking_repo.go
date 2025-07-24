@@ -454,3 +454,16 @@ func (r *bookingRepository) CheckRoomExists(ctx context.Context, roomID int, che
 
 	return count > 0, nil
 }
+
+// CreateReview tạo review cho booking
+func (r *bookingRepository) CreateReview(ctx context.Context, review *model.ReviewCreateRequest) (*model.Review, error) {
+	query := `INSERT INTO review (booking_id, user_id, content, rating, created_at)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, booking_id, user_id, content, rating, created_at`
+	var rv model.Review
+	err := r.db.GetContext(ctx, &rv, query, review.BookingID, review.UserID, review.Comment, review.Rating, time.Now())
+	if err != nil {
+		return nil, err
+	}
+	return &rv, nil
+}

@@ -193,6 +193,7 @@ const GuestNewBooking = () => {
             paidAmount: newBooking.paidAmount,
             paymentMethod: newBooking.paymentMethod
         })
+        
         navigate(`/bookings`);
     };
 

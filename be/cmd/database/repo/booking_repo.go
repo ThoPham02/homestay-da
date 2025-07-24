@@ -52,4 +52,7 @@ type BookingRepository interface {
 
 	// CheckRoomExists kiểm tra xem phòng đã tồn tại trong booking hay chưa
 	CheckRoomExists(ctx context.Context, roomID int, checkIn, checkOut time.Time) (bool, error)
+
+	// CreateReview tạo review cho booking
+	CreateReview(ctx context.Context, review *model.ReviewCreateRequest) (*model.Review, error)
 }

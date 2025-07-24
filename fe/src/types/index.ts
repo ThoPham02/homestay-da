@@ -158,15 +158,14 @@ export interface User {
 }
 
 export interface Review {
-  id: string;
-  homestayId: string;
-  bookingId: string;
-  guestId: string;
-  guestName: string;
+  id?: number;
+  homestayId: number;
+  bookingId: number;
+  guestId?: number;
+  guestName?: string;
   rating: number;
   comment: string;
-  images?: string[];
-  createdAt: string;
+  createdAt?: string;
 }
 
 // API Request/Response Types
