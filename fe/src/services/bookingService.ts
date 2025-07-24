@@ -66,11 +66,7 @@ export const bookingService = {
   createReview: async (reviewData: any): Promise<any> => {
     const response = await api.post('/api/guest/review', reviewData);
 
-    if (response.status === 201) {
-      toastService.success('Đánh giá đã được gửi thành công');
-    } else {
-      toastService.error('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
-    }
+    toastService.success('Đánh giá đã được gửi thành công');
     return response.data;
   }
 };

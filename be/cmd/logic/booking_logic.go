@@ -657,7 +657,7 @@ func (l *BookingLogic) CreateReview(ctx context.Context, userID int, req *types.
 	logx.Info(req)
 
 	// Validate request
-	if req.BookingID <= 0 || req.Content == "" || req.Rating < 1 || req.Rating > 5 {
+	if req.BookingID <= 0 || req.Comment == "" || req.Rating < 1 || req.Rating > 5 {
 		return errors.New("các trường bắt buộc không được để trống và rating phải từ 1 đến 5")
 	}
 
@@ -700,7 +700,7 @@ func (l *BookingLogic) CreateReview(ctx context.Context, userID int, req *types.
 		BookingID:  req.BookingID,
 		HomestayID: homestayID,
 		UserID:     userID,
-		Comment:    req.Content,
+		Comment:    req.Comment,
 		Rating:     req.Rating,
 	}
 
