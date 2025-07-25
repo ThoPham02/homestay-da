@@ -153,7 +153,7 @@ const Management: React.FC = () => {
             </button>
             <button
               onClick={handleAddHomestay}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
             >
               <Plus className="h-4 w-4 mr-2" />
               Thêm Homestay
@@ -167,12 +167,12 @@ const Management: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Homestay hoạt động</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-primary-600">
                   {stats?.activeHomestays || 0}
                 </p>
               </div>
-              <div className="bg-emerald-100 p-3 rounded-full">
-                <Building className="h-6 w-6 text-emerald-600" />
+              <div className="bg-primary-100 p-3 rounded-full">
+                <Building className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -195,12 +195,12 @@ const Management: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Phòng có sẵn</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-primary-600">
                   {stats?.availableRooms || 0}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="bg-primary-100 p-3 rounded-full">
+                <Users className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -209,12 +209,12 @@ const Management: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Tổng doanh thu</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-primary-600">
                   {homestayService.formatPrice(stats?.totalRevenue || 0)}
                 </p>
               </div>
-              <div className="bg-emerald-100 p-3 rounded-full">
-                <DollarSign className="h-6 w-6 text-emerald-600" />
+              <div className="bg-primary-100 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@ const Management: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Homestay hoạt động:</span>
-                        <span className="font-medium text-green-600">{stats?.activeHomestays || 0}</span>
+                        <span className="font-medium text-primary-600">{stats?.activeHomestays || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Homestay không hoạt động:</span>
@@ -300,7 +300,7 @@ const Management: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Phòng có sẵn:</span>
-                        <span className="font-medium text-green-600">{stats?.availableRooms || 0}</span>
+                        <span className="font-medium text-primary-600">{stats?.availableRooms || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Tổng đặt phòng:</span>
@@ -318,7 +318,7 @@ const Management: React.FC = () => {
                   <h2 className="text-xl font-semibold">Danh sách Homestay</h2>
                   <button
                     onClick={handleAddHomestay}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Thêm Homestay
@@ -332,7 +332,7 @@ const Management: React.FC = () => {
                     <p className="text-gray-600 mb-6">Bắt đầu bằng cách tạo homestay đầu tiên của bạn</p>
                     <button
                       onClick={handleAddHomestay}
-                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Tạo Homestay
@@ -370,7 +370,7 @@ const Management: React.FC = () => {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               onClick={() => handleViewHomestay(homestay)}
-                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100"
+                              className="flex items-center justify-center px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100"
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               Xem

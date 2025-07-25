@@ -169,7 +169,7 @@ const Register: React.FC = () => {
                   onClick={() => handleInputChange('role', 'host')}
                   className={`p-3 rounded-lg border-2 transition-all ${
                     formData.role === 'host'
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                   disabled={isLoading}
@@ -196,7 +196,7 @@ const Register: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.name ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập họ và tên"
@@ -219,7 +219,7 @@ const Register: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập email"
@@ -242,7 +242,7 @@ const Register: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập mật khẩu"
@@ -273,7 +273,7 @@ const Register: React.FC = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập lại mật khẩu"
@@ -323,7 +323,7 @@ const Register: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-emerald-600 hover:bg-emerald-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-primary-600 hover:bg-primary-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
             </button>

@@ -93,7 +93,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Link to="/" className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700">
+          <Link to="/" className="flex items-center space-x-2 text-primary-600 hover:text-primary-700">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Về trang chủ</span>
           </Link>
@@ -135,7 +135,7 @@ const Login: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập email của bạn"
@@ -158,7 +158,7 @@ const Login: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                     localErrors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nhập mật khẩu"
@@ -183,14 +183,14 @@ const Login: React.FC = () => {
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   disabled={isLoading}
                 />
                 <span className="ml-2 text-sm text-gray-600">Ghi nhớ đăng nhập</span>
               </label>
               <button
                 type="button"
-                className="text-sm text-emerald-600 hover:text-emerald-700"
+                className="text-sm text-primary-600 hover:text-primary-700"
                 disabled={isLoading}
               >
                 Quên mật khẩu?
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-emerald-600 hover:bg-emerald-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-primary-600 hover:bg-primary-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
@@ -213,7 +213,7 @@ const Login: React.FC = () => {
               Chưa có tài khoản?{' '}
               <Link
                 to="/register"
-                className="text-emerald-600 hover:text-emerald-700 font-medium"
+                className="text-primary-600 hover:text-primary-700 font-medium"
               >
                 Đăng ký ngay
               </Link>

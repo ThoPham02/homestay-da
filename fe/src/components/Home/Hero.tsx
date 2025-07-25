@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Users } from 'lucide-react';
+import home from '../../asset/home.webp'
 
 interface HeroProps {
   onSearch: (filters: any) => void;
@@ -18,15 +19,15 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-emerald-600 to-emerald-800 text-white">
+    <div className="relative bg-gradient-to-br from-primary-600 to-primary-800 text-white">
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div 
         className="relative min-h-[600px] bg-cover bg-center flex items-center"
         style={{
-          backgroundImage: 'url(https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=1600)'
+          backgroundImage: `url(${home})`
         }}
       >
-        <div className="absolute inset-0 bg-emerald-900 opacity-60"></div>
+        <div className="absolute inset-0 bg-primary-900 opacity-60"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Khám Phá Homestay
@@ -45,7 +46,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
                 <input
                   type="text"
                   placeholder="Bạn muốn đi đâu?"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   value={searchData.location}
                   onChange={(e) => setSearchData({...searchData, location: e.target.value})}
                 />
@@ -55,7 +56,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
                 <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="date"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   value={searchData.checkIn}
                   onChange={(e) => setSearchData({...searchData, checkIn: e.target.value})}
                 />
@@ -65,7 +66,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
                 <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="date"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   value={searchData.checkOut}
                   onChange={(e) => setSearchData({...searchData, checkOut: e.target.value})}
                 />
@@ -74,7 +75,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
               <div className="relative">
                 <Users className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <select
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none"
                   value={searchData.guests}
                   onChange={(e) => setSearchData({...searchData, guests: parseInt(e.target.value)})}
                 >
@@ -87,7 +88,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
 
             <button
               onClick={handleSearch}
-              className="w-full md:w-auto mt-4 bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
+              className="w-full md:w-auto mt-4 bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
             >
               <Search className="h-5 w-5" />
               <span>Tìm kiếm</span>

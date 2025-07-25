@@ -25,10 +25,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">HS</span>
               </div>
-              <span className="font-semibold text-gray-900">HomeStay Vietnam</span>
+              <span className="font-semibold text-gray-900">Mây Lang Thang</span>
             </div>
             <button
               onClick={onClose}

@@ -310,7 +310,7 @@ const HomestayDetailManagement: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowNewBookingForm(true)}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Tạo đặt phòng mới
@@ -346,12 +346,12 @@ const HomestayDetailManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Phòng có sẵn</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-primary-600">
                   {homestayStats?.availableRooms || 0}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="bg-primary-100 p-3 rounded-full">
+                <Users className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -535,7 +535,7 @@ const HomestayDetailManagement: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Phòng có sẵn:</span>
-                        <span className="font-medium text-green-600">{homestayStats?.availableRooms || 0}</span>
+                        <span className="font-medium text-primary-600">{homestayStats?.availableRooms || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Phòng đã đặt:</span>
@@ -583,7 +583,7 @@ const HomestayDetailManagement: React.FC = () => {
                         <p className="text-sm text-gray-600">Tổng phòng</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">{roomStats.availableRooms}</p>
+                        <p className="text-2xl font-bold text-primary-600">{roomStats.availableRooms}</p>
                         <p className="text-sm text-gray-600">Phòng có sẵn</p>
                       </div>
                       <div className="text-center">

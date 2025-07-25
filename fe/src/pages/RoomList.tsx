@@ -12,7 +12,7 @@ const priceTypeLabel = (type: Room['priceType']) =>
 const statusLabel = (status: Room['status']) => {
   switch (status) {
     case 'available':
-      return <span className="text-green-600 font-semibold">Còn phòng</span>;
+      return <span className="text-primary-600 font-semibold">Còn phòng</span>;
     case 'occupied':
       return <span className="text-yellow-600 font-semibold">Đã đặt</span>;
     case 'maintenance':
@@ -65,7 +65,7 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
             {room.amenities && room.amenities.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-1">
                 {room.amenities.slice(0, 5).map((item, idx) => (
-                  <span key={idx} className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                  <span key={idx} className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs">
                     {item}
                   </span>
                 ))}
@@ -79,7 +79,7 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
           {/* Cột 3: Nút đặt ngay */}
           <div className="md:w-1/4 w-full flex flex-col items-center justify-center p-4 border-t md:border-t-0 md:border-l border-gray-100">
             <button
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition mb-2"
+              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition mb-2"
             >
               Xem chi tiết
             </button>

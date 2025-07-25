@@ -60,29 +60,29 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <Home className="h-8 w-8 text-emerald-600" />
-            <span className="text-xl font-bold text-gray-900">HomeStay Vietnam</span>
+            <Home className="h-8 w-8 text-primary-600" />
+            <span className="text-xl font-bold text-gray-900">Mây Lang Thang</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
               to="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600'
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/') ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:text-primary-600'
                 }`}
             >
               Trang chủ
             </Link>
             <Link
               to="/homestays"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/homestays') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600'
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/homestays') ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:text-primary-600'
                 }`}
             >
               Homestay
             </Link>
             <Link
               to="/about"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/about') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600'
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/about') ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:text-primary-600'
                 }`}
             >
               Giới thiệu
@@ -93,7 +93,7 @@ const Header: React.FC = () => {
                 {(user.role === 'host' || user.role === 'admin') && (
                   <Link
                     to="/management"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${isActive('/management') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600'
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${isActive('/management') ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:text-primary-600'
                       }`}
                   >
                     <Building className="h-4 w-4" />
@@ -104,7 +104,7 @@ const Header: React.FC = () => {
                 {user.role === 'guest' && (
                   <Link
                     to="/bookings"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${isActive('/bookings') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600'
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${isActive('/bookings') ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:text-primary-600'
                       }`}
                   >
                     <Calendar className="h-4 w-4" />
@@ -118,8 +118,8 @@ const Header: React.FC = () => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center space-x-2 focus:outline-none"
                   >
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4 text-emerald-600" />
+                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary-600" />
                     </div>
                     <div className="text-sm text-left">
                       <div className="text-gray-700 font-medium">{user.name}</div>
@@ -152,13 +152,13 @@ const Header: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
+                  className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
                 >
                   Đăng ký
                 </Link>
@@ -179,21 +179,21 @@ const Header: React.FC = () => {
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
               >
                 Trang chủ
               </Link>
               <Link
                 to="/homestays"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
               >
                 Homestay
               </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
               >
                 Giới thiệu
               </Link>
@@ -203,7 +203,7 @@ const Header: React.FC = () => {
                     <Link
                       to="/management"
                       onClick={() => setIsMenuOpen(false)}
-                      className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                      className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
                     >
                       Quản lý
                     </Link>
@@ -212,14 +212,14 @@ const Header: React.FC = () => {
                     <Link
                       to="/bookings"
                       onClick={() => setIsMenuOpen(false)}
-                      className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                      className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
                     >
                       Đặt phòng của tôi
                     </Link>
                   )}
                   <button
                     onClick={() => setIsUserModalOpen(true)}
-                    className="text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                    className="text-left px-3 py-2 text-gray-700 hover:text-primary-600"
                   >
                     Cập nhật thông tin
                   </button>
@@ -236,14 +236,14 @@ const Header: React.FC = () => {
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-full text-left px-3 py-2 text-gray-700 hover:text-emerald-600"
+                    className="w-full text-left px-3 py-2 text-gray-700 hover:text-primary-600"
                   >
                     Đăng nhập
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-full text-left px-3 py-2 bg-emerald-600 text-white rounded-md"
+                    className="w-full text-left px-3 py-2 bg-primary-600 text-white rounded-md"
                   >
                     Đăng ký
                   </Link>

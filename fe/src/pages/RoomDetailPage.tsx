@@ -113,7 +113,7 @@ const RoomDetailPage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span className="font-medium">{room.price.toLocaleString()} VNĐ / đêm</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${room.status === 'available' ? 'bg-green-100 text-green-700' : room.status === 'occupied' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{room.status === 'available' ? 'Còn trống' : room.status === 'occupied' ? 'Đã đặt' : 'Bảo trì'}</span>
+                <span className={`px-2 py-1 rounded-full text-xs ${room.status === 'available' ? 'bg-primary-100 text-primary-700' : room.status === 'occupied' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{room.status === 'available' ? 'Còn trống' : room.status === 'occupied' ? 'Đã đặt' : 'Bảo trì'}</span>
               </div>
             </div>
           </div>
@@ -217,7 +217,7 @@ const RoomDetailPage: React.FC = () => {
                       </div>
                       <div className="mt-2 md:mt-0 flex flex-col md:items-end">
                         <div className="text-emerald-600 font-bold">{booking.totalPrice.toLocaleString()} VNĐ</div>
-                        <span className={`text-xs px-2 py-1 rounded-full mt-1 ${booking.status === 'completed' ? 'bg-green-100 text-green-700' : booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{booking.status === 'completed' ? 'Hoàn thành' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Khác'}</span>
+                        <span className={`text-xs px-2 py-1 rounded-full mt-1 ${booking.status === 'completed' ? 'bg-primary-100 text-primary-700' : booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{booking.status === 'completed' ? 'Hoàn thành' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}</span>
                       </div>
                     </div>
                   ))}

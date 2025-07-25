@@ -108,7 +108,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToRegister }) =>
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                 localErrors.email ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="Nhập email của bạn"
@@ -131,7 +131,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToRegister }) =>
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                 localErrors.password ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="Nhập mật khẩu"
@@ -156,14 +156,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToRegister }) =>
           <label className="flex items-center">
             <input
               type="checkbox"
-              className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               disabled={isLoading}
             />
             <span className="ml-2 text-sm text-gray-600">Ghi nhớ đăng nhập</span>
           </label>
           <button
             type="button"
-            className="text-sm text-emerald-600 hover:text-emerald-700"
+            className="text-sm text-primary-600 hover:text-primary-700"
             disabled={isLoading}
           >
             Quên mật khẩu?
@@ -174,7 +174,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToRegister }) =>
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-emerald-600 hover:bg-emerald-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors bg-primary-600 hover:bg-primary-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
@@ -186,7 +186,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToRegister }) =>
           Chưa có tài khoản?{' '}
           <button
             onClick={onSwitchToRegister}
-            className="text-emerald-600 hover:text-emerald-700 font-medium"
+            className="text-primary-600 hover:text-primary-700 font-medium"
             disabled={isLoading}
           >
             Đăng ký ngay
