@@ -786,9 +786,12 @@ func (l *BookingLogic) FilterPayment(ctx context.Context, userId int, req *types
 		respPayments = append(respPayments, types.Payment{
 			ID:            payment.ID,
 			Amount:        payment.Amount,
+			BookingID:     payment.BookingID,
+			BookingCode:   payment.BookingCode,
 			PaymentMethod: payment.PaymentMethod,
 			PaymentStatus: payment.PaymentStatus,
 			TransactionID: payment.TransactionID,
+			PaymentDate:   payment.PaymentDate.Format("2006-01-02 15:04:05"),
 		})
 	}
 

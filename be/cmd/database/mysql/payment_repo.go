@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type paymentRepository struct {
@@ -221,10 +222,12 @@ func (r *paymentRepository) Search(ctx context.Context, req *model.PaymentSearch
 		return nil, 0, fmt.Errorf("failed to count payments: %w", err)
 	}
 
+	logx.Info("Search payments query: ", countQuery, " args: ", args)
+
 	// Lấy danh sách payment
 	offset := (req.Page - 1) * req.PageSize
 	query := fmt.Sprintf(`
-		SELECT p.id, p.booking_id, p.amount, p.payment_method, p.payment_status, p.transaction_id, 
+		SELECT p.id, p.booking_id, b.booking_code, p.amount, p.payment_method, p.payment_status, p.transaction_id, 
 		       p.payment_date, p.created_at
 		FROM payment p
 		LEFT JOIN booking b ON p.booking_id = b.id
@@ -233,6 +236,8 @@ func (r *paymentRepository) Search(ctx context.Context, req *model.PaymentSearch
 		LIMIT $%d OFFSET $%d
 	`, whereClause, argIndex, argIndex+1)
 	args = append(args, req.PageSize, offset)
+
+	logx.Info("Search payments query: ", query, " args: ", args)
 
 	var payments []*model.Payment
 	err = r.db.SelectContext(ctx, &payments, query, args...)

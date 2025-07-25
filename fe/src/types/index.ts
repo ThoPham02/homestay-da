@@ -151,11 +151,11 @@ export interface Booking {
 
 export interface Payment {
   id: string;
-  bookingId: string;
+  bookingCode: string;
   amount: number;
-  method: 'Tiền mặt' | 'Thẻ tín dụng' | 'Chuyển khoản' | 'Momo';
-  status: 'paid' | 'unpaid' | 'refunded';
-  createdAt: string;
+  paymentMethod: 'Tiền mặt' | 'Thẻ tín dụng' | 'Chuyển khoản' | 'Momo';
+  paymentStatus: 'paid' | 'unpaid' | 'refunded';
+  paymentDate: string;
 }
 
 

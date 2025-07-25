@@ -78,6 +78,8 @@ type FilterBookingResp struct {
 
 type Payment struct {
 	ID            int     `json:"id"`
+	BookingCode   string  `json:"bookingCode"`
+	BookingID     int  `json:"bookingId"`
 	Amount        float64 `json:"amount"`
 	PaymentMethod string  `json:"paymentMethod"`
 	PaymentStatus string  `json:"paymentStatus"`

@@ -18,7 +18,7 @@ function formatDate(date: string) {
   });
 }
 
-const methodLabels: Record<Payment['method'], string> = {
+const methodLabels: Record<Payment['paymentMethod'], string> = {
   "Tiền mặt": 'Tiền mặt',
   "Thẻ tín dụng": 'Thẻ tín dụng',
   "Chuyển khoản": 'Chuyển khoản',
@@ -41,9 +41,12 @@ function PaymentList() {
       const response = await bookingService.getPayments({
         ...filters,
         page: currentPage,
-        limit: itemsPerPage,
+        pageSize: itemsPerPage,
       });
-      setPayments(response.data);
+
+      console.log('Payments loaded:', response);
+
+      setPayments(response.payments || []);
     };
     loadPayments();
   }, [filters, currentPage]);
@@ -121,7 +124,7 @@ function PaymentList() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">STT</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mã thanh toán</th>
+                {/* <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mã thanh toán</th> */}
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mã đặt phòng</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Số tiền</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phương thức</th>
@@ -132,19 +135,25 @@ function PaymentList() {
               {currentPayments.map((payment, idx) => (
                 <tr key={payment.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-3 text-sm text-gray-900">{startIndex + idx + 1}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-blue-600 bg-blue-50 rounded">{payment.id.slice(0, 8)}...</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{payment.bookingId}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-800 flex items-center gap-2">
-                    <Banknote className="w-4 h-4 text-green-600" />
-                    {formatCurrency(payment.amount)}
+                  {/* <td className="px-4 py-3 text-sm font-medium text-blue-600 bg-blue-50 rounded">{payment.id}</td> */}
+                  <td className="px-4 py-3 text-sm text-gray-700">{payment.bookingCode}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-800">
+                    <div className="flex items-center gap-1">
+                      <Banknote className="w-4 h-4 text-gray-400" />
+                      {formatCurrency(payment.amount)}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-gray-400" />
-                    {payment.method}
+                  <td className="px-4 py-3 text-sm text-gray-700 ">
+                    <div className="flex items-center gap-1">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      {payment.paymentMethod}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(payment.createdAt)}
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(payment.paymentDate)}
+                    </div>
                   </td>
                 </tr>
               ))}

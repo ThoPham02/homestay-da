@@ -8,6 +8,7 @@ import (
 type Payment struct {
 	ID            int       `db:"id" json:"id"`
 	BookingID     int       `db:"booking_id" json:"booking_id"`
+	BookingCode   string    `db:"booking_code" json:"booking_code"`
 	Amount        float64   `db:"amount" json:"amount"`
 	PaymentMethod string    `db:"payment_method" json:"payment_method"`
 	PaymentStatus string    `db:"payment_status" json:"payment_status"`
