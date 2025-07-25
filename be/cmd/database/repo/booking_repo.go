@@ -58,4 +58,7 @@ type BookingRepository interface {
 
 	// GetReviewByBookingID lấy review theo booking ID
 	GetReviewByBookingID(ctx context.Context, bookingID int) (*model.Review, error)
+
+	// UpdateReview cập nhật review cho booking
+	FilterByBookingCode(ctx context.Context, userId int, bookingCode string, page, pageSize int) ([]*model.Booking, int, error)
 }

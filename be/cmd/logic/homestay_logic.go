@@ -350,9 +350,8 @@ func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsRespon
 				switch booking.Status {
 				case "confirmed", "completed":
 					totalRevenue += booking.TotalAmount
-				case "pending":
-					totalBookings++
 				}
+				totalBookings++
 			}
 		}
 	}
@@ -399,14 +398,13 @@ func (h *HomestayLogic) GetHomestayStatsByID(homestayID, hostID int) (*types.Hom
 			switch booking.Status {
 			case "confirmed", "completed":
 				totalRevenue += booking.TotalAmount
-			case "pending":
-				totalBookings++
 			}
+			totalBookings++
 		}
 	}
 
 	return &types.HomestayStatsResponse{
-		TotalHomestays:  1,
+		TotalHomestays:  1, // Chỉ có 1 homestay được yêu cầu
 		ActiveHomestays: 1,
 		TotalRooms:      totalRooms,
 		AvailableRooms:  availableRooms,

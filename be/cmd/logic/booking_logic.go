@@ -89,7 +89,6 @@ func (l *BookingLogic) FilterBookings(ctx context.Context, req *types.FilterBook
 		reviewModel, err := l.svcCtx.BookingRepo.GetReviewByBookingID(ctx, booking.ID)
 		if err != nil {
 			logx.Error(err)
-			return nil, err
 		}
 		if reviewModel != nil {
 			review = types.Review{
@@ -735,4 +734,68 @@ func (l *BookingLogic) CreateReview(ctx context.Context, userID int, req *types.
 	}
 
 	return nil
+}
+
+// Get payments by user ID
+func (l *BookingLogic) FilterPayment(ctx context.Context, userId int, req *types.FilterPaymentReq) (types.FilterPaymentResp, error) {
+	logx.Info(req)
+
+	var bookingCode string
+	if req.BookingCode != nil && *req.BookingCode != "" {
+		bookingCode = *req.BookingCode
+	}
+
+	bookings, _, err := l.svcCtx.BookingRepo.FilterByBookingCode(ctx, userId, bookingCode, 1, 1000)
+	if err != nil {
+		logx.Error(err)
+		return types.FilterPaymentResp{}, err
+	}
+
+	var bookingIds []int
+	for _, booking := range bookings {
+		bookingIds = append(bookingIds, booking.ID)
+	}
+
+	// 1. Mapping filter sang model.PaymentSearchRequest
+	searchReq := &model.PaymentSearchRequest{
+		BookingIds:    bookingIds,
+		PaymentMethod: req.Method,
+		Page:          req.Page,
+		PageSize:      req.PageSize,
+	}
+
+	if req.DateFrom != nil && *req.DateTo != "" {
+		t, _ := time.Parse("2006-01-02", *req.DateFrom)
+		searchReq.StartDate = &t
+	}
+
+	if req.DateTo != nil && *req.DateTo != "" {
+		t, _ := time.Parse("2006-01-02", *req.DateTo)
+		searchReq.EndDate = &t
+	}
+
+	// 2. Lấy danh sách payment theo user ID
+	payments, total, err := l.svcCtx.PaymentRepo.Search(ctx, searchReq)
+	if err != nil {
+		logx.Error(err)
+		return types.FilterPaymentResp{}, err
+	}
+
+	var respPayments []types.Payment
+	for _, payment := range payments {
+		respPayments = append(respPayments, types.Payment{
+			ID:            payment.ID,
+			Amount:        payment.Amount,
+			PaymentMethod: payment.PaymentMethod,
+			PaymentStatus: payment.PaymentStatus,
+			TransactionID: payment.TransactionID,
+		})
+	}
+
+	return types.FilterPaymentResp{
+		Payments: respPayments,
+		Total:    total,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}, nil
 }

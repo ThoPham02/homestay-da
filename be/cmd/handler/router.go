@@ -100,6 +100,9 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.GET("/booking/:id", bookingHandler.GetBookingDetail)
 			host.GET("/homestays/:id/bookings", bookingHandler.GetBookingsByHomestayID)
 			host.PUT("/booking/:id/status", bookingHandler.UpdateStatusBooking)
+
+			// Payment management
+			host.GET("/payments", bookingHandler.GetPayments)
 		}
 
 		// Guest routes (cần role guest)

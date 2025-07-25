@@ -110,7 +110,7 @@ func (r *paymentRepository) Update(ctx context.Context, id int, req *model.Payme
 // Delete xóa payment
 func (r *paymentRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM payment WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete payment: %w", err)
@@ -169,10 +169,14 @@ func (r *paymentRepository) Search(ctx context.Context, req *model.PaymentSearch
 	var args []interface{}
 	argIndex := 1
 
-	if req.BookingID != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("p.booking_id = $%d", argIndex))
-		args = append(args, *req.BookingID)
-		argIndex++
+	if len(req.BookingIds) > 0 {
+		placeholders := []string{}
+		for _, id := range req.BookingIds {
+			placeholders = append(placeholders, fmt.Sprintf("$%d", argIndex))
+			args = append(args, id)
+			argIndex++
+		}
+		whereClauses = append(whereClauses, fmt.Sprintf("p.booking_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if req.PaymentStatus != nil && *req.PaymentStatus != "" {
@@ -209,9 +213,6 @@ func (r *paymentRepository) Search(ctx context.Context, req *model.PaymentSearch
 		SELECT COUNT(*) 
 		FROM payment p
 		LEFT JOIN booking b ON p.booking_id = b.id
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
 	`, whereClause)
 	var total int
@@ -224,13 +225,9 @@ func (r *paymentRepository) Search(ctx context.Context, req *model.PaymentSearch
 	offset := (req.Page - 1) * req.PageSize
 	query := fmt.Sprintf(`
 		SELECT p.id, p.booking_id, p.amount, p.payment_method, p.payment_status, p.transaction_id, 
-		       p.payment_date, p.created_at,
-		       u.name as user_name, r.name as room_name, h.name as homestay_name
+		       p.payment_date, p.created_at
 		FROM payment p
 		LEFT JOIN booking b ON p.booking_id = b.id
-		LEFT JOIN "user" u ON b.user_id = u.id
-		LEFT JOIN room r ON b.room_id = r.id
-		LEFT JOIN homestay h ON r.homestay_id = h.id
 		%s
 		ORDER BY p.created_at DESC
 		LIMIT $%d OFFSET $%d
@@ -340,4 +337,4 @@ func (r *paymentRepository) GetByTransactionID(ctx context.Context, transactionI
 	}
 
 	return &payment, nil
-} 
+}

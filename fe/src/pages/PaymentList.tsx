@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Calendar, CreditCard, Banknote, Filter, X } from 'lucide-react';
 import { Payment } from '../types';
+import { bookingService } from '../services/bookingService';
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', {
@@ -37,19 +38,19 @@ function PaymentList() {
 
   useEffect(() => {
     const loadPayments = async () => {
-    //   const response = await bookingService.getPayments({
-    //     ...filters,
-    //     page: currentPage,
-    //     limit: itemsPerPage,
-    //   });
-    //   setPayments(response.data);
+      const response = await bookingService.getPayments({
+        ...filters,
+        page: currentPage,
+        limit: itemsPerPage,
+      });
+      setPayments(response.data);
     };
     loadPayments();
   }, [filters, currentPage]);
 
-  const totalPages = Math.ceil(payments.length / itemsPerPage);
+  const totalPages = Math.ceil(payments?.length  / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentPayments = payments.slice(startIndex, startIndex + itemsPerPage);
+  const currentPayments = payments?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -147,7 +148,7 @@ function PaymentList() {
                   </td>
                 </tr>
               ))}
-              {currentPayments.length === 0 && (
+              {!currentPayments || currentPayments?.length === 0 && (
                 <tr>
                   <td colSpan={6} className="text-center text-gray-500 py-6 text-sm">
                     Không có dữ liệu thanh toán.

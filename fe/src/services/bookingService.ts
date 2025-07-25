@@ -68,5 +68,12 @@ export const bookingService = {
 
     toastService.success('Đánh giá đã được gửi thành công');
     return response.data;
-  }
+  },
+
+  // lấy danh sách thanh toán
+  getPayments: async (params: any): Promise<any> => {
+    const response = await api.get('/api/host/payments', { params });
+
+    return response.data;
+  },
 };

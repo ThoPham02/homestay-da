@@ -481,3 +481,40 @@ func (r *bookingRepository) GetReviewByBookingID(ctx context.Context, bookingID 
 	}
 	return &review, nil
 }
+
+// FilterByBookingCode lọc booking theo booking code
+func (r *bookingRepository) FilterByBookingCode(ctx context.Context, userId int, bookingCode string, page, pageSize int) ([]*model.Booking, int, error) {
+	query := `
+		SELECT b.id, b.booking_code, b.homestay_id, b.email, b.name, b.phone,
+       		b.check_in, b.check_out, b.num_guests, b.total_amount,
+       		b.status, b.created_at, b.payment_method, b.paid_amount
+		FROM booking b
+		JOIN homestay h ON b.homestay_id = h.id
+		WHERE b.booking_code like $1
+		AND (h.owner_id = $2)
+		ORDER BY b.created_at DESC
+		LIMIT $3 OFFSET $4
+	`
+
+	offset := (page - 1) * pageSize
+	var bookings []*model.Booking
+	err := r.db.SelectContext(ctx, &bookings, query, "%"+bookingCode+"%", userId, pageSize, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to filter bookings by code: %w", err)
+	}
+
+	countQuery := `
+		SELECT COUNT(*)
+		FROM booking b
+		JOIN homestay h ON b.homestay_id = h.id
+		WHERE b.booking_code like $1
+		AND (h.owner_id = $2)
+	`
+	var total int
+	err = r.db.GetContext(ctx, &total, countQuery, "%"+bookingCode+"%", userId)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count bookings: %w", err)
+	}
+
+	return bookings, total, nil
+}

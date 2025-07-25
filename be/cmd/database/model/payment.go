@@ -39,11 +39,11 @@ type PaymentUpdateRequest struct {
 
 // PaymentSearchRequest request tìm kiếm payment
 type PaymentSearchRequest struct {
-	BookingID     *int       `json:"booking_id"`
+	BookingIds    []int      `json:"booking_ids"`
 	PaymentStatus *string    `json:"payment_status"`
 	PaymentMethod *string    `json:"payment_method"`
 	StartDate     *time.Time `json:"start_date"`
 	EndDate       *time.Time `json:"end_date"`
 	Page          int        `json:"page" binding:"min=1"`
 	PageSize      int        `json:"page_size" binding:"min=1,max=100"`
-} 
+}

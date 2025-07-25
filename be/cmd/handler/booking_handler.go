@@ -229,3 +229,39 @@ func (h *BookingHandler) CreateReview(c *gin.Context) {
 
 	response.ResponseSuccess(c, nil)
 }
+
+// GetPayments - Get all payments
+func (h *BookingHandler) GetPayments(c *gin.Context) {
+	ctx := context.Background()
+
+	// Parse query parameters
+	var req types.FilterPaymentReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// get host ID from context (assuming middleware sets it)
+	userInterface, exists := c.Get("user")
+	if !exists {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	user, ok := userInterface.(*types.UserInfo)
+	if !ok {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		c.Abort()
+		return
+	}
+
+	// Call the logic layer to get all payments
+	resp, err := h.bookingLogic.FilterPayment(ctx, user.ID, &req)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	response.ResponseSuccess(c, resp)
+}

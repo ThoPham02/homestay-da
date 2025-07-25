@@ -127,3 +127,19 @@ type CreateReviewReq struct {
 	Comment   string `json:"comment"`
 	Rating    int    `json:"rating"`
 }
+
+type FilterPaymentReq struct {
+	BookingCode *string `form:"bookingCode"`
+	Method      *string `form:"method"`
+	DateFrom    *string `form:"dateFrom"`
+	DateTo      *string `form:"dateTo"`
+	Page        int     `form:"page"`
+	PageSize    int     `form:"pageSize"`
+}
+
+type FilterPaymentResp struct {
+	Payments []Payment `json:"payments"`
+	Total    int       `json:"total"`
+	Page     int       `json:"page"`
+	PageSize int       `json:"pageSize"`
+}
