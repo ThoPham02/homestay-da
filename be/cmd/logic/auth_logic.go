@@ -122,6 +122,7 @@ func (l *AuthLogic) GetProfile(ctx context.Context, userID int) (*types.ProfileR
 		User: types.UserInfo{
 			ID:    user.ID,
 			Name:  user.Name,
+			Phone: user.Phone,
 			Email: user.Email,
 			Role:  user.Role,
 		},
@@ -182,4 +183,52 @@ func (l *AuthLogic) ValidateToken(tokenString string) (*types.UserInfo, error) {
 	}
 
 	return nil, errors.New("token không hợp lệ")
+}
+
+// Update Profile cập nhật thông tin profile
+func (l *AuthLogic) UpdateProfile(ctx context.Context, userID int, req *types.UpdateProfileRequest) (*types.ProfileResponse, error) {
+	log.Println("Input UpdateProfile Request:", req)
+
+	// Lấy thông tin user hiện tại
+	user, err := l.svc.UserRepo.GetByID(ctx, userID)
+	if err != nil {
+		logx.Error(err)
+		return nil, errors.New("không tìm thấy người dùng")
+	}
+
+	// Cập nhật thông tin người dùng
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+	if req.Phone != "" {
+		user.Phone = &req.Phone
+	}
+
+	var userUpdate model.UserUpdateRequest
+	// Populate userUpdate fields from user
+	userUpdate.Name = &user.Name
+	userUpdate.Email = &user.Email
+	userUpdate.Phone = user.Phone
+
+	// Lưu thay đổi
+	if _, err := l.svc.UserRepo.Update(ctx, user.ID, &userUpdate); err != nil {
+		logx.Error(err)
+		return nil, errors.New("không thể cập nhật thông tin")
+	}
+
+	// Tạo response
+	response := &types.ProfileResponse{
+		User: types.UserInfo{
+			ID:    user.ID,
+			Name:  user.Name,
+			Phone: user.Phone,
+			Email: user.Email,
+			Role:  user.Role,
+		},
+	}
+
+	return response, nil
 }

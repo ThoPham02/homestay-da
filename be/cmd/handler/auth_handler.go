@@ -112,3 +112,32 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		"message": "Đăng xuất thành công",
 	})
 }
+
+	// UpdateProfile cập nhật thông tin người dùng
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	var req types.UpdateProfileRequest
+
+	// Bind request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidData+": "+err.Error())
+		return
+	}
+
+	// Lấy thông tin user từ middleware
+	user, exists := middleware.GetCurrentUser(c)
+	if !exists {
+		response.ResponseError(c, response.Unauthorized, response.MsgUnauthorized)
+		return
+	}
+
+	// Xử lý logic
+	authLogic := logic.NewAuthLogic(h.svc)
+	if _, err := authLogic.UpdateProfile(c.Request.Context(), user.ID, &req); err != nil {
+		log.Print(err)
+		response.ResponseError(c, response.BadRequest, err.Error())
+		return
+	}
+
+	// Trả về response thành công
+	response.ResponseSuccess(c, gin.H{"message": "Cập nhật thông tin thành công"})
+}

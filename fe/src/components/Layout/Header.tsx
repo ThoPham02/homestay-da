@@ -134,7 +134,7 @@ const Header: React.FC = () => {
                           setIsUserModalOpen(true);
                           setIsDropdownOpen(false);
                         }}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                       >
                         Cập nhật thông tin
                       </button>
@@ -253,12 +253,13 @@ const Header: React.FC = () => {
           </div>
         )}
       </div>
-
-      <UserUpdateModal
-        isOpen={isUserModalOpen}
-        onClose={() => setIsUserModalOpen(false)}
-        userId={user?.id || 0} // Assuming user.id is available
-      />
+      {user && user.id && (
+        <UserUpdateModal
+          isOpen={isUserModalOpen}
+          onClose={() => setIsUserModalOpen(false)}
+          userId={user?.id || 0} // Assuming user.id is available
+        />
+      )}
 
     </header>
   );

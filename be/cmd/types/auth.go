@@ -23,13 +23,21 @@ type LoginResponse struct {
 
 // UserInfo thông tin user
 type UserInfo struct {
-	ID    int    `json:"id" example:"1"`
-	Name  string `json:"name" example:"Nguyễn Văn A"`
-	Email string `json:"email" example:"user@example.com"`
-	Role  string `json:"role" example:"guest"`
+	ID    int     `json:"id"`
+	Name  string  `json:"name"`
+	Phone *string `json:"phone,omitempty"`
+	Email string  `json:"email"`
+	Role  string  `json:"role"`
 }
 
 // ProfileResponse response profile
 type ProfileResponse struct {
 	User UserInfo `json:"user"`
-} 
+}
+
+// UpdateProfileRequest request cập nhật profile
+type UpdateProfileRequest struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Phone string `json:"phone,omitempty"`
+}

@@ -29,6 +29,7 @@ export interface ProfileResponse {
   user: {
     id: number;
     name: string;
+    phone?: string;
     email: string;
     role: string;
   };
@@ -72,7 +73,7 @@ export const authService = {
   },
 
   // Update user profile
-  async updateUser(data: { name: string; email: string }): Promise<void> {
+  async updateUser(data: { name: string; email: string; phone?: string }): Promise<void> {
     try {
       const response = await api.put('/api/auth/profile', data);
       toastService.showApiSuccess(response);

@@ -49,6 +49,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 		{
 			// User profile
 			protected.GET("/auth/profile", authHandler.GetProfile)
+			protected.PUT("/auth/profile", authHandler.UpdateProfile)
 			protected.POST("/auth/logout", authHandler.Logout)
 		}
 

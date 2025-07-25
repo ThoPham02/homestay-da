@@ -47,7 +47,7 @@ func (r *userRepository) Create(ctx context.Context, req *model.UserCreateReques
 // GetByID lấy user theo ID
 func (r *userRepository) GetByID(ctx context.Context, id int) (*model.User, error) {
 	query := `
-		SELECT id, name, email, password, role, created_at
+		SELECT id, name, phone, email, password, role, created_at
 		FROM "user"
 		WHERE id = $1
 	`
@@ -101,6 +101,13 @@ func (r *userRepository) Update(ctx context.Context, id int, req *model.UserUpda
 	if req.Email != nil {
 		setClauses = append(setClauses, fmt.Sprintf("email = $%d", argIndex))
 		args = append(args, *req.Email)
+		argIndex++
+	}
+
+	// phone
+	if req.Phone != nil {
+		setClauses = append(setClauses, fmt.Sprintf("phone = $%d", argIndex))
+		args = append(args, *req.Phone)
 		argIndex++
 	}
 

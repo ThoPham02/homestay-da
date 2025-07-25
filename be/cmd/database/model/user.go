@@ -8,6 +8,7 @@ import (
 type User struct {
 	ID        int       `db:"id" json:"id"`
 	Name      string    `db:"name" json:"name"`
+	Phone     *string   `db:"phone" json:"phone,omitempty"` // Phone có thể là null
 	Email     string    `db:"email" json:"email"`
 	Password  string    `db:"password" json:"-"` // Không trả về password trong JSON
 	Role      string    `db:"role" json:"role"`
@@ -26,6 +27,7 @@ type UserCreateRequest struct {
 type UserUpdateRequest struct {
 	Name     *string `json:"name"`
 	Email    *string `json:"email" binding:"omitempty,email"`
+	Phone    *string `json:"phone,omitempty"`
 	Password *string `json:"password" binding:"omitempty,min=6"`
 	Role     *string `json:"role" binding:"omitempty,oneof=admin host guest"`
 }
@@ -34,4 +36,4 @@ type UserUpdateRequest struct {
 type UserLoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
-} 
+}
