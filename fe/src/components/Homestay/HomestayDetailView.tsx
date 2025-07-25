@@ -1,30 +1,9 @@
-import { MapPin, Users, Wifi, Car, Coffee, Tv, Bath, Wind, Star, Camera } from 'lucide-react';
+import { MapPin, Star, Camera } from 'lucide-react';
 import { Homestay } from '../../types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { homestayService } from '../../services/homestayService';
 import RoomList from '../../pages/RoomList';
-
-const getAmenityIcon = (amenity: string) => {
-    switch (amenity.toLowerCase()) {
-        case 'wi-fi miễn phí':
-            return <Wifi className="w-4 h-4" />;
-        case 'điều hòa':
-            return <Wind className="w-4 h-4" />;
-        case 'tv màn hình phẳng':
-            return <Tv className="w-4 h-4" />;
-        case 'phòng tắm riêng':
-            return <Bath className="w-4 h-4" />;
-        case 'bãi đỗ xe':
-            return <Car className="w-4 h-4" />;
-        case 'bếp nhỏ':
-            return <Coffee className="w-4 h-4" />;
-        default:
-            return <Coffee className="w-4 h-4" />;
-    }
-};
-
-
 
 function HomestayDetailView() {
     const { id } = useParams<{ id: string }>();
@@ -74,7 +53,7 @@ function HomestayDetailView() {
                                 <div className="flex items-center gap-1">
                                     <Star className="w-5 h-5 text-yellow-400 fill-current" />
                                     <span className="font-semibold">{homestay.rating || 0}</span>
-                                    <span className="text-emerald-200">({homestay.reviews || 0} đánh giá)</span>
+                                    <span className="text-emerald-200">({homestay.totalReviews || 0} đánh giá)</span>
                                 </div>
                             </div>
                         </div>
@@ -134,36 +113,18 @@ function HomestayDetailView() {
                 </div>
 
                 {/* Reviews Section */}
-                <div className="mt-12">
+                { homestay?.reviews && homestay.reviews.length > 0 && (
+                    <div className="mt-12">
                     <div className="mb-8">
                         <h2 className="text-3xl font-bold text-gray-800 mb-2">Đánh giá từ khách hàng</h2>
                         <p className="text-gray-600">Những trải nghiệm thực tế từ khách đã lưu trú</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            {
-                                name: "Nguyễn Văn A",
-                                rating: 5,
-                                comment: "Homestay rất đẹp và sạch sẽ. Chủ nhà thân thiện, phục vụ tốt. Sẽ quay lại lần sau!",
-                                date: "2 tuần trước"
-                            },
-                            {
-                                name: "Trần Thị B",
-                                rating: 4,
-                                comment: "Vị trí thuận tiện, phòng ốc thoải mái. View đẹp và yên tĩnh. Giá cả hợp lý.",
-                                date: "1 tháng trước"
-                            },
-                            {
-                                name: "Lê Minh C",
-                                rating: 5,
-                                comment: "Trải nghiệm tuyệt vời! Homestay có đầy đủ tiện nghi, không gian xanh mát.",
-                                date: "3 tuần trước"
-                            }
-                        ].map((review, index) => (
+                        {homestay.reviews.map((review, index) => (
                             <div key={index} className="bg-white p-6 rounded-xl shadow-md">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-semibold text-gray-800">{review.name}</h4>
+                                    <h4 className="font-semibold text-gray-800">{review.guestName}</h4>
                                     <div className="flex items-center gap-1">
                                         {[...Array(review.rating)].map((_, i) => (
                                             <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
@@ -171,11 +132,12 @@ function HomestayDetailView() {
                                     </div>
                                 </div>
                                 <p className="text-gray-600 mb-3 leading-relaxed">{review.comment}</p>
-                                <p className="text-sm text-gray-400">{review.date}</p>
+                                <p className="text-sm text-gray-400">{review.createdAt}</p>
                             </div>
                         ))}
                     </div>
                 </div>
+                )}
 
                 {/* Location Section */}
                 <div className="mt-12">

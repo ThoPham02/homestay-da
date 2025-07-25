@@ -12,6 +12,7 @@ import (
 
 type Booking struct {
 	ID            int           `db:"id" json:"id"`
+	HomestayID    int           `db:"homestay_id" json:"homestayId"`
 	BookingCode   string        `db:"booking_code" json:"bookingCode"`
 	Name          string        `db:"name" json:"name"`
 	Email         string        `db:"email" json:"email"`
@@ -33,6 +34,7 @@ type Booking struct {
 
 type BookingCreateRequest struct {
 	BookingCode   string    `db:"booking_code" json:"bookingCode"`
+	HomestayID    int       `db:"homestay_id" json:"homestayId" binding:"required"`
 	Name          string    `json:"name" binding:"required"`
 	Email         string    `json:"email" binding:"required"`
 	Phone         string    `json:"phone" binding:"required"`

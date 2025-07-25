@@ -2,23 +2,39 @@ package types
 
 import "time"
 
+// Types Review
+type Review struct {
+	ID         int       `json:"id" db:"id"`
+	Rating     int       `json:"rating" db:"rating"`
+	Comment    string    `json:"comment" db:"comment"`
+	CreatedAt  time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt  time.Time `json:"updatedAt" db:"updated_at"`
+	BookingID  int       `json:"bookingId" db:"booking_id"`
+	GuestID    int       `json:"guestId" db:"guest_id"`
+	Name       string    `json:"name" db:"name"`
+	HomestayID int       `json:"homestayId" db:"homestay_id"`
+}
+
 // Homestay types
 type Homestay struct {
-	ID          int       `json:"id" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Description string    `json:"description" db:"description"`
-	Address     string    `json:"address" db:"address"`
-	City        string    `json:"city" db:"city"`
-	District    string    `json:"district" db:"district"`
-	Ward        string    `json:"ward" db:"ward"`
-	Latitude    float64   `json:"latitude" db:"latitude"`
-	Longitude   float64   `json:"longitude" db:"longitude"`
-	HostID      int       `json:"hostId" db:"host_id"`
-	Status      string    `json:"status" db:"status"` // active, inactive, pending
-	Rate        float64   `json:"rate" db:"rate"` // Average rating, optional
-	Rooms       []Room    `json:"rooms"`              // Optional, populated in detail response
-	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
+	ID           int       `json:"id" db:"id"`
+	Name         string    `json:"name" db:"name"`
+	Description  string    `json:"description" db:"description"`
+	Address      string    `json:"address" db:"address"`
+	City         string    `json:"city" db:"city"`
+	District     string    `json:"district" db:"district"`
+	Ward         string    `json:"ward" db:"ward"`
+	Latitude     float64   `json:"latitude" db:"latitude"`
+	Longitude    float64   `json:"longitude" db:"longitude"`
+	HostID       int       `json:"hostId" db:"host_id"`
+	Status       string    `json:"status" db:"status"`              // active, inactive, pending
+	Rate         float64   `json:"rate" db:"rate"`                  // Average rating, optional
+	Rooms        []Room    `json:"rooms"`                           // Optional, populated in detail response
+	Reviews      []Review  `json:"reviews"`                         // Optional, populated in detail response
+	Rating       float64   `json:"rating" db:"rating"`              // Average rating, optional
+	TotalReviews int       `json:"totalReviews" db:"total_reviews"` // Total number of reviews, optional
+	CreatedAt    time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt    time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // CreateHomestayRequest - Request to create a new homestay

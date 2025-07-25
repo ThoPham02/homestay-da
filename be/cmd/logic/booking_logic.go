@@ -159,6 +159,7 @@ func (l *BookingLogic) CreateBooking(ctx context.Context, req *types.CreateBooki
 	}
 	bookingModel := &model.BookingCreateRequest{
 		BookingCode:   bookingCode,
+		HomestayID:    req.HomestayID,
 		Name:          req.CustomerName,
 		Email:         req.CustomerEmail,
 		Phone:         req.CustomerPhone,
@@ -301,6 +302,7 @@ func (l *BookingLogic) CreateGuestBooking(ctx context.Context, req *types.Create
 
 	bookingModel := &model.BookingCreateRequest{
 		BookingCode:   bookingCode,
+		HomestayID:    req.HomestayID,
 		Name:          req.CustomerName,
 		Email:         req.CustomerEmail,
 		Phone:         req.CustomerPhone,

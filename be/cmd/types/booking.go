@@ -16,6 +16,7 @@ type Booking struct {
 	BookingDate   string        `json:"bookingDate"`
 	PaymentMethod string        `json:"paymentMethod"`
 	Rooms         []BookingRoom `json:"rooms"`
+	Review        Review        `json:"review"`
 }
 
 type BookingRoom struct {
@@ -29,6 +30,7 @@ type BookingRoom struct {
 }
 
 type CreateBookingReq struct {
+	HomestayID    int              `json:"homestayId"`
 	CustomerName  string           `json:"customerName"`
 	CustomerPhone string           `json:"customerPhone"`
 	CustomerEmail string           `json:"customerEmail"`

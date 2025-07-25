@@ -285,7 +285,7 @@ const HomestayDetailManagement: React.FC = () => {
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <div className="flex items-center">
                   <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                  <span>{homestay.rating || 0} ({homestay.reviews || 0} đánh giá)</span>
+                  <span>{homestay.rating || 0} ({homestay.totalReviews || 0} đánh giá)</span>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs ${homestayService.getStatusColor(homestay.status)}`}>
                   {homestayService.formatStatus(homestay.status)}
@@ -415,7 +415,7 @@ const HomestayDetailManagement: React.FC = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                Đánh giá ({homestay.reviews || 0})
+                Đánh giá ({homestay.totalReviews || 0})
               </button>
             </nav>
           </div>

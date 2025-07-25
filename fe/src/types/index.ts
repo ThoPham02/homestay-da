@@ -25,6 +25,17 @@ export interface RoomAvailability {
   updatedAt: string;
 }
 
+export interface Review {
+  id?: number;
+  homestayId: number;
+  bookingId: number;
+  guestId?: number;
+  guestName?: string;
+  rating: number; // Sử dụng số nguyên từ 1 đến 5
+  comment: string;
+  createdAt?: string;
+}
+
 export interface Homestay {
   id: number;
   name: string;
@@ -41,7 +52,8 @@ export interface Homestay {
   updatedAt: string;
   rooms?: Room[];
   rating?: number; // Trung bình đánh giá
-  reviews?: number; // Tổng số lượt đánh giá
+  totalReviews?: number; // Tổng số lượt đánh giá
+  reviews?: Review[]; // Danh sách đánh giá
 }
 
 export interface HomestayStats {

@@ -69,20 +69,55 @@ func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.Homestay
 	if found.OwnerID != hostID {
 		return nil, errors.New("Không có quyền truy cập homestay này")
 	}
+
+// lấy review
+	reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, homestayID, 1, 100)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	var reviewList []types.Review
+	var totalRating int
+	var totalReviews int
+	var rating float64
+
+	for _, review := range reviews {
+		reviewList = append(reviewList, types.Review{
+			ID:         review.ID,
+			GuestID:    review.UserID,
+			Name:       review.UserName,
+			HomestayID: review.HomestayID,
+			BookingID:  review.BookingID,
+			Rating:     review.Rating,
+			Comment:    review.Comment,
+			CreatedAt:  review.CreatedAt,
+		})
+		totalRating += review.Rating
+		totalReviews++
+	}
+
+	if totalReviews > 0 {
+		rating = float64(totalRating) / float64(totalReviews)
+	}
+
 	resp := types.Homestay{
-		ID:          found.ID,
-		Name:        found.Name,
-		Description: found.Description,
-		Address:     found.Address,
-		City:        found.City,
-		District:    found.District,
-		Ward:        found.Ward,
-		Latitude:    found.Latitude,
-		Longitude:   found.Longitude,
-		HostID:      found.OwnerID,
-		Status:      found.Status,
-		CreatedAt:   found.CreatedAt,
-		UpdatedAt:   found.UpdatedAt,
+		ID:           found.ID,
+		Name:         found.Name,
+		Description:  found.Description,
+		Address:      found.Address,
+		City:         found.City,
+		District:     found.District,
+		Ward:         found.Ward,
+		Latitude:     found.Latitude,
+		Longitude:    found.Longitude,
+		HostID:       found.OwnerID,
+		Status:       found.Status,
+		CreatedAt:    found.CreatedAt,
+		UpdatedAt:    found.UpdatedAt,
+		Reviews:      reviewList,
+		Rating:       rating,
+		TotalReviews: totalReviews,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
@@ -151,21 +186,55 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 
 		logx.Info("Rooms: ", rooms)
 
+		// lấy review
+		reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, hst.ID, 1, 100)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+
+		var reviewList []types.Review
+		var totalRating int
+		var totalReviews int
+		var rating float64
+
+		for _, review := range reviews {
+			reviewList = append(reviewList, types.Review{
+				ID:         review.ID,
+				GuestID:    review.UserID,
+				Name:       review.UserName,
+				HomestayID: review.HomestayID,
+				BookingID:  review.BookingID,
+				Rating:     review.Rating,
+				Comment:    review.Comment,
+				CreatedAt:  review.CreatedAt,
+			})
+			totalRating += review.Rating
+			totalReviews++
+		}
+
+		if totalReviews > 0 {
+			rating = float64(totalRating) / float64(totalReviews)
+		}
+
 		respList = append(respList, types.Homestay{
-			ID:          hst.ID,
-			Name:        hst.Name,
-			Description: hst.Description,
-			Address:     hst.Address,
-			City:        hst.City,
-			District:    hst.District,
-			Ward:        hst.Ward,
-			Latitude:    hst.Latitude,
-			Longitude:   hst.Longitude,
-			HostID:      hst.OwnerID,
-			Status:      hst.Status,
-			Rooms:       rooms,
-			CreatedAt:   hst.CreatedAt,
-			UpdatedAt:   hst.UpdatedAt,
+			ID:           hst.ID,
+			Name:         hst.Name,
+			Description:  hst.Description,
+			Address:      hst.Address,
+			City:         hst.City,
+			District:     hst.District,
+			Ward:         hst.Ward,
+			Latitude:     hst.Latitude,
+			Longitude:    hst.Longitude,
+			HostID:       hst.OwnerID,
+			Status:       hst.Status,
+			Rooms:        rooms,
+			CreatedAt:    hst.CreatedAt,
+			UpdatedAt:    hst.UpdatedAt,
+			Reviews:      reviewList,
+			Rating:       rating,
+			TotalReviews: totalReviews,
 		})
 	}
 	totalPage := (total + pageSize - 1) / pageSize
@@ -254,7 +323,7 @@ func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsRespon
 	availableRooms := 0
 	totalBookings := 0
 	totalRevenue := 0.0
-	bookingSeen := make(map[int]bool) // Đếm booking duy nhất
+	// bookingSeen := make(map[int]bool) // Đếm booking duy nhất
 
 	for _, hst := range homestays {
 		if hst.Status == "active" {
@@ -275,15 +344,14 @@ func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsRespon
 			bookings, _, err := h.svcCtx.BookingRepo.GetByRoom(h.ctx, room.ID, 1, 1000)
 			if err != nil {
 				logx.Error(err)
-				return nil, err
+				continue
 			}
 			for _, booking := range bookings {
-				if booking.Status == "confirmed" || booking.Status == "checked_in" || booking.Status == "checked_out" {
-					if !bookingSeen[booking.ID] {
-						bookingSeen[booking.ID] = true
-						totalBookings++
-						totalRevenue += booking.TotalAmount
-					}
+				switch booking.Status {
+				case "confirmed", "completed":
+					totalRevenue += booking.TotalAmount
+				case "pending":
+					totalBookings++
 				}
 			}
 		}
@@ -301,19 +369,49 @@ func (h *HomestayLogic) GetHomestayStats(hostID int) (*types.HomestayStatsRespon
 
 // GetHomestayStatsByID - Get homestay statistics for a specific homestay
 func (h *HomestayLogic) GetHomestayStatsByID(homestayID, hostID int) (*types.HomestayStatsResponse, error) {
-	// TODO: Implement thống kê thực tế (giả lập số liệu)
-	_, err := h.GetHomestayByID(homestayID, hostID)
+	var availableRooms int
+	var totalBookings int
+	var totalRevenue float64
+
+	_, err := h.svcCtx.HomestayRepo.GetByID(h.ctx, homestayID)
 	if err != nil {
 		logx.Error(err)
 		return nil, err
 	}
+
+	rooms, totalRooms, err := h.svcCtx.RoomRepo.GetByHomestayID(h.ctx, homestayID, 1, 1000)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	for _, room := range rooms {
+		if room.Status == "available" {
+			availableRooms++
+		}
+
+		bookings, _, err := h.svcCtx.BookingRepo.GetByRoom(h.ctx, room.ID, 1, 1000)
+		if err != nil {
+			logx.Error(err)
+			continue
+		}
+		for _, booking := range bookings {
+			switch booking.Status {
+			case "confirmed", "completed":
+				totalRevenue += booking.TotalAmount
+			case "pending":
+				totalBookings++
+			}
+		}
+	}
+
 	return &types.HomestayStatsResponse{
 		TotalHomestays:  1,
 		ActiveHomestays: 1,
-		TotalRooms:      0,
-		AvailableRooms:  0,
-		TotalBookings:   0,
-		TotalRevenue:    0,
+		TotalRooms:      totalRooms,
+		AvailableRooms:  availableRooms,
+		TotalBookings:   totalBookings,
+		TotalRevenue:    totalRevenue,
 	}, nil
 }
 
@@ -435,21 +533,55 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 			})
 		}
 
+		// lấy review
+		reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, hst.ID, 1, 100)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+
+		var reviewList []types.Review
+		var totalRating int
+		var totalReviews int
+		var rating float64
+
+		for _, review := range reviews {
+			reviewList = append(reviewList, types.Review{
+				ID:         review.ID,
+				GuestID:    review.UserID,
+				Name:       review.UserName,
+				HomestayID: review.HomestayID,
+				BookingID:  review.BookingID,
+				Rating:     review.Rating,
+				Comment:    review.Comment,
+				CreatedAt:  review.CreatedAt,
+			})
+			totalRating += review.Rating
+			totalReviews++
+		}
+
+		if totalReviews > 0 {
+			rating = float64(totalRating) / float64(totalReviews)
+		}
+
 		respList = append(respList, types.Homestay{
-			ID:          hst.ID,
-			Name:        hst.Name,
-			Description: hst.Description,
-			Address:     hst.Address,
-			City:        hst.City,
-			District:    hst.District,
-			Ward:        hst.Ward,
-			Latitude:    hst.Latitude,
-			Longitude:   hst.Longitude,
-			HostID:      hst.OwnerID,
-			Status:      hst.Status,
-			Rooms:       rooms,
-			CreatedAt:   hst.CreatedAt,
-			UpdatedAt:   hst.UpdatedAt,
+			ID:           hst.ID,
+			Name:         hst.Name,
+			Description:  hst.Description,
+			Address:      hst.Address,
+			City:         hst.City,
+			District:     hst.District,
+			Ward:         hst.Ward,
+			Latitude:     hst.Latitude,
+			Longitude:    hst.Longitude,
+			HostID:       hst.OwnerID,
+			Status:       hst.Status,
+			Rooms:        rooms,
+			CreatedAt:    hst.CreatedAt,
+			UpdatedAt:    hst.UpdatedAt,
+			Reviews:      reviewList,
+			Rating:       rating,
+			TotalReviews: totalReviews,
 		})
 	}
 
@@ -501,22 +633,55 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 		})
 	}
 
+	// lấy review
+	reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, homestayID, 1, 100)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	var reviewList []types.Review
+	var totalRating int
+	var totalReviews int
+	var rating float64
+
+	for _, review := range reviews {
+		reviewList = append(reviewList, types.Review{
+			ID:         review.ID,
+			GuestID:    review.UserID,
+			Name:       review.UserName,
+			HomestayID: review.HomestayID,
+			BookingID:  review.BookingID,
+			Rating:     review.Rating,
+			Comment:    review.Comment,
+			CreatedAt:  review.CreatedAt,
+		})
+		totalRating += review.Rating
+		totalReviews++
+	}
+
+	if totalReviews > 0 {
+		rating = float64(totalRating) / float64(totalReviews)
+	}
+
 	resp := types.Homestay{
-		ID:          found.ID,
-		Name:        found.Name,
-		Description: found.Description,
-		Address:     found.Address,
-		City:        found.City,
-		District:    found.District,
-		Ward:        found.Ward,
-		Latitude:    found.Latitude,
-		Longitude:   found.Longitude,
-		HostID:      found.OwnerID,
-		Status:      found.Status,
-		// Rate:        found.Rate,
-		Rooms:     rooms,
-		CreatedAt: found.CreatedAt,
-		UpdatedAt: found.UpdatedAt,
+		ID:           found.ID,
+		Name:         found.Name,
+		Description:  found.Description,
+		Address:      found.Address,
+		City:         found.City,
+		District:     found.District,
+		Ward:         found.Ward,
+		Latitude:     found.Latitude,
+		Longitude:    found.Longitude,
+		HostID:       found.OwnerID,
+		Status:       found.Status,
+		Rooms:        rooms,
+		CreatedAt:    found.CreatedAt,
+		UpdatedAt:    found.UpdatedAt,
+		Reviews:      reviewList,
+		Rating:       rating,
+		TotalReviews: totalReviews,
 	}
 	return &types.HomestayDetailResponse{Homestay: resp}, nil
 }
@@ -568,21 +733,55 @@ func (h *HomestayLogic) GetTopHomestays(limit int) ([]types.Homestay, error) {
 			})
 		}
 
+		// lấy review
+		reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, hst.ID, 1, 100)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+
+		var reviewList []types.Review
+		var totalRating int
+		var totalReviews int
+		var rating float64
+
+		for _, review := range reviews {
+			reviewList = append(reviewList, types.Review{
+				ID:         review.ID,
+				GuestID:    review.UserID,
+				Name:       review.UserName,
+				HomestayID: review.HomestayID,
+				BookingID:  review.BookingID,
+				Rating:     review.Rating,
+				Comment:    review.Comment,
+				CreatedAt:  review.CreatedAt,
+			})
+			totalRating += review.Rating
+			totalReviews++
+		}
+
+		if totalReviews > 0 {
+			rating = float64(totalRating) / float64(totalReviews)
+		}
+
 		respList = append(respList, types.Homestay{
-			ID:          hst.ID,
-			Name:        hst.Name,
-			Description: hst.Description,
-			Address:     hst.Address,
-			City:        hst.City,
-			District:    hst.District,
-			Ward:        hst.Ward,
-			Latitude:    hst.Latitude,
-			Longitude:   hst.Longitude,
-			HostID:      hst.OwnerID,
-			Status:      hst.Status,
-			Rooms:       rooms,
-			CreatedAt:   hst.CreatedAt,
-			UpdatedAt:   hst.UpdatedAt,
+			ID:           hst.ID,
+			Name:         hst.Name,
+			Description:  hst.Description,
+			Address:      hst.Address,
+			City:         hst.City,
+			District:     hst.District,
+			Ward:         hst.Ward,
+			Latitude:     hst.Latitude,
+			Longitude:    hst.Longitude,
+			HostID:       hst.OwnerID,
+			Status:       hst.Status,
+			Rooms:        rooms,
+			CreatedAt:    hst.CreatedAt,
+			UpdatedAt:    hst.UpdatedAt,
+			Reviews:      reviewList,
+			Rating:       rating,
+			TotalReviews: totalReviews,
 		})
 	}
 	return respList, nil

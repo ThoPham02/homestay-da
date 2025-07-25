@@ -27,13 +27,13 @@ func (r *bookingRepository) Create(ctx context.Context, req *model.BookingCreate
 	logx.Info(req)
 
 	query := `
-		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, $10, $11)
-		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method
+		INSERT INTO booking (name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method, homestay_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, $10, $11, $12)
+		RETURNING id, name, email, phone, check_in, check_out, num_guests, total_amount, status, created_at, booking_code, paid_amount, payment_method, homestay_id
 	`
 
 	var booking model.Booking
-	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.Status, req.BookingCode, req.PaidAmount, req.PaymentMethod)
+	err := r.db.GetContext(ctx, &booking, query, req.Name, req.Email, req.Phone, req.CheckIn, req.CheckOut, req.NumGuests, req.TotalAmount, req.Status, req.BookingCode, req.PaidAmount, req.PaymentMethod, req.HomestayID)
 	if err != nil {
 		return nil, err
 	}

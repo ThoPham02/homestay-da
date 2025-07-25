@@ -36,7 +36,7 @@ const HomestayCard: React.FC<HomestayCardProps> = ({ homestay, onClick }) => {
           <div className="flex items-center space-x-1">
             <Star className="h-4 w-4 text-yellow-400 fill-current" />
             <span className="text-sm font-medium">{homestay.rating ?? 0}</span>
-            <span className="text-sm text-gray-500">({homestay.reviews ?? 0})</span>
+            <span className="text-sm text-gray-500">({homestay.totalReviews ?? 0})</span>
           </div>
         </div>
 
