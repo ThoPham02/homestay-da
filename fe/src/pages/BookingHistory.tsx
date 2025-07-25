@@ -16,6 +16,7 @@ import { Booking, Review } from '../types';
 import { bookingService } from '../services/bookingService';
 import { useConfirm } from '../components/ConfirmDialog';
 import ReviewModal from '../components/Review/ReviewModal';
+import BookingDetailModal from '../components/Booking/DetailBookingModal';
 
 function BookingHistory() {
   const confirm = useConfirm();
@@ -32,6 +33,7 @@ function BookingHistory() {
   const [selectedBooking, setSelectedBooking] = useState<Booking>({} as Booking);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showDetailBooking, setShowDetailBooking] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -128,6 +130,9 @@ function BookingHistory() {
       color: 'text-blue-600 hover:text-blue-800',
       action: () => {
         console.log('View booking', booking.id);
+
+        setSelectedBooking(booking);
+        setShowDetailBooking(true);
       }
     });
 
@@ -344,7 +349,7 @@ function BookingHistory() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentBookings.map((booking, index) => (
+                {currentBookings?.map((booking, index) => (
                   <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {startIndex + index + 1}
@@ -356,7 +361,7 @@ function BookingHistory() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="space-y-1">
-                        {booking.rooms.map((room, index) => (
+                        {booking.rooms?.map((room, index) => (
                           <div key={index}>
                             <div className="text-sm font-medium text-gray-900">{room.name}</div>
                             <div className="text-sm text-gray-500 flex items-center gap-1">
@@ -430,7 +435,7 @@ function BookingHistory() {
                         </button>
                         {activeDropdown === booking.id && (
                           <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                            {getAvailableActions(booking).map((action, actionIndex) => (
+                            {getAvailableActions(booking)?.map((action, actionIndex) => (
                               <button
                                 key={actionIndex}
                                 onClick={(e) => {
@@ -491,7 +496,7 @@ function BookingHistory() {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)?.map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
@@ -523,6 +528,12 @@ function BookingHistory() {
         onClose={() => setIsReviewModalOpen(false)}
         booking={selectedBooking}
         onSubmit={handleReviewSubmit}
+      />
+
+      <BookingDetailModal
+        isOpen={showDetailBooking}
+        onClose={() => setShowDetailBooking(false)}
+        booking={selectedBooking}
       />
     </div>
   );

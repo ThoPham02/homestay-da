@@ -29,7 +29,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
         capacity: number;
     }[]>(
         (booking?.rooms
-            ? booking.rooms.map(room => ({
+            ? booking?.rooms?.map(room => ({
                 id: room.id,
                 name: room.name,
                 type: room.type,
@@ -60,7 +60,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                 paymentMethod: booking.paymentMethod
             });
             setSelectedRooms(
-                booking.rooms.map(room => ({
+                booking?.rooms?.map(room => ({
                     id: room.id,
                     name: room.name,
                     type: room.type,
@@ -91,7 +91,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
 
     const calculateTotalAmount = () => {
         const nights = calculateNights();
-        return selectedRooms.reduce((total, room) => total + (room.pricePerNight * nights), 0);
+        return selectedRooms?.reduce((total, room) => total + (room.pricePerNight * nights), 0);
     };
 
     const handleDateChange = (field: 'checkIn' | 'checkOut', value: string) => {
@@ -237,13 +237,13 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
                             </div>
 
                             {/* Selected Rooms */}
-                            {selectedRooms.length > 0 && (
+                            {selectedRooms?.length > 0 && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Phòng đã chọn ({selectedRooms.length})
                                     </label>
                                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                                        {selectedRooms.map((room) => (
+                                        {selectedRooms?.map((room) => (
                                             <div key={room.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
                                                 <div className="flex-1">
                                                     <div className="font-medium text-gray-900">{room.name}</div>

@@ -71,6 +71,19 @@ export const authService = {
     }
   },
 
+  // Update user profile
+  async updateUser(data: { name: string; email: string }): Promise<void> {
+    try {
+      const response = await api.put('/api/auth/profile', data);
+      toastService.showApiSuccess(response);
+
+      return response.data;
+    } catch (error: any) {
+
+      throw new Error(error.response?.data?.result?.message || error.response?.data?.message || 'Cập nhật thông tin thất bại');
+    }
+  },
+
   // Logout user
   async logout(): Promise<void> {
     try {

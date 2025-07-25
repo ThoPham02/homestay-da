@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, LoginRequest, RegisterRequest } from '../services/authService';
-import { toastService } from '../services/toastService';
 
 // User interface matching backend response
 export interface User {
   id: number;
   name: string;
+  phone?: string;
   email: string;
   role: string;
 }
