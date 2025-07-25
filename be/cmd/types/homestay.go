@@ -11,7 +11,7 @@ type Review struct {
 	UpdatedAt  time.Time `json:"updatedAt" db:"updated_at"`
 	BookingID  int       `json:"bookingId" db:"booking_id"`
 	GuestID    int       `json:"guestId" db:"guest_id"`
-	Name       string    `json:"name" db:"name"`
+	GuestName  string    `json:"guestName" db:"guest_name"`
 	HomestayID int       `json:"homestayId" db:"homestay_id"`
 }
 

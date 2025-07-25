@@ -55,4 +55,7 @@ type BookingRepository interface {
 
 	// CreateReview tạo review cho booking
 	CreateReview(ctx context.Context, review *model.ReviewCreateRequest) (*model.Review, error)
+
+	// GetReviewByBookingID lấy review theo booking ID
+	GetReviewByBookingID(ctx context.Context, bookingID int) (*model.Review, error)
 }

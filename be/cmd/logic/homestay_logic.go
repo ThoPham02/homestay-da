@@ -70,7 +70,7 @@ func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.Homestay
 		return nil, errors.New("Không có quyền truy cập homestay này")
 	}
 
-// lấy review
+	// lấy review
 	reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, homestayID, 1, 100)
 	if err != nil {
 		logx.Error(err)
@@ -86,7 +86,7 @@ func (h *HomestayLogic) GetHomestayByID(homestayID, hostID int) (*types.Homestay
 		reviewList = append(reviewList, types.Review{
 			ID:         review.ID,
 			GuestID:    review.UserID,
-			Name:       review.UserName,
+			GuestName:  review.UserName,
 			HomestayID: review.HomestayID,
 			BookingID:  review.BookingID,
 			Rating:     review.Rating,
@@ -202,7 +202,7 @@ func (h *HomestayLogic) GetHomestayList(req *types.HomestayListRequest, hostID i
 			reviewList = append(reviewList, types.Review{
 				ID:         review.ID,
 				GuestID:    review.UserID,
-				Name:       review.UserName,
+				GuestName:  review.UserName,
 				HomestayID: review.HomestayID,
 				BookingID:  review.BookingID,
 				Rating:     review.Rating,
@@ -549,7 +549,7 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 			reviewList = append(reviewList, types.Review{
 				ID:         review.ID,
 				GuestID:    review.UserID,
-				Name:       review.UserName,
+				GuestName:  review.UserName,
 				HomestayID: review.HomestayID,
 				BookingID:  review.BookingID,
 				Rating:     review.Rating,
@@ -649,7 +649,7 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 		reviewList = append(reviewList, types.Review{
 			ID:         review.ID,
 			GuestID:    review.UserID,
-			Name:       review.UserName,
+			GuestName:  review.UserName,
 			HomestayID: review.HomestayID,
 			BookingID:  review.BookingID,
 			Rating:     review.Rating,
@@ -749,7 +749,7 @@ func (h *HomestayLogic) GetTopHomestays(limit int) ([]types.Homestay, error) {
 			reviewList = append(reviewList, types.Review{
 				ID:         review.ID,
 				GuestID:    review.UserID,
-				Name:       review.UserName,
+				GuestName:  review.UserName,
 				HomestayID: review.HomestayID,
 				BookingID:  review.BookingID,
 				Rating:     review.Rating,

@@ -83,6 +83,27 @@ func (l *BookingLogic) FilterBookings(ctx context.Context, req *types.FilterBook
 				SubTotal: r.Price * float64(nights), // Tính số đêm
 			})
 		}
+
+		// get review
+		var review types.Review
+		reviewModel, err := l.svcCtx.BookingRepo.GetReviewByBookingID(ctx, booking.ID)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+		if reviewModel != nil {
+			review = types.Review{
+				ID:         reviewModel.ID,
+				BookingID:  reviewModel.BookingID,
+				Rating:     reviewModel.Rating,
+				Comment:    reviewModel.Comment,
+				CreatedAt:  reviewModel.CreatedAt,
+				GuestID:    reviewModel.UserID,
+				GuestName:  reviewModel.UserName,
+				HomestayID: reviewModel.HomestayID,
+			}
+		}
+
 		respBookings = append(respBookings, types.Booking{
 			ID:            booking.ID,
 			BookingCode:   booking.BookingCode,
@@ -98,6 +119,7 @@ func (l *BookingLogic) FilterBookings(ctx context.Context, req *types.FilterBook
 			PaymentMethod: booking.PaymentMethod,
 			PaidAmount:    booking.PaidAmount,
 			Rooms:         respRooms,
+			Review:        review,
 		})
 	}
 

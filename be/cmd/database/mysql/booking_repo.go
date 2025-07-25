@@ -467,3 +467,17 @@ func (r *bookingRepository) CreateReview(ctx context.Context, review *model.Revi
 	}
 	return &rv, nil
 }
+
+// GetReviewByBookingID lấy review theo booking ID
+func (r *bookingRepository) GetReviewByBookingID(ctx context.Context, bookingID int) (*model.Review, error) {
+	query := `SELECT * FROM review WHERE booking_id = $1 LIMIT 1`
+	var review model.Review
+	err := r.db.GetContext(ctx, &review, query, bookingID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("review not found for booking ID %d", bookingID)
+		}
+		return nil, fmt.Errorf("failed to get review: %w", err)
+	}
+	return &review, nil
+}
