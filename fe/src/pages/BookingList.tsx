@@ -14,10 +14,12 @@ import {
   Check,
   X,
   Plus,
+  Book,
 } from 'lucide-react';
 import { Booking } from '../types';
 import { bookingService } from '../services/bookingService';
 import { useConfirm } from '../components/ConfirmDialog';
+import BookingDetailModal from '../components/Booking/DetailBookingModal';
 
 // const mockRooms: Room[] = [];
 
@@ -36,6 +38,8 @@ function BookingList() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showDetailBooking, setShowDetailBooking] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -134,9 +138,9 @@ function BookingList() {
       color: 'text-blue-600 hover:text-blue-800',
       action: () => {
         console.log('View booking', booking.id);
-
-        // Mở modal xem chi tiết booking
-        // setShowDetailBooking(booking);
+        
+        setSelectedBooking(booking);
+        setShowDetailBooking(true);
       }
     });
 
@@ -287,19 +291,6 @@ function BookingList() {
   return (
     <div className="min-h-screen bg-gray-50" onClick={() => setActiveDropdown(null)}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        {/* <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setShowNewBookingForm(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Tạo đặt phòng mới
-            </button>
-          </div>
-        </div> */}
-
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -637,6 +628,12 @@ function BookingList() {
           </div>
         )}
       </div>
+
+      <BookingDetailModal
+        isOpen={showDetailBooking}
+        onClose={() => setShowDetailBooking(false)}
+        booking={selectedBooking}
+      />
     </div>
   );
 }
