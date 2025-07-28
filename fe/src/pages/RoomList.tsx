@@ -57,7 +57,7 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
               <span className="px-2 py-1 bg-gray-100 rounded">Sức chứa: {room.capacity} người</span>
               {room.area && <span className="px-2 py-1 bg-gray-100 rounded">Diện tích: {room.area} m²</span>}
               <span className="px-2 py-1 bg-gray-100 rounded">Giá: {room.price?.toLocaleString('vi-VN')} đ/{priceTypeLabel(room.priceType)}</span>
-              <span className="px-2 py-1 bg-gray-100 rounded">Trạng thái: {statusLabel(room.status)}</span>
+              {/* <span className="px-2 py-1 bg-gray-100 rounded">Trạng thái: {statusLabel(room.status)}</span> */}
             </div>
             {room.description && (
               <div className="text-gray-600 text-sm mb-2 line-clamp-2">{room.description}</div>
@@ -80,6 +80,7 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
           <div className="md:w-1/4 w-full flex flex-col items-center justify-center p-4 border-t md:border-t-0 md:border-l border-gray-100">
             <button
               className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition mb-2"
+              onClick={() => onViewRoom && onViewRoom(room.id)}
             >
               Xem chi tiết
             </button>

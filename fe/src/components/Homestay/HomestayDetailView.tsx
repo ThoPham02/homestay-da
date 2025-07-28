@@ -4,11 +4,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { homestayService } from '../../services/homestayService';
 import RoomList from '../../pages/RoomList';
+import ViewRoomModal from '../Room/ViewRoomModal';
 
 function HomestayDetailView() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [homestay, setHomestay] = useState<Homestay>({} as Homestay);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchHomestay = async () => {
@@ -35,6 +38,8 @@ function HomestayDetailView() {
 
     const handleViewRoom = (roomId: number) => {
         console.log('View room:', roomId);
+        setSelectedRoomId(roomId);
+        setIsModalOpen(true);
     };
 
     return (
@@ -269,6 +274,13 @@ function HomestayDetailView() {
                     </div>
                 </div>
             </div>
+
+            <ViewRoomModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                room={homestay?.rooms?.find(room => room.id === selectedRoomId) || null}
+                isEdit={false}
+            />
         </div>
     );
 }
