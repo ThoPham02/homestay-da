@@ -501,7 +501,17 @@ func (h *HomestayLogic) GetPublicHomestayList(req *types.HomestayListRequest) (*
 		searchReq.GuestCount = &req.Guests
 	}
 
-	homestays, total, err := h.svcCtx.HomestayRepo.SearchAvailable(h.ctx, searchReq)
+	var homestays []*model.Homestay
+	var total int
+	var err error
+
+	if req.CheckIn != "" || req.CheckOut != "" || req.Guests > 0 {
+		homestays, total, err = h.svcCtx.HomestayRepo.SearchAvailable(h.ctx, searchReq)
+		} else {
+		homestays, total, err = h.svcCtx.HomestayRepo.Search(h.ctx, searchReq)
+	}
+
+
 	if err != nil {
 		logx.Error(err)
 		return nil, err
