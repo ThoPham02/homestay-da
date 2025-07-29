@@ -51,14 +51,17 @@ type HomestayUpdateRequest struct {
 
 // HomestaySearchRequest request tìm kiếm homestay
 type HomestaySearchRequest struct {
-	Name     *string `json:"name"`
-	Address  *string `json:"address"`
-	City     *string `json:"city"`
-	District *string `json:"district"`
-	Status   *string `json:"status" binding:"omitempty,oneof=active inactive"`
-	OwnerID  *int    `json:"ownerId"`
-	Page     int     `json:"page" binding:"min=1"`
-	PageSize int     `json:"pageSize" binding:"min=1,max=100"`
+	Name       *string `json:"name"`
+	Address    *string `json:"address"`
+	City       *string `json:"city"`
+	District   *string `json:"district"`
+	Status     *string `json:"status" binding:"omitempty,oneof=active inactive"`
+	OwnerID    *int    `json:"ownerId"`
+	CheckIn    *string `json:"checkIn" binding:"omitempty,datetime=2006-01-02"`
+	CheckOut   *string `json:"checkOut" binding:"omitempty,datetime=2006-01-02"`
+	GuestCount *int    `json:"guestCount"`
+	Page       int     `json:"page" binding:"min=1"`
+	PageSize   int     `json:"pageSize" binding:"min=1,max=100"`
 }
 
 // HomestayStats thống kê homestay

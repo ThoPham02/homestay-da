@@ -65,11 +65,14 @@ type UpdateHomestayRequest struct {
 // HomestayListRequest - Request to get list of homestays
 type HomestayListRequest struct {
 	Page     int    `json:"page" form:"page" validate:"min=1"`
-	PageSize int    `json:"pageSize" form:"page_size" validate:"min=1,max=100"`
+	PageSize int    `json:"pageSize" form:"pageSize" validate:"min=1,max=100"`
 	Search   string `json:"search" form:"search" validate:"omitempty"`
 	Status   string `json:"status" form:"status" validate:"omitempty,oneof=active inactive"`
 	City     string `json:"city" form:"city" validate:"omitempty"`
 	District string `json:"district" form:"district" validate:"omitempty"`
+	CheckIn  string `json:"checkIn" form:"checkIn" validate:"omitempty,datetime=2006-01-02"`
+	CheckOut string `json:"checkOut" form:"checkOut" validate:"omitempty,datetime=2006-01-02"`
+	Guests   int    `json:"guests" form:"guests" validate:"omitempty,min=1"`
 }
 
 // HomestayListResponse - Response for homestay list

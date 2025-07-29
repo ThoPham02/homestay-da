@@ -30,4 +30,7 @@ type HomestayRepository interface {
 
 	// GetTopHomestays lấy danh sách homestay nổi bật
 	GetTopHomestays(ctx context.Context, limit int) ([]*model.Homestay, error)
+
+	// SearchAvailable tìm kiếm homestay có sẵn theo yêu cầu
+	SearchAvailable(ctx context.Context, req *model.HomestaySearchRequest) ([]*model.Homestay, int, error)
 } 

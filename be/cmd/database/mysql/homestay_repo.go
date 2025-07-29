@@ -318,6 +318,124 @@ func (r *HomestayRepo) Search(ctx context.Context, req *model.HomestaySearchRequ
 	return homestays, total, nil
 }
 
+func (r *HomestayRepo) SearchAvailable(ctx context.Context, req *model.HomestaySearchRequest) ([]*model.Homestay, int, error) {
+	countQuery := `
+		SELECT COUNT(*) FROM homestay h
+		WHERE h.status = 'active'
+		AND EXISTS (
+			SELECT 1 FROM room r
+			WHERE r.homestay_id = h.id
+			  AND r.status = 'available'
+			  AND r.id NOT IN (
+				SELECT br.room_id
+				FROM booking_room br
+				JOIN booking b ON br.booking_id = b.id
+				WHERE b.status = 'confirmed'
+				  AND (b.check_in, b.check_out) OVERLAPS ($1::date, $2::date)
+			  )
+			GROUP BY r.homestay_id
+			HAVING SUM(r.capacity) >= $3
+		)
+	`
+
+	searchQuery := `
+		SELECT h.id, h.name, h.description, h.address, h.city, h.district, h.ward,
+			   h.latitude, h.longitude, h.owner_id, h.status, h.created_at, h.updated_at,
+			   u.name as owner_name
+		FROM homestay h
+		LEFT JOIN "user" u ON h.owner_id = u.id
+		WHERE h.status = 'active'
+		AND EXISTS (
+			SELECT 1 FROM room r
+			WHERE r.homestay_id = h.id
+			  AND r.status = 'available'
+			  AND r.id NOT IN (
+				SELECT br.room_id
+				FROM booking_room br
+				JOIN booking b ON br.booking_id = b.id
+				WHERE b.status = 'confirmed'
+				  AND (b.check_in, b.check_out) OVERLAPS ($1::date, $2::date)
+			  )
+			GROUP BY r.homestay_id
+			HAVING SUM(r.capacity) >= $3
+		)
+	`
+
+	var args []interface{}
+	args = append(args, req.CheckIn, req.CheckOut, req.GuestCount)
+	paramCount := 4
+
+	// Các điều kiện lọc bổ sung
+	if req.Name != nil && *req.Name != "" {
+		countQuery += fmt.Sprintf(" AND h.name ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.name ILIKE $%d", paramCount)
+		args = append(args, "%"+*req.Name+"%")
+		paramCount++
+	}
+
+	if req.City != nil && *req.City != "" {
+		countQuery += fmt.Sprintf(" AND h.city ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.city ILIKE $%d", paramCount)
+		args = append(args, "%"+*req.City+"%")
+		paramCount++
+	}
+
+	if req.District != nil && *req.District != "" {
+		countQuery += fmt.Sprintf(" AND h.district ILIKE $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.district ILIKE $%d", paramCount)
+		args = append(args, "%"+*req.District+"%")
+		paramCount++
+	}
+
+	if req.OwnerID != nil && *req.OwnerID != 0 {
+		countQuery += fmt.Sprintf(" AND h.owner_id = $%d", paramCount)
+		searchQuery += fmt.Sprintf(" AND h.owner_id = $%d", paramCount)
+		args = append(args, *req.OwnerID)
+		paramCount++
+	}
+
+	// Đếm tổng số
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error counting homestays: %w", err)
+	}
+
+	// Phân trang
+	offset := (req.Page - 1) * req.PageSize
+	searchQuery += fmt.Sprintf(" ORDER BY h.created_at DESC LIMIT $%d OFFSET $%d", paramCount, paramCount+1)
+	args = append(args, req.PageSize, offset)
+
+	// Truy vấn dữ liệu
+	rows, err := r.db.QueryContext(ctx, searchQuery, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error searching homestays: %w", err)
+	}
+	defer rows.Close()
+
+	var homestays []*model.Homestay
+	for rows.Next() {
+		var homestay model.Homestay
+		err := rows.Scan(
+			&homestay.ID, &homestay.Name, &homestay.Description, &homestay.Address,
+			&homestay.City, &homestay.District, &homestay.Ward, &homestay.Latitude,
+			&homestay.Longitude, &homestay.OwnerID, &homestay.Status,
+			&homestay.CreatedAt, &homestay.UpdatedAt, &homestay.OwnerName,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error scanning homestay: %w", err)
+		}
+		homestays = append(homestays, &homestay)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error iterating homestays: %w", err)
+	}
+
+	return homestays, total, nil
+}
+
+
 // GetStats lấy thống kê homestay
 func (r *HomestayRepo) GetStats(ctx context.Context) (*model.HomestayStats, error) {
 	query := `
