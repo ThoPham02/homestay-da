@@ -403,3 +403,24 @@ func (h *HomestayHandler) GetTopHomestays(c *gin.Context) {
 
 	response.ResponseSuccess(c, topHomestays)
 }
+
+// GetHomestayReviews - Get reviews for a homestay
+// @Summary Get reviews for a homestay
+func (h *HomestayHandler) GetHomestayReviews(c *gin.Context) {
+	// Get homestay ID from URL
+	homestayIDStr := c.Param("id")
+	homestayID, err := strconv.Atoi(homestayIDStr)
+	if err != nil {
+		response.ResponseError(c, response.BadRequest, response.MsgInvalidID)
+		return
+	}
+
+	// Get reviews
+	reviews, err := h.homestayLogic.GetHomestayReviews(homestayID)
+	if err != nil {
+		response.ResponseError(c, response.InternalServerError, response.MsgDatabaseError)
+		return
+	}
+
+	response.ResponseSuccess(c, reviews)
+}

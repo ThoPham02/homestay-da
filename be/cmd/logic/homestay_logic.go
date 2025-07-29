@@ -619,6 +619,7 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 	}
 	for _, rm := range roomModels {
 		var images []string
+		var amenities []string
 		if len(rm.Images) > 0 {
 			// unmarshal JSON string to slice
 			err := json.Unmarshal([]byte(rm.Images), &images)
@@ -627,6 +628,17 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 				return nil, err
 			}
 		}
+		if len(rm.Amenities) > 0 {
+			// unmarshal JSON string to slice
+			err := json.Unmarshal([]byte(rm.Amenities), &amenities)
+			if err != nil {
+				logx.Error(err)
+				return nil, err
+			}
+		}
+
+		logx.Info("Room: ", rm.Images, rm.Amenities)
+
 		rooms = append(rooms, types.Room{
 			ID:          rm.ID,
 			Name:        rm.Name,
@@ -639,6 +651,7 @@ func (h *HomestayLogic) GetPublicHomestayByID(homestayID int) (*types.HomestayDe
 			UpdatedAt:   rm.UpdatedAt,
 			HomestayID:  rm.HomestayID,
 			Images:      images,
+			Amenities:   amenities,
 		})
 	}
 
@@ -794,4 +807,30 @@ func (h *HomestayLogic) GetTopHomestays(limit int) ([]types.Homestay, error) {
 		})
 	}
 	return respList, nil
+}
+
+
+// get reviews for a homestay
+func (h *HomestayLogic) GetHomestayReviews(homestayID int) ([]types.Review, error) {
+	reviews, _, err := h.svcCtx.ReviewRepo.GetByHomestayID(h.ctx, homestayID, 1, 100)
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	var reviewList []types.Review
+	for _, review := range reviews {
+		reviewList = append(reviewList, types.Review{
+			ID:         review.ID,
+			GuestID:    review.UserID,
+			GuestName:  review.UserName,
+			HomestayID: review.HomestayID,
+			BookingID:  review.BookingID,
+			Rating:     review.Rating,
+			Comment:    review.Comment,
+			CreatedAt:  review.CreatedAt,
+		})
+	}
+
+	return reviewList, nil
 }

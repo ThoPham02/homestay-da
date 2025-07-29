@@ -249,6 +249,8 @@ func (r *RoomLogic) GetRoomList(req *types.RoomListRequest, hostID int) (*types.
 
 // UpdateRoom - Update room
 func (r *RoomLogic) UpdateRoom(roomID int, req *types.UpdateRoomRequest, hostID int) (*types.RoomDetailResponse, error) {
+	logx.Info("Updating room:", roomID, req)
+
 	// Lấy thông tin room hiện tại
 	room, err := r.svcCtx.RoomRepo.GetByID(r.ctx, roomID)
 	if err != nil {
@@ -276,6 +278,8 @@ func (r *RoomLogic) UpdateRoom(roomID int, req *types.UpdateRoomRequest, hostID 
 		Price:       req.Price,
 		PriceType:   req.PriceType,
 		Status:      req.Status,
+		Images:      req.Images,
+		Amenities:   req.Amenities,
 	}
 
 	// Cập nhật room

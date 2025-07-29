@@ -129,37 +129,28 @@ func (r *roomRepository) Update(ctx context.Context, id int, req *model.RoomUpda
 		argIndex++
 	}
 
-	// Thêm cập nhật images
-	if imgs, ok := any(req).(map[string]interface{}); ok {
-		if v, ok := imgs["images"]; ok && v != nil {
-			var imageUrls string
-			if arr, ok := v.([]string); ok {
-				if b, err := json.Marshal(arr); err == nil {
-					imageUrls = string(b)
-				} else {
-					imageUrls = strings.Join(arr, ",")
-				}
-				setClauses = append(setClauses, fmt.Sprintf("image_urls = $%d", argIndex))
-				args = append(args, imageUrls)
-				argIndex++
-			}
+	// json.Marshal(req.Images)
+	if len(req.Images) > 0 {
+		var images string
+		if b, err := json.Marshal(req.Images); err == nil {
+			images = string(b)
+		} else {
+			images = strings.Join(req.Images, ",")
 		}
+		setClauses = append(setClauses, fmt.Sprintf("image_urls = $%d", argIndex))
+		args = append(args, images)
+		argIndex++
 	}
-	// Thêm cập nhật amenities
-	if ams, ok := any(req).(map[string]interface{}); ok {
-		if v, ok := ams["amenities"]; ok && v != nil {
-			var amenities string
-			if arr, ok := v.([]string); ok {
-				if b, err := json.Marshal(arr); err == nil {
-					amenities = string(b)
-				} else {
-					amenities = strings.Join(arr, ",")
-				}
-				setClauses = append(setClauses, fmt.Sprintf("amenities = $%d", argIndex))
-				args = append(args, amenities)
-				argIndex++
-			}
+	if len(req.Amenities) > 0 {
+		var amenities string
+		if b, err := json.Marshal(req.Amenities); err == nil {
+			amenities = string(b)
+		} else {
+			amenities = strings.Join(req.Amenities, ",")
 		}
+		setClauses = append(setClauses, fmt.Sprintf("amenities = $%d", argIndex))
+		args = append(args, amenities)
+		argIndex++
 	}
 
 	if len(setClauses) == 0 {

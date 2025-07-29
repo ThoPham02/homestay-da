@@ -280,6 +280,7 @@ function HomestayDetailView() {
                 onClose={() => setIsModalOpen(false)}
                 room={homestay?.rooms?.find(room => room.id === selectedRoomId) || null}
                 isEdit={false}
+                readonly={true}
             />
         </div>
     );

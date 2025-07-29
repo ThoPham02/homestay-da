@@ -45,6 +45,8 @@ type RoomUpdateRequest struct {
 	Price       *float64 `json:"price" binding:"omitempty,min=0"`
 	PriceType   *string  `json:"priceType"`
 	Status      *string  `json:"status"`
+	Images      []string   `json:"images,omitempty"`
+	Amenities   []string   `json:"amenities,omitempty"`
 }
 
 // RoomSearchRequest request tìm kiếm room

@@ -8,6 +8,7 @@ interface ViewRoomModalProps {
   onClose: () => void;
   room: Room | null;
   isEdit: boolean;
+  readonly?: boolean; // New prop to indicate read-only mode
 }
 
 const roomTypes = [
@@ -23,7 +24,7 @@ const commonAmenities = [
   'Bồn tắm', 'Vòi sen', 'Đồ vệ sinh cá nhân', 'Khăn tắm'
 ];
 
-const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, isEdit }) => {
+const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, isEdit, readonly }) => {
   const [isEditing, setIsEditing] = useState(isEdit);
   const [formData, setFormData] = useState<Room | null>(room);
   const [newAmenity, setNewAmenity] = useState('');
@@ -79,6 +80,9 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
     }
   };
 
+  console.log(formData);
+  console.log(isEdit);
+
   if (!isOpen || !formData) return null;
 
   return (
@@ -88,7 +92,7 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Chi tiết phòng</h2>
             <div className="flex items-center gap-2">
-              {!isEditing && (
+              {!readonly && !isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
                   className="text-blue-600 hover:text-blue-800 p-1 rounded-full border border-blue-200 hover:bg-blue-50 flex items-center gap-1 px-4"
@@ -153,7 +157,7 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                     required
                   />
                 </div>
-                <div>
+                {!readonly && (<div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
                   <select
                     value={formData.status}
@@ -164,7 +168,7 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                     <option value="occupied">Đang sử dụng</option>
                     <option value="maintenance">Bảo trì</option>
                   </select>
-                </div>
+                </div>)}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
@@ -176,54 +180,6 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                   required
                 />
               </div>
-              {/* Tiện ích */}
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Tiện nghi phòng</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
-                  {commonAmenities.map((amenity) => (
-                    <button
-                      key={amenity}
-                      type="button"
-                      onClick={() =>
-                        formData.amenities?.includes(amenity)
-                          ? removeAmenity(amenity)
-                          : addAmenityToList(amenity)
-                      }
-                      className={`px-3 py-1 rounded-full text-xs font-medium border ${formData.amenities?.includes(amenity) ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                    >
-                      {amenity}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newAmenity}
-                    onChange={e => setNewAmenity(e.target.value)}
-                    className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    placeholder="Thêm tiện ích khác..."
-                  />
-                  <button
-                    type="button"
-                    onClick={addCustomAmenity}
-                    className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
-                  >
-                    Thêm
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.amenities?.map((amenity, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium flex items-center gap-1"
-                    >
-                      {amenity}
-                      <button type="button" onClick={() => removeAmenity(amenity)} className="ml-1 text-red-500">&times;</button>
-                    </span>
-                  ))}
-                </div>
-              </div> */}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Tiện nghi phòng
@@ -341,16 +297,21 @@ const ViewRoomModal: React.FC<ViewRoomModalProps> = ({ isOpen, onClose, room, is
                   <label className="block text-sm font-medium text-gray-700 mb-2">Giá phòng/đêm</label>
                   <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">{formData.price.toLocaleString()} VNĐ</div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                  <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">{formData.status}</div>
-                </div>
+                {!readonly && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">{formData.status}</div>
+                  </div>
+                )}
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
                 <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">{formData.description}</div>
               </div>
               {/* Tiện ích */}
+
+                {console.log(formData)}
+
               {Array.isArray(formData.amenities) && formData.amenities.length > 0 && (
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tiện ích</label>

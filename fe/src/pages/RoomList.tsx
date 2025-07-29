@@ -9,18 +9,18 @@ interface RoomListProps {
 const priceTypeLabel = (type: Room['priceType']) =>
   type === 'per_night' ? 'phòng/đêm' : 'người/đêm';
 
-const statusLabel = (status: Room['status']) => {
-  switch (status) {
-    case 'available':
-      return <span className="text-primary-600 font-semibold">Còn phòng</span>;
-    case 'occupied':
-      return <span className="text-yellow-600 font-semibold">Đã đặt</span>;
-    case 'maintenance':
-      return <span className="text-gray-500 font-semibold">Bảo trì</span>;
-    default:
-      return status;
-  }
-};
+// const statusLabel = (status: Room['status']) => {
+//   switch (status) {
+//     case 'available':
+//       return <span className="text-primary-600 font-semibold">Còn phòng</span>;
+//     case 'occupied':
+//       return <span className="text-yellow-600 font-semibold">Đã đặt</span>;
+//     case 'maintenance':
+//       return <span className="text-gray-500 font-semibold">Bảo trì</span>;
+//     default:
+//       return status;
+//   }
+// };
 
 const RoomList: React.FC<RoomListProps> = ({ rooms, onViewRoom}) => {
   if (!rooms || rooms.length === 0) {

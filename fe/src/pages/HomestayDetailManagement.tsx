@@ -23,6 +23,7 @@ const HomestayDetailManagement: React.FC = () => {
   const [showEditRoomModal, setShowEditRoomModal] = useState(false);
   const [roomData, setRoomData] = useState<Room | null>(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [action, setAction] = useState<'add' | 'edit' | 'view'>('add');
 
   const [bookings, setBookings] = useState<Booking[]>([]); // Danh sách đặt phòng
   const [homestay, setHomestay] = useState<Homestay | null>(null);
@@ -114,6 +115,39 @@ const HomestayDetailManagement: React.FC = () => {
   };
 
   const handleAddRoomSubmit = async (room: any) => {
+    if (action === 'edit' && !roomData) return;
+
+    if (action === 'edit') {
+      // Cập nhật phòng
+      console.log("Updating room:", roomData?.id, room);
+      try {
+        console.log("Submitting room update:", roomData?.id, room);
+
+
+        await homestayService.updateRoom( roomData?.id || 0, {
+          name: room.name,
+          description: room.description,
+          type: room.type,
+          capacity: room.capacity,
+          price: room.price,
+          priceType: room.priceType || 'per_night',
+          amenities: room.amenities,
+          images: room.images,
+        });
+        // Chuyển về trang quản lý homestay với state để reload danh sách phòng
+        navigate(`/management/homestay/${id}`, {
+          state: {
+            activeTab: 'rooms',
+            refreshRooms: true
+          }
+        });
+      } catch (error) {
+        // Có thể show toast lỗi ở đây nếu muốn
+      }
+      return;
+    }
+
+
     if (!id) return;
 
     console.log("Submitting room:", room);
@@ -180,8 +214,9 @@ const HomestayDetailManagement: React.FC = () => {
       amenities: roomDetail.room.amenities,
       images: roomDetail.room.images,
     } as Room);
-    setIsEdit(true);
-    setShowEditRoomModal(true);
+
+    setAction('view');
+    setShowAddRoomModal(true);
   };
 
   const handleRefreshRooms = async () => {
@@ -212,8 +247,9 @@ const HomestayDetailManagement: React.FC = () => {
       amenities: roomDetail.room.amenities,
       images: roomDetail.room.images,
     } as Room);
-    setIsEdit(true);
-    setShowEditRoomModal(true);
+
+    setAction('edit');
+    setShowAddRoomModal(true);
   }
 
   const handleDeleteRoom = (roomId: number) => {
@@ -600,6 +636,23 @@ const HomestayDetailManagement: React.FC = () => {
 
             {activeTab === 'reviews' && (
               <div className="space-y-6">
+                <h2 className="text-xl font-semibold mb-4">Đánh giá Homestay</h2>
+                {homestay.totalReviews && homestay.totalReviews > 0 ? (
+                  <div className="space-y-4">
+                    {homestay.reviews?.map((review) => (
+                      <div key={review.id} className="bg-white p-4 rounded-lg shadow-sm">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Star className="h-5 w-5 text-yellow-400" />
+                          <span className="font-medium">{review.rating}</span>
+                        </div>
+                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="text-sm text-gray-500 mt-2">Bởi {review.guestName} vào {new Date(review.createdAt ?? '').toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">Chưa có đánh giá nào cho homestay này.</p>
+                )}
               </div>
             )}
 
@@ -621,14 +674,16 @@ const HomestayDetailManagement: React.FC = () => {
         onClose={handleAddRoomClose}
         onSubmit={handleAddRoomSubmit}
         homestayId={id ? Number(id) : 0}
+        room={roomData}
+        action={action}
       />
 
-      <ViewRoomModal 
+      {/* <ViewRoomModal 
         isOpen={showEditRoomModal}
         onClose={() => setShowEditRoomModal(false)}
         room={roomData}
         isEdit={isEdit}
-      />
+      /> */}
     </div>
   );
 };

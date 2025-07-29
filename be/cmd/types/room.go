@@ -41,6 +41,8 @@ type UpdateRoomRequest struct {
 	Price       *float64 `json:"price,omitempty" validate:"omitempty,min=0"`
 	PriceType   *string  `json:"priceType,omitempty" validate:"omitempty,oneof=per_night per_person"`
 	Status      *string  `json:"status,omitempty" validate:"omitempty,oneof=available occupied maintenance"`
+	Images      []string `json:"images,omitempty"`
+	Amenities   []string `json:"amenities,omitempty"`
 }
 
 // RoomListRequest - Request to get list of rooms

@@ -158,6 +158,9 @@ class HomestayService {
 
   async updateRoom(id: number, data: UpdateRoomRequest): Promise<Room> {
     try {
+      console.log('Updating room:----------------------------', id, data);
+
+
       const response = await api.put(`/api/host/rooms/${id}`, data);
       toastService.success('Cập nhật phòng thành công');
       return response.data;

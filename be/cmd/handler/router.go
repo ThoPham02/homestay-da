@@ -80,6 +80,7 @@ func RegisterHandlers(router *gin.Engine, serverCtx *svc.ServiceContext) {
 			host.PUT("/homestays/:id/toggle-status", homestayHandler.ToggleHomestayStatus)
 			host.DELETE("/homestays/:id", homestayHandler.DeleteHomestay)
 			host.GET("/homestays/:id/stats", homestayHandler.GetHomestayStatsByID)
+			host.GET("/homestays/:id/review", homestayHandler.GetHomestayReviews)
 
 			// Room management
 			host.POST("/rooms", roomHandler.CreateRoom)
