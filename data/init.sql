@@ -4,6 +4,7 @@ CREATE TABLE "user" (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'host', 'guest')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
